@@ -74,7 +74,7 @@ export default function NotificationsScreen() {
                       {getTypeEmoji(notification.type)}
                     </Text>
                   </View>
-                  <View style={styles.content}>
+                  <View style={styles.notificationContent}>
                     <Text style={styles.title}>{notification.title}</Text>
                     <Text style={styles.message} numberOfLines={2}>
                       {notification.message}

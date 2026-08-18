@@ -1,0 +1,82 @@
+import { getPrisma } from "../../../../config/database.js";
+import { logger } from "../../../../config/logger.js";
+import { TontineEngine } from "./engine.service.js";
+import { TontineStatus, CycleStatus, PayoutStatus } from "@prisma/client";
+
+export class PayoutService {
+  constructor(private engine: TontineEngine) {}
+
+  async initiatePayout(tontineId: string, cycleId: string, memberId: string, amount: number) {
+    const prisma = getPrisma();
+
+    const payout = await prisma.payout.create({
+      data: {
+        tontineId,
+        cycleId,
+        memberId,
+        amount,
+        status: PayoutStatus.PENDING,
+        method: "MANUAL",
+        initiatedAt: new Date(),
+      },
+      include: {
+        member: { include: { user: true } },
+        cycle: true,
+        tontine: true,
+      },
+    });
+
+    await prisma.tontineCycle.update({
+      where: { id: cycleId },
+      data: { status: CycleStatus.PAYOUT_PENDING },
+    });
+
+    logger.info("Payout initiated", { payoutId: payout.id, tontineId, cycleId, memberId, amount });
+    return payout;
+  }
+
+  async completePayout(payoutId: string) {
+    const prisma = getPrisma();
+
+    const payout = await prisma.payout.findUnique({ where: { id: payoutId } });
+    if (!payout) {
+      throw new Error("Payout not found");
+    }
+
+    const updatedPayout = await prisma.payout.update({
+      where: { id: payoutId },
+      data: {
+        status: PayoutStatus.COMPLETED,
+        completedAt: new Date(),
+      },
+    });
+
+    await prisma.tontineMember.update({
+      where: { id: payout.memberId },
+      data: { isPayoutReceived: true },
+    });
+
+    logger.info("Payout completed", { payoutId });
+    return updatedPayout;
+  }
+
+  async failPayout(payoutId: string, reason: string) {
+    const prisma = getPrisma();
+
+    const payout = await prisma.payout.findUnique({ where: { id: payoutId } });
+    if (!payout) {
+      throw new Error("Payout not found");
+    }
+
+    const updatedPayout = await prisma.payout.update({
+      where: { id: payoutId },
+      data: {
+        status: PayoutStatus.FAILED,
+        failureReason: reason,
+      },
+    });
+
+    logger.warn("Payout failed", { payoutId, reason });
+    return updatedPayout;
+  }
+}

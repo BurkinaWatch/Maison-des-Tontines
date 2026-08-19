@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { colors, spacing, typography } from "../../src/theme";
+import { colors, spacing, typography } from "../src/theme";
 
 export default function NotFoundScreen() {
   const router = useRouter();

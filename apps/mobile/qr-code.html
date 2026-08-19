@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maison des Tontines - QR Code</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #d4a574 0%, #e8c9a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            color: #a0a0a0;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+        .qr-code {
+            width: 250px;
+            height: 250px;
+            display: block;
+        }
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .instructions h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #d4a574;
+        }
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+            color: #e0e0e0;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        .url-box {
+            background: rgba(212, 165, 116, 0.1);
+            border: 1px solid rgba(212, 165, 116, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #d4a574;
+            word-break: break-all;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(212, 165, 116, 0.2);
+            color: #d4a574;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Maison des Tontines</h1>
+        <p class="subtitle">Scannez ce QR code avec Expo Go</p>
+        
+        <div class="qr-container">
+            <img class="qr-code" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=exp://localhost:8084&bgcolor=ffffff&color=1a1a2e" alt="QR Code Expo Go">
+        </div>
+        
+        <div class="instructions">
+            <h2>📱 Instructions</h2>
+            <ol>
+                <li>Téléchargez l'app <strong>Expo Go</strong> sur votre téléphone</li>
+                <li>Ouvrez Expo Go et appuyez sur "Scan QR Code"</li>
+                <li>Scannez le code ci-dessus</li>
+                <li>L'application se chargera automatiquement</li>
+            </ol>
+            <div class="url-box">
+                URL: exp://localhost:8084
+            </div>
+            <div class="badge">⚠️ Assurez-vous que votre téléphone est sur le même réseau Wi-Fi</div>
+        </div>
+    </div>
+</body>
+</html>

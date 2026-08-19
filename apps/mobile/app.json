@@ -20,16 +20,10 @@
       "package": "com.maisondestontines.app",
       "permissions": ["RECEIVE_BOOT_COMPLETED", "VIBRATE", "RECEIVE_NOTIFICATIONS"]
     },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
       "expo-router",
       "expo-secure-store",
       "expo-notifications",
-      "expo-blur",
       [
         "expo-splash-screen",
         {

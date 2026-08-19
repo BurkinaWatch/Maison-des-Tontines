@@ -120,14 +120,12 @@ export default function LoginScreen() {
                 autoComplete="tel"
               />
               {error ? <Text style={styles.error}>{error}</Text> : null}
-              <Pressable onPress={handleRequestOTP} disabled={isLoading}>
-                <GlassButton
-                  title="Send OTP"
-                  onPress={handleRequestOTP}
-                  loading={isLoading}
-                  style={styles.button}
-                />
-              </Pressable>
+              <GlassButton
+                title="Send OTP"
+                onPress={handleRequestOTP}
+                loading={isLoading}
+                style={styles.button}
+              />
             </View>
           ) : (
             <View>

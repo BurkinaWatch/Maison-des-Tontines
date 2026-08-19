@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { CyclesController } from "./cycles.controller.js";
 import { authMiddleware, requireTontineRole } from "../../middleware/auth.js";
+import { CyclesController } from "./cycles.controller.js";
 
 const router = Router();
 const controller = new CyclesController();

@@ -1,47 +1,39 @@
-import { Router } from "express";
-import { z } from "zod";
-import { validate } from "../../middleware/validate.js";
-import { authMiddleware } from "../../middleware/auth.js";
-import { rbacMiddleware } from "../../middleware/rbac.js";
-import { getPrisma } from "../../config/database.js";
-import { logger } from "../../config/logger.js";
-import { UpdateProfileDto, ChangePasswordDto } from "./dto/update-profile.dto.js";
+import { Request, Response, NextFunction } from "express";
+import { getPrisma } from "../../../../config/database.js";
+import { logger } from "../../../../config/logger.js";
 import bcrypt from "bcrypt";
 
-const router = Router();
-const prisma = getPrisma();
-
-router.get("/me", authMiddleware, async (req: any, res: any, next: any) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.userId },
-      select: {
-        id: true,
-        phone: true,
-        email: true,
-        name: true,
-        role: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
-        trustProfile: true,
-      },
-    });
-    res.json({ user });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.patch(
-  "/me",
-  authMiddleware,
-  validate(UpdateProfileDto),
-  async (req: any, res: any, next: any) => {
+export class UsersController {
+  async getProfile(req: any, res: Response, next: NextFunction) {
     try {
-      const data = req.body as UpdateProfileDto;
-      const user = await prisma.user.update({
-        where: { id: req.userId },
+      const userId = req.userId!;
+      const user = await getPrisma().user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          phone: true,
+          email: true,
+          name: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          trustProfile: true,
+        },
+      });
+      res.json({ user });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateProfile(req: any, res: Response, next: NextFunction) {
+    try {
+      const userId = req.userId!;
+      const data = req.body;
+
+      const user = await getPrisma().user.update({
+        where: { id: userId },
         data,
         select: {
           id: true,
@@ -54,57 +46,46 @@ router.patch(
         },
       });
 
-      logger.info("Profile updated", { userId: req.userId });
+      logger.info("Profile updated", { userId });
       res.json({ user });
     } catch (error) {
       next(error);
     }
   }
-);
 
-router.patch(
-  "/me/password",
-  authMiddleware,
-  validate(ChangePasswordDto),
-  async (req: any, res: any, next: any) => {
+  async changePassword(req: any, res: Response, next: NextFunction) {
     try {
-      const { currentPassword, newPassword } = req.body as ChangePasswordDto;
+      const userId = req.userId!;
+      const { currentPassword, newPassword } = req.body;
 
-      const user = await prisma.user.findUnique({
-        where: { id: req.userId },
+      const user = await getPrisma().user.findUnique({
+        where: { id: userId },
       });
 
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
 
-      const validPassword = await bcrypt.compare(currentPassword, user.passwordHash);
-      if (!validPassword) {
-        return res.status(400).json({ error: "Invalid current password" });
-      }
-
       const newPasswordHash = await bcrypt.hash(newPassword, 12);
 
-      await prisma.user.update({
-        where: { id: req.userId },
+      await getPrisma().user.update({
+        where: { id: userId },
         data: { passwordHash: newPasswordHash },
       });
 
-      logger.info("Password changed", { userId: req.userId });
+      logger.info("Password changed", { userId });
       res.json({ message: "Password changed successfully" });
     } catch (error) {
       next(error);
     }
   }
-);
 
-router.get(
-  "/me/trust-profile",
-  authMiddleware,
-  async (req: any, res: any, next: any) => {
+  async getTrustProfile(req: any, res: Response, next: NextFunction) {
     try {
-      const trustProfile = await prisma.trustProfile.findUnique({
-        where: { userId: req.userId },
+      const userId = req.userId!;
+
+      const trustProfile = await getPrisma().trustProfile.findUnique({
+        where: { userId },
       });
 
       if (!trustProfile) {
@@ -116,15 +97,13 @@ router.get(
       next(error);
     }
   }
-);
 
-router.get(
-  "/me/tontines",
-  authMiddleware,
-  async (req: any, res: any, next: any) => {
+  async getUserTontines(req: any, res: Response, next: NextFunction) {
     try {
-      const memberships = await prisma.tontineMember.findMany({
-        where: { userId: req.userId, status: "ACTIVE" },
+      const userId = req.userId!;
+
+      const memberships = await getPrisma().tontineMember.findMany({
+        where: { userId, status: "ACTIVE" },
         include: {
           tontine: {
             include: {
@@ -158,6 +137,4 @@ router.get(
       next(error);
     }
   }
-);
-
-export default router;
+}

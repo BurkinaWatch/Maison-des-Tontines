@@ -1,3 +1,5 @@
+import { Currency } from "./contribution";
+
 export type TontineType = "rotating" | "savings" | "investment" | "social";
 export type TontineStatus = "draft" | "active" | "completed" | "suspended";
 export type CycleStatus = "upcoming" | "current" | "completed" | "skipped";
@@ -12,7 +14,7 @@ export interface Tontine {
   type: TontineType;
   status: TontineStatus;
   amount: number;
-  currency: string;
+  currency: Currency;
   frequency: "weekly" | "biweekly" | "monthly" | "quarterly";
   totalMembers: number;
   currentCycle: number;

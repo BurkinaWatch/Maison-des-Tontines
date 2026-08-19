@@ -1,1 +1,1 @@
-export { RegisterDto, VerifyOtpDto, LoginDto, RefreshTokenDto, ResendOtpDto } from "./register.dto.js";
+export { RequestOtpDto, VerifyOtpDto, LoginDto, RegisterDto, RefreshTokenDto, ResendOtpDto } from "./register.dto.js";

@@ -12,7 +12,6 @@ import { AppHeader } from "../../src/components/layout/AppHeader";
 import { GlassCard, StatusBadge } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useNotifications } from "../../src/hooks/useNotifications";
-import { Notification } from "../../src/services/notification.service";
 import { formatRelativeDate } from "../../src/utils/formatters";
 
 export default function NotificationsScreen() {

@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+export const RequestOtpDto = z.object({
+  phone: z.string().regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number format"),
+});
+
 export const RegisterDto = z.object({
   phone: z.string().regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number format"),
   email: z.string().email().optional().nullable(),

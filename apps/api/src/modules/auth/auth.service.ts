@@ -7,7 +7,7 @@ import { AuthResponse, AuthPayload } from "../../types/user.types.js";
 import { generateOtp, validatePhone, normalizePhone } from "../../utils/phone.js";
 import { generateIdempotencyKey } from "../../utils/idempotency.js";
 import { RegisterInput, VerifyOtpInput, LoginInput, RefreshTokenInput } from "../dto/register.dto.js";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 export class AuthService {
   private prisma = getPrisma();
@@ -34,7 +34,7 @@ export class AuthService {
       `INSERT INTO "otp_verifications" (id, "phone", "otp", "expiresAt", "createdAt")
        VALUES ($1, $2, $3, $4, NOW())
        ON CONFLICT ("phone") DO UPDATE SET "otp" = $3, "expiresAt" = $4, "createdAt" = NOW()`,
-      uuidv4(),
+      randomUUID(),
       normalizedPhone,
       otp,
       otpExpiry

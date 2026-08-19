@@ -5,18 +5,16 @@ import { useTontineStore } from "../store/tontineStore";
 export const useTontines = () => {
   const queryClient = useQueryClient();
   const {
-    tontines,
     selectedTontine,
     isLoading: storeLoading,
-    fetchTontines,
     fetchTontine,
     selectTontine,
     createTontine,
-    updateTontine,
+    updateTontine: storeUpdateTontine,
     deleteTontine,
   } = useTontineStore();
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data = [], isLoading, error, refetch } = useQuery({
     queryKey: ["tontines"],
     queryFn: () => tontineService.getTontines(),
     staleTime: 60 * 1000,
@@ -45,12 +43,11 @@ export const useTontines = () => {
   });
 
   return {
-    tontines: data || tontines,
+    tontines: data,
     selectedTontine,
     isLoading: isLoading || storeLoading,
     error,
     refetch,
-    fetchTontines,
     fetchTontine,
     selectTontine,
     createTontine: (data: Parameters<typeof tontineService.createTontine>[0]) =>

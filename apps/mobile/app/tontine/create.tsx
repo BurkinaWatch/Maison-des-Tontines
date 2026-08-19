@@ -1,13 +1,23 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { SafeAreaWrapper } from "../../src/components/layout";
 import { AppHeader } from "../../src/components/layout/AppHeader";
 import { CreateTontineForm } from "../../src/components/forms/CreateTontineForm";
 import { colors, spacing } from "../../src/theme";
+import { useTontines } from "../../src/hooks/useTontines";
+import { useRouter } from "expo-router";
 
 export default function CreateTontineScreen() {
+  const router = useRouter();
+  const { createTontine } = useTontines();
+
   const handleSubmit = async (data: any) => {
-    console.log("Creating tontine:", data);
+    try {
+      await createTontine(data);
+      router.replace("/(tabs)/tontines");
+    } catch (error) {
+      console.error("Failed to create tontine:", error);
+    }
   };
 
   return (

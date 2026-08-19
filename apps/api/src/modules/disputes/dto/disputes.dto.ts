@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const OpenDisputeDto = z.object({
+export const CreateDisputeDto = z.object({
   tontineId: z.string(),
   cycleId: z.string().optional().nullable(),
   contributionId: z.string().optional().nullable(),
@@ -12,5 +12,5 @@ export const ResolveDisputeDto = z.object({
   decision: z.string().min(10, "Decision must be at least 10 characters"),
 });
 
-export type OpenDisputeInput = z.infer<typeof OpenDisputeDto>;
+export type CreateDisputeInput = z.infer<typeof CreateDisputeDto>;
 export type ResolveDisputeInput = z.infer<typeof ResolveDisputeDto>;

@@ -3,16 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaWrapper } from "../../src/components/layout";
 import { AppHeader } from "../../src/components/layout/AppHeader";
-import { GlassCard, GlassButton, PaymentForm } from "../../src/components";
-import { colors, spacing, typography } from "../../src/theme";
-
-const { PaymentForm: PF } = require("../../src/components/forms/PaymentForm");
+import { PaymentForm } from "../../src/components/forms/PaymentForm";
+import { colors, spacing } from "../../src/theme";
 
 export default function PayContributionScreen() {
   const router = useRouter();
@@ -38,7 +35,7 @@ export default function PayContributionScreen() {
     <SafeAreaWrapper>
       <AppHeader title="Make Payment" showBack showProfile />
       <View style={styles.container}>
-        <PF
+        <PaymentForm
           contributionId={params.tontineId || "demo"}
           amount={50000}
           currency="FCFA"

@@ -1,6 +1,7 @@
 import { Router } from "express";
+import { authMiddleware, requireTontineRole } from "../../middleware/auth.js";
 import { ContributionsController } from "./contributions.controller.js";
-import { authMiddleware, requireTontineRole, validate } from "../../middleware/auth.js";
+import { validate } from "../../middleware/validate.js";
 import { RecordContributionDto } from "./dto/contributions.dto.js";
 
 const router = Router();

@@ -129,14 +129,12 @@ export default function RegisterScreen() {
                 autoComplete="tel"
               />
               {error ? <Text style={styles.error}>{error}</Text> : null}
-              <Pressable onPress={handleRequestOTP} disabled={isLoading}>
-                <GlassButton
-                  title="Continue"
-                  onPress={handleRequestOTP}
-                  loading={isLoading}
-                  style={styles.button}
-                />
-              </Pressable>
+              <GlassButton
+                title="Continue"
+                onPress={handleRequestOTP}
+                loading={isLoading}
+                style={styles.button}
+              />
             </View>
           ) : (
             <View>

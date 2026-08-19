@@ -1,22 +1,18 @@
 import { Request, Response, NextFunction } from "express";
+import bcrypt from "bcrypt";
 import { getPrisma } from "../../../../config/database.js";
 import { logger } from "../../../../config/logger.js";
-import { normalizePhone, validatePhone } from "../../../../utils/phone.js";
 import { tontineEngineModule } from "../tontines/tontine-engine/module.js";
-import bcrypt from "bcrypt";
 
 export class MembershipsController {
-  private engine = tontineEngineModule.getEngine();
-
   async inviteMember(req: any, res: Response, next: NextFunction) {
     try {
       const { tontineId } = req.params;
-      const { phone } = req.body as any;
+      const { phone } = req.body;
       const userId = req.userId!;
 
-      const normalizedPhone = normalizePhone(phone);
-
-      if (!validatePhone(normalizedPhone)) {
+      const normalizedPhone = phone.replace(/[\s\-()]/g, "").replace(/^00/, "+");
+      if (!/^\+[1-9]\d{6,14}$/.test(normalizedPhone)) {
         return res.status(400).json({ error: "Invalid phone number" });
       }
 

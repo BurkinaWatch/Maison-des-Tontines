@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { getPrisma } from "../../../../config/database.js";
-import { logger } from "../../../../config/logger.js";
-import { MockProvider } from "./mock.provider.js";
-import { WaveProvider } from "./wave.provider.js";
+import { getPrisma } from "../../config/database.js";
+import { logger } from "../../config/logger.js";
+import { MockProvider } from "./providers/mock.provider.js";
+import { WaveProvider } from "./providers/wave.provider.js";
 
 export class PaymentsController {
   private providers = new Map<string, any>([

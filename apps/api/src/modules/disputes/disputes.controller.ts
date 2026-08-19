@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { getPrisma } from "../../../../config/database.js";
-import { logger } from "../../../../config/logger.js";
+import { getPrisma } from "../../config/database.js";
+import { logger } from "../../config/logger.js";
 
 export class DisputesController {
   async openDispute(req: any, res: Response, next: NextFunction) {

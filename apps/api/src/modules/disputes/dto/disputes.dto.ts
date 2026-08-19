@@ -8,6 +8,8 @@ export const CreateDisputeDto = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
 });
 
+export const OpenDisputeDto = CreateDisputeDto;
+
 export const ResolveDisputeDto = z.object({
   decision: z.string().min(10, "Decision must be at least 10 characters"),
 });

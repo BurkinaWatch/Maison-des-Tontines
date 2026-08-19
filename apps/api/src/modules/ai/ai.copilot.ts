@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { getPrisma } from "../../../../config/database.js";
-import { logger } from "../../../../config/logger.js";
+import { getPrisma } from "../../config/database.js";
+import { logger } from "../../config/logger.js";
 
 export class AICopilotService {
   async generateResponse(userId: string, tontineId: string | null, message: string): Promise<string> {

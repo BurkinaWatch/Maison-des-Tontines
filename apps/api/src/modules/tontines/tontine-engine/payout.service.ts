@@ -1,7 +1,34 @@
-import { getPrisma } from "../../../../config/database.js";
-import { logger } from "../../../../config/logger.js";
+import { getPrisma } from "../../../config/database.js";
+import { logger } from "../../../config/logger.js";
 import { TontineEngine } from "./engine.service.js";
-import { TontineStatus, CycleStatus, PayoutStatus } from "@prisma/client";
+
+const TontineStatus = {
+  DRAFT: "DRAFT",
+  INVITING: "INVITING",
+  ACTIVE: "ACTIVE",
+  PAUSED: "PAUSED",
+  COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED",
+  DISPUTED: "DISPUTED",
+} as const;
+
+const CycleStatus = {
+  UPCOMING: "UPCOMING",
+  OPEN: "OPEN",
+  PARTIALLY_FUNDED: "PARTIALLY_FUNDED",
+  FUNDED: "FUNDED",
+  PAYOUT_PENDING: "PAYOUT_PENDING",
+  COMPLETED: "COMPLETED",
+  EXCEPTION: "EXCEPTION",
+} as const;
+
+const PayoutStatus = {
+  PENDING: "PENDING",
+  PROCESSING: "PROCESSING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+  CANCELLED: "CANCELLED",
+} as const;
 
 export class PayoutService {
   constructor(private engine: TontineEngine) {}

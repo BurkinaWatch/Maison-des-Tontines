@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verify } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { getEnv } from "../config/env.js";
 import { getPrisma } from "../config/database.js";
 import { logger } from "../config/logger.js";
@@ -29,7 +29,7 @@ export function authMiddleware(
   const env = getEnv();
 
   try {
-    const payload = verify(token, env.JWT_ACCESS_SECRET) as AuthPayload;
+    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as AuthPayload;
     req.user = payload;
     req.userId = payload.sub;
     next();
@@ -49,7 +49,7 @@ export function optionalAuth(req: AuthenticatedRequest, res: Response, next: Nex
   const env = getEnv();
 
   try {
-    const payload = verify(token, env.JWT_ACCESS_SECRET) as AuthPayload;
+    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as AuthPayload;
     req.user = payload;
     req.userId = payload.sub;
   } catch {

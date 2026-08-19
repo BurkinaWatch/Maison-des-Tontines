@@ -1,8 +1,17 @@
 import { Request, Response, NextFunction } from "express";
-import { getPrisma } from "../../../../config/database.js";
-import { logger } from "../../../../config/logger.js";
+import { getPrisma } from "../../config/database.js";
+import { logger } from "../../config/logger.js";
 import { TontineEngine } from "./tontine-engine/engine.service.js";
-import { TontineStatus } from "@prisma/client";
+
+const TontineStatus = {
+  DRAFT: "DRAFT",
+  INVITING: "INVITING",
+  ACTIVE: "ACTIVE",
+  PAUSED: "PAUSED",
+  COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED",
+  DISPUTED: "DISPUTED",
+} as const;
 
 export class TontinesService {
   constructor(private engine: TontineEngine) {}

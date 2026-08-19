@@ -1,5 +1,5 @@
-import { getPrisma } from "../../../../config/database.js";
-import { logger } from "../../../../config/logger.js";
+import { getPrisma } from "../../config/database.js";
+import { logger } from "../../config/logger.js";
 
 export class AuditLogger {
   async log(

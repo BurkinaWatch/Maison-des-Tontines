@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { getPrisma } from "../../../../config/database.js";
-import { logger } from "../../../../config/logger.js";
+import { getPrisma } from "../config/database.js";
+import { logger } from "../config/logger.js";
 import { Queue } from "bullmq";
-import { getEnv } from "../../../../config/env.js";
+import { getEnv } from "../config/env.js";
 
 export async function enqueueReminderJob(type: string, data: any) {
   const env = getEnv();

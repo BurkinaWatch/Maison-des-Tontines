@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { getPrisma } from "../../../../config/database.js";
+import { getPrisma } from "../config/database.js";
+import { logger } from "../config/logger.js";
 import { Queue, Worker } from "bullmq";
-import { getEnv } from "../../../../config/env.js";
+import { getEnv } from "../config/env.js";
 
 const env = getEnv();
 

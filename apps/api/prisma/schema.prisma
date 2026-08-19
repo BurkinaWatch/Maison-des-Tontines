@@ -3,166 +3,46 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-enum TontineStatus {
-  DRAFT
-  INVITING
-  ACTIVE
-  PAUSED
-  COMPLETED
-  CANCELLED
-  DISPUTED
-
-  @@map("tontine_status")
-}
-
-enum TontineType {
-  ROTATIVE
-  SAVINGS
-  GOAL
-  HYBRID
-  CUSTOM
-
-  @@map("tontine_type")
-}
-
-enum CycleStatus {
-  UPCOMING
-  OPEN
-  PARTIALLY_FUNDED
-  FUNDED
-  PAYOUT_PENDING
-  COMPLETED
-  EXCEPTION
-
-  @@map("cycle_status")
-}
-
-enum ContributionStatus {
-  PENDING
-  PROCESSING
-  PAID
-  LATE
-  FAILED
-  CANCELLED
-  DISPUTED
-  REFUNDED
-
-  @@map("contribution_status")
-}
-
-enum PayoutStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  CANCELLED
-
-  @@map("payout_status")
-}
-
-enum VoteStatus {
-  DRAFT
-  OPEN
-  CLOSED
-  CANCELLED
-
-  @@map("vote_status")
-}
-
-enum DisputeStatus {
-  OPEN
-  INVESTIGATING
-  RESOLVED
-  REJECTED
-
-  @@map("dispute_status")
-}
-
-enum UserRole {
-  ADMIN
-  ORGANIZER
-  MEMBER
-  SUPERVISOR
-
-  @@map("user_role")
-}
-
-enum UserStatus {
-  ACTIVE
-  SUSPENDED
-  DEACTIVATED
-
-  @@map("user_status")
-}
-
-enum NotificationType {
-  REMINDER
-  PAYOUT
-  DISPUTE
-  SYSTEM
-  VOTE
-
-  @@map("notification_type")
-}
-
-enum NotificationChannel {
-  PUSH
-  SMS
-  EMAIL
-
-  @@map("notification_channel")
-}
-
-enum NotificationStatus {
-  PENDING
-  SENT
-  FAILED
-  READ
-
-  @@map("notification_status")
-}
 
 model OtpVerification {
   id        String    @id @default(cuid())
-  phone     String    @unique @db.VarChar(20)
-  otp       String    @db.VarChar(6)
-  expiresAt DateTime  @db.Timestamp(6)
-  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  phone     String    @unique 
+  otp       String    
+  expiresAt DateTime  
+  createdAt DateTime  @default(now()) 
 
-  @@map("otp_verifications")
   @@index([phone])
   @@index([expiresAt])
 }
 
 model User {
   id            String     @id @default(cuid())
-  phone         String     @unique @db.VarChar(20)
-  email         String?    @unique @db.VarChar(255)
-  name          String     @db.VarChar(255)
-  passwordHash  String     @db.VarChar(255)
-  role          UserRole   @default(MEMBER)
-  status        UserStatus @default(ACTIVE)
-  createdAt     DateTime   @default(now()) @db.Timestamp(6)
-  updatedAt     DateTime   @default(now()) @updatedAt @db.Timestamp(6)
+  phone         String     @unique 
+  email         String?    @unique 
+  name          String     
+  passwordHash  String     
+  role          String   @default("MEMBER")
+  status        String @default("ACTIVE")
+  createdAt     DateTime   @default(now()) 
+  updatedAt     DateTime   @default(now()) @updatedAt 
 
   tontineMemberships TontineMember[]
   createdTontines    Tontine[]
   votesOpened        Vote[]
-  disputesOpened     Dispute[]
+  disputesOpened     Dispute[] @relation("DisputeOpenedBy")
+  disputesResolved   Dispute[] @relation("DisputeResolvedBy")
   trustProfile       TrustProfile?
   auditLogs          AuditLog[]
   notifications      Notification[]
   refreshTokens      RefreshToken[]
   sessions           Session[]
   aiConversations    AIConversation[]
-  aiInsights         AIInsight[]
-  voteBallots        VoteBallot[]
+  confirmedContributions Contribution[] @relation("ConfirmedByUser")
 
-  @@map("users")
   @@index([phone])
   @@index([email])
   @@index([role])
@@ -171,18 +51,18 @@ model User {
 
 model Tontine {
   id                String      @id @default(cuid())
-  name              String      @db.VarChar(255)
-  description       String?     @db.Text
-  type              TontineType @default(ROTATIVE)
-  currency          String      @default("XOF") @db.VarChar(3)
-  contributionAmount Decimal    @db.Decimal(15, 2)
-  frequency         String      @db.VarChar(50)
-  startDate          DateTime    @db.Date
-  endDate            DateTime?   @db.Date
-  status            TontineStatus @default(DRAFT)
+  name              String      
+  description       String?     
+  type              String @default("ROTATIVE")
+  currency          String      @default("XOF") 
+  contributionAmount Float    
+  frequency         String      
+  startDate          DateTime    
+  endDate            DateTime?   
+  status            String @default("DRAFT")
   maxMembers         Int?
-  createdAt         DateTime    @default(now()) @db.Timestamp(6)
-  updatedAt         DateTime    @default(now()) @updatedAt @db.Timestamp(6)
+  createdAt         DateTime    @default(now()) 
+  updatedAt         DateTime    @default(now()) @updatedAt 
   createdById       String
 
   createdBy         User             @relation(fields: [createdById], references: [id])
@@ -193,8 +73,8 @@ model Tontine {
   disputes          Dispute[]
   aiConversations   AIConversation[]
   aiInsights        AIInsight[]
+  payouts           Payout[]
 
-  @@map("tontines")
   @@index([createdById])
   @@index([status])
   @@index([type])
@@ -204,13 +84,12 @@ model Tontine {
 model TontineRule {
   id        String @id @default(cuid())
   tontineId String
-  key       String @db.VarChar(100)
-  value     String @db.VarChar(255)
-  type      String @default("STRING") @db.VarChar(50)
+  key       String 
+  value     String 
+  type      String @default("STRING") 
 
   tontine Tontine @relation(fields: [tontineId], references: [id], onDelete: Cascade)
 
-  @@map("tontine_rules")
   @@index([tontineId])
   @@index([tontineId, key])
 }
@@ -219,10 +98,10 @@ model TontineMember {
   id               String    @id @default(cuid())
   tontineId        String
   userId           String
-  role             String    @default("MEMBER") @db.VarChar(50)
-  status           String    @default("ACTIVE") @db.VarChar(50)
-  joinedAt         DateTime  @default(now()) @db.Timestamp(6)
-  leftAt           DateTime? @db.Timestamp(6)
+  role             String    @default("MEMBER") 
+  status           String    @default("ACTIVE") 
+  joinedAt         DateTime  @default(now()) 
+  leftAt           DateTime? 
   payoutOrder      Int?
   isPayoutReceived Boolean   @default(false)
 
@@ -230,8 +109,9 @@ model TontineMember {
   user     User       @relation(fields: [userId], references: [id])
   votes    VoteBallot[]
   payouts  Payout[]
+  contributions Contribution[]
+  beneficiaryCycles TontineCycle[] @relation("CycleBeneficiary")
 
-  @@map("tontine_members")
   @@index([tontineId])
   @@index([userId])
   @@index([tontineId, userId])
@@ -242,22 +122,21 @@ model TontineCycle {
   id                String       @id @default(cuid())
   tontineId         String
   sequence          Int
-  name              String       @db.VarChar(255)
-  startDate         DateTime     @db.Date
-  endDate           DateTime?    @db.Date
-  status            CycleStatus  @default(UPCOMING)
+  name              String       
+  startDate         DateTime     
+  endDate           DateTime?    
+  status            String  @default("UPCOMING")
   beneficiaryMemberId String?
-  potAmount         Decimal?     @db.Decimal(15, 2)
-  potReceived       Decimal?     @default(0) @db.Decimal(15, 2)
-  createdAt         DateTime     @default(now()) @db.Timestamp(6)
-  updatedAt         DateTime     @default(now()) @updatedAt @db.Timestamp(6)
+  potAmount         Float?     
+  potReceived       Float?     @default(0) 
+  createdAt         DateTime     @default(now()) 
+  updatedAt         DateTime     @default(now()) @updatedAt 
 
   tontine         Tontine           @relation(fields: [tontineId], references: [id], onDelete: Cascade)
   beneficiary     TontineMember?    @relation("CycleBeneficiary", fields: [beneficiaryMemberId], references: [id])
   contributions   Contribution[]
   payouts         Payout[]
 
-  @@map("tontine_cycles")
   @@index([tontineId])
   @@index([tontineId, sequence])
   @@index([status])
@@ -268,23 +147,22 @@ model Contribution {
   id            String              @id @default(cuid())
   cycleId       String
   memberId      String
-  amount        Decimal             @db.Decimal(15, 2)
-  status        ContributionStatus  @default(PENDING)
-  method        String              @default("MANUAL") @db.VarChar(50)
-  providerRef   String?             @db.VarChar(255)
-  declaredAt    DateTime            @default(now()) @db.Timestamp(6)
-  confirmedAt   DateTime?           @db.Timestamp(6)
+  amount        Float             
+  status        String  @default("PENDING")
+  method        String              @default("MANUAL") 
+  providerRef   String?             
+  declaredAt    DateTime            @default(now()) 
+  confirmedAt   DateTime?           
   confirmedById String?
-  lateFee       Decimal             @default(0) @db.Decimal(15, 2)
+  lateFee       Float             @default(0) 
   penaltyApplied Boolean           @default(false)
-  notes         String?             @db.Text
+  notes         String?             
 
   cycle         TontineCycle       @relation(fields: [cycleId], references: [id], onDelete: Cascade)
   member        TontineMember      @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  confirmedBy   User?              @relation(fields: [confirmedById], references: [id])
-  disputes      Dispute[]
+  confirmedBy   User?              @relation("ConfirmedByUser", fields: [confirmedById], references: [id])
+  disputes      Dispute[]          @relation("ContributionDisputes")
 
-  @@map("contributions")
   @@index([cycleId])
   @@index([memberId])
   @@index([cycleId, memberId])
@@ -297,19 +175,18 @@ model Payout {
   tontineId     String
   cycleId       String
   memberId      String
-  amount        Decimal    @db.Decimal(15, 2)
-  status        PayoutStatus @default(PENDING)
-  method        String     @default("MANUAL") @db.VarChar(50)
-  providerRef   String?    @db.VarChar(255)
-  initiatedAt   DateTime   @default(now()) @db.Timestamp(6)
-  completedAt   DateTime?  @db.Timestamp(6)
-  failureReason String?    @db.Text
+  amount        Float    
+  status        String @default("PENDING")
+  method        String     @default("MANUAL") 
+  providerRef   String?    
+  initiatedAt   DateTime   @default(now()) 
+  completedAt   DateTime?  
+  failureReason String?    
 
   tontine  Tontine        @relation(fields: [tontineId], references: [id], onDelete: Cascade)
   cycle    TontineCycle   @relation(fields: [cycleId], references: [id], onDelete: Cascade)
   member   TontineMember  @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
-  @@map("payouts")
   @@index([tontineId])
   @@index([cycleId])
   @@index([memberId])
@@ -319,17 +196,16 @@ model Payout {
 
 model PaymentProvider {
   id             String  @id @default(cuid())
-  name           String  @unique @db.VarChar(100)
-  type           String  @db.VarChar(50)
-  config         String  @db.Json
+  name           String  @unique 
+  type           String  
+  config         String
   isActive       Boolean @default(true)
-  apiKeyRef      String? @db.VarChar(255)
-  webhookSecretRef String? @db.VarChar(255)
-  createdAt      DateTime @default(now()) @db.Timestamp(6)
+  apiKeyRef      String? 
+  webhookSecretRef String? 
+  createdAt      DateTime @default(now()) 
 
   transactions PaymentTransaction[]
 
-  @@map("payment_providers")
   @@index([type])
   @@index([isActive])
 }
@@ -337,18 +213,17 @@ model PaymentProvider {
 model PaymentTransaction {
   id           String   @id @default(cuid())
   providerId   String
-  providerRef  String   @db.VarChar(255)
-  amount       Decimal  @db.Decimal(15, 2)
-  currency     String   @default("XOF") @db.VarChar(3)
-  status       String   @db.VarChar(50)
-  direction    String   @db.VarChar(20)
-  metadata     String   @db.Json
-  createdAt    DateTime @default(now()) @db.Timestamp(6)
-  updatedAt    DateTime @default(now()) @updatedAt @db.Timestamp(6)
+  providerRef  String   
+  amount       Float  
+  currency     String   @default("XOF") 
+  status       String   
+  direction    String   
+  metadata     String
+  createdAt    DateTime @default(now()) 
+  updatedAt    DateTime @default(now()) @updatedAt 
 
   provider PaymentProvider @relation(fields: [providerId], references: [id])
 
-  @@map("payment_transactions")
   @@index([providerId])
   @@index([providerRef])
   @@index([status])
@@ -358,21 +233,20 @@ model PaymentTransaction {
 model Vote {
   id              String      @id @default(cuid())
   tontineId       String
-  question        String      @db.Text
-  options         String      @db.Json
-  status          VoteStatus  @default(DRAFT)
+  question        String      
+  options         String
+  status          String  @default("DRAFT")
   quorum          Int         @default(0)
-  eligibleVoterIds String     @db.Json
-  result          String?     @db.Text
-  openedAt        DateTime?   @db.Timestamp(6)
-  closedAt        DateTime?   @db.Timestamp(6)
+  eligibleVoterIds String
+  result          String?     
+  openedAt        DateTime?   
+  closedAt        DateTime?   
   createdById     String
 
   tontine   Tontine       @relation(fields: [tontineId], references: [id], onDelete: Cascade)
   createdBy User          @relation(fields: [createdById], references: [id])
   ballots   VoteBallot[]
 
-  @@map("votes")
   @@index([tontineId])
   @@index([status])
   @@index([openedAt])
@@ -382,13 +256,12 @@ model VoteBallot {
   id        String    @id @default(cuid())
   voteId    String
   memberId  String
-  choice    String    @db.VarChar(255)
-  votedAt   DateTime  @default(now()) @db.Timestamp(6)
+  choice    String    
+  votedAt   DateTime  @default(now()) 
 
   vote   Vote          @relation(fields: [voteId], references: [id], onDelete: Cascade)
   member TontineMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
-  @@map("vote_ballots")
   @@index([voteId])
   @@index([memberId])
   @@unique([voteId, memberId])
@@ -399,21 +272,21 @@ model Dispute {
   tontineId    String
   cycleId      String?
   contributionId String?
-  type         String         @db.VarChar(100)
-  description  String         @db.Text
-  status       DisputeStatus  @default(OPEN)
+  type         String         
+  description  String         
+  status       String  @default("OPEN")
   openedById   String
-  openedAt     DateTime       @default(now()) @db.Timestamp(6)
-  resolvedAt   DateTime?      @db.Timestamp(6)
+  openedAt     DateTime       @default(now()) 
+  resolvedAt   DateTime?      
   resolvedById String?
-  decision     String?        @db.Text
+  decision     String?        
 
   tontine      Tontine         @relation(fields: [tontineId], references: [id], onDelete: Cascade)
   openedBy     User            @relation("DisputeOpenedBy", fields: [openedById], references: [id])
   resolvedBy   User?           @relation("DisputeResolvedBy", fields: [resolvedById], references: [id])
+  contribution Contribution?  @relation("ContributionDisputes", fields: [contributionId], references: [id])
   evidence     DisputeEvidence[]
 
-  @@map("disputes")
   @@index([tontineId])
   @@index([cycleId])
   @@index([status])
@@ -423,13 +296,12 @@ model Dispute {
 model DisputeEvidence {
   id        String   @id @default(cuid())
   disputeId String
-  url       String   @db.VarChar(500)
-  description String? @db.Text
-  uploadedAt  DateTime @default(now()) @db.Timestamp(6)
+  url       String   
+  description String? 
+  uploadedAt  DateTime @default(now()) 
 
   dispute Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
 
-  @@map("dispute_evidence")
   @@index([disputeId])
 }
 
@@ -441,27 +313,27 @@ model TrustProfile {
   paymentsLate       Int      @default(0)
   disputesResolved   Int      @default(0)
   disputesUnresolved Int      @default(0)
-  memberSince        DateTime @default(now()) @db.Timestamp(6)
+  memberSince        DateTime @default(now()) 
   score              Int      @default(50)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("trust_profiles")
   @@index([score])
 }
 
 model AuditLog {
   id         String   @id @default(cuid())
   actorId    String?
-  actorRole  String   @db.VarChar(50)
-  action     String   @db.VarChar(100)
-  resource   String   @db.VarChar(100)
-  resourceId String?  @db.VarChar(100)
-  metadata   String   @db.Json
-  ipAddress  String   @db.VarChar(45)
-  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  actorRole  String   
+  action     String   
+  resource   String   
+  resourceId String?  
+  metadata   String
+  ipAddress  String   
+  createdAt  DateTime @default(now()) 
 
-  @@map("audit_logs")
+  actor User? @relation(fields: [actorId], references: [id])
+
   @@index([actorId])
   @@index([resource])
   @@index([resourceId])
@@ -473,13 +345,12 @@ model AIConversation {
   id        String   @id @default(cuid())
   userId    String
   tontineId String?
-  messages  String   @db.Json
-  createdAt DateTime @default(now()) @db.Timestamp(6)
+  messages  String
+  createdAt DateTime @default(now()) 
 
   user    User     @relation(fields: [userId], references: [id])
   tontine Tontine? @relation(fields: [tontineId], references: [id])
 
-  @@map("ai_conversations")
   @@index([userId])
   @@index([tontineId])
   @@index([createdAt])
@@ -488,14 +359,13 @@ model AIConversation {
 model AIInsight {
   id        String   @id @default(cuid())
   tontineId String
-  type      String   @db.VarChar(100)
-  data      String   @db.Json
-  priority  String   @default("LOW") @db.VarChar(20)
-  createdAt DateTime @default(now()) @db.Timestamp(6)
+  type      String   
+  data      String
+  priority  String   @default("LOW") 
+  createdAt DateTime @default(now()) 
 
   tontine Tontine @relation(fields: [tontineId], references: [id], onDelete: Cascade)
 
-  @@map("ai_insights")
   @@index([tontineId])
   @@index([priority])
   @@index([createdAt])
@@ -504,18 +374,18 @@ model AIInsight {
 model Notification {
   id        String            @id @default(cuid())
   userId    String
-  type      NotificationType
-  channel   NotificationChannel
-  title     String            @db.VarChar(255)
-  body      String            @db.Text
-  data      String            @db.Json
-  status    NotificationStatus @default(PENDING)
-  sentAt    DateTime?         @db.Timestamp(6)
-  readAt    DateTime?         @db.Timestamp(6)
+  type      String
+  channel   String
+  title     String            
+  body      String            
+  data      String
+  status    String @default("PENDING")
+  sentAt    DateTime?         
+  readAt    DateTime?         
+  createdAt DateTime          @default(now()) 
 
   user User @relation(fields: [userId], references: [id])
 
-  @@map("notifications")
   @@index([userId])
   @@index([status])
   @@index([channel])
@@ -525,13 +395,12 @@ model Notification {
 model RefreshToken {
   id        String   @id @default(cuid())
   userId    String
-  token     String   @unique @db.VarChar(500)
-  expiresAt DateTime @db.Timestamp(6)
-  revokedAt DateTime? @db.Timestamp(6)
+  token     String   @unique 
+  expiresAt DateTime 
+  revokedAt DateTime? 
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("refresh_tokens")
   @@index([userId])
   @@index([expiresAt])
 }
@@ -539,15 +408,14 @@ model RefreshToken {
 model Session {
   id         String   @id @default(cuid())
   userId     String
-  token      String   @unique @db.VarChar(500)
-  expiresAt  DateTime @db.Timestamp(6)
-  ipAddress  String   @db.VarChar(45)
-  userAgent  String?  @db.Text
-  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  token      String   @unique 
+  expiresAt  DateTime 
+  ipAddress  String   
+  userAgent  String?  
+  createdAt  DateTime @default(now()) 
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("sessions")
   @@index([userId])
   @@index([expiresAt])
 }

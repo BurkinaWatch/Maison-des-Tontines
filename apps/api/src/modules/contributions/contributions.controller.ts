@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { getPrisma } from "../../../../config/database.js";
-import { logger } from "../../../../config/logger.js";
-import { tontineEngineModule } from "../../tontines/tontine-engine/module.js";
+import { getPrisma } from "../../config/database.js";
+import { logger } from "../../config/logger.js";
+import { tontineEngineModule } from "../tontines/tontine-engine/module.js";
 
 export class ContributionsController {
   async recordContribution(req: any, res: Response, next: NextFunction) {

@@ -1,7 +1,27 @@
-import { getPrisma } from "../../../../config/database.js";
-import { logger } from "../../../../config/logger.js";
+import { getPrisma } from "../../../config/database.js";
+import { logger } from "../../../config/logger.js";
 import { TontineEngine } from "./engine.service.js";
-import { TontineStatus, ContributionStatus } from "@prisma/client";
+
+const TontineStatus = {
+  DRAFT: "DRAFT",
+  INVITING: "INVITING",
+  ACTIVE: "ACTIVE",
+  PAUSED: "PAUSED",
+  COMPLETED: "COMPLETED",
+  CANCELLED: "CANCELLED",
+  DISPUTED: "DISPUTED",
+} as const;
+
+const ContributionStatus = {
+  PENDING: "PENDING",
+  PROCESSING: "PROCESSING",
+  PAID: "PAID",
+  LATE: "LATE",
+  FAILED: "FAILED",
+  CANCELLED: "CANCELLED",
+  DISPUTED: "DISPUTED",
+  REFUNDED: "REFUNDED",
+} as const;
 
 export class ContributionService {
   constructor(private engine: TontineEngine, private latePenaltyRule: any) {}

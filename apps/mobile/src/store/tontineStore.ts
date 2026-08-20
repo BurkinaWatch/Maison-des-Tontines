@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from "zustand/index.js";
 import { tontineService } from "../services/tontine.service";
 import { Tontine, TontineMember, Cycle } from "../types/tontine";
 

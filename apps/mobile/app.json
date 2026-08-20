@@ -18,7 +18,11 @@
         "backgroundColor": "#1a1a2e"
       },
       "package": "com.maisondestontines.app",
-      "permissions": ["RECEIVE_BOOT_COMPLETED", "VIBRATE", "RECEIVE_NOTIFICATIONS"]
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "RECEIVE_NOTIFICATIONS"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -31,7 +35,8 @@
           "image": "./assets/splash.png",
           "imageWidth": 200
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

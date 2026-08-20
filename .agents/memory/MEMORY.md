@@ -1,0 +1,1 @@
+- [Expo web Zustand compatibility](expo-web-zustand.md) — Metro’s classic web bundle needs Zustand’s CommonJS entry, not its ESM import path.

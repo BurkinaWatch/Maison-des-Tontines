@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from "zustand/index.js";
 import { authService } from "../services/auth.service";
 import { User } from "../types/user";
 

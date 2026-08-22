@@ -10,9 +10,11 @@ CI=1 npm exec --workspace=maison-des-tontines-mobile expo start -- --web --port 
 
 The mobile workspace uses Expo SDK 54 and is available in the Replit preview on port 5000.
 
-## Backend status
+## Backend preview
 
-The Express API is not included in the preview workflow. Before starting it, configure the required `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` secrets and a Redis service for BullMQ workers. The API uses the checked-in SQLite development database by default.
+The `Project` workflow starts the Expo web preview and the Express API together. The API listens on port 4000, uses the checked-in SQLite development database for preview data, and receives preview requests through the Expo server’s `/api` proxy. Background BullMQ workers are disabled in the preview because Redis is not required for account verification.
+
+The preview supplies JWT signing values from the existing `SESSION_SECRET`; production deployments must provide distinct `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` values.
 
 ## Verification emails
 

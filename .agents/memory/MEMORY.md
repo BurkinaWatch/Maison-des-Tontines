@@ -1,1 +1,2 @@
 - [Expo web Zustand compatibility](expo-web-zustand.md) — Metro’s classic web bundle needs Zustand’s CommonJS entry, not its ESM import path.
+- [Expo preview API routing](expo-preview-api-routing.md) — Route preview API calls through Expo’s same-origin middleware, not a second browser port.

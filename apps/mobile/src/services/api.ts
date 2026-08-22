@@ -4,6 +4,14 @@ import * as SecureStore from "expo-secure-store";
 const TOKEN_KEY = "auth_token";
 const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION || "v1";
 
+function getDefaultApiUrl(): string {
+  if (typeof window !== "undefined" && window.location.hostname) {
+    return window.location.origin;
+  }
+
+  return "https://api.maisondestontines.com";
+}
+
 function buildApiUrl(baseUrl: string, endpoint: string): string {
   const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
   const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
@@ -14,7 +22,7 @@ export const api = {
   baseUrl:
     process.env.EXPO_PUBLIC_API_URL ||
     Constants.expoConfig?.extra?.apiUrl ||
-    "https://api.maisondestontines.com",
+    getDefaultApiUrl(),
 
   async getToken(): Promise<string | null> {
     try {

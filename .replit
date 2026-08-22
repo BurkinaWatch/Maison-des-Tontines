@@ -18,6 +18,10 @@ author = "agent"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start API"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -30,6 +34,22 @@ task = "shell.exec"
 args = "CI=1 npm exec --workspace=maison-des-tontines-mobile expo start -- --web --port 5000 --clear"
 waitForPort = 5000
 
+[[workflows.workflow]]
+name = "Start API"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = 'DATABASE_URL="file:./dev.db" JWT_ACCESS_SECRET="${SESSION_SECRET}-preview-access" JWT_REFRESH_SECRET="${SESSION_SECRET}-preview-refresh" ENABLE_WORKERS=false CORS_ORIGIN="https://${REPLIT_DEV_DOMAIN},http://localhost:5000,http://127.0.0.1:5000" npm exec --workspace=@maison-des-tontines/api tsx src/index.ts'
+waitForPort = 4000
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 4000
+externalPort = 4000

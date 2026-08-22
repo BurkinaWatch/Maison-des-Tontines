@@ -33,6 +33,7 @@ export const ResendOtpDto = z.object({
 });
 
 export type RegisterInput = z.infer<typeof RegisterDto>;
+export type RequestOtpInput = z.infer<typeof RequestOtpDto>;
 export type VerifyOtpInput = z.infer<typeof VerifyOtpDto>;
 export type LoginInput = z.infer<typeof LoginDto>;
 export type RefreshTokenInput = z.infer<typeof RefreshTokenDto>;

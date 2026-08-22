@@ -6,7 +6,7 @@ import { logger } from "../../config/logger.js";
 import { AuthResponse, AuthPayload } from "../../types/user.types.js";
 import { generateOtp, validatePhone, normalizePhone } from "../../utils/phone.js";
 import { generateIdempotencyKey } from "../../utils/idempotency.js";
-import { RegisterInput, VerifyOtpInput, LoginInput, RefreshTokenInput } from "../dto/register.dto.js";
+import type { RegisterInput, VerifyOtpInput, LoginInput, RefreshTokenInput } from "../dto/register.dto.js";
 import { randomUUID } from "crypto";
 
 export class AuthService {

@@ -1,10 +1,17 @@
 import { Response } from "express";
-import { RequestOtpDto, VerifyOtpDto, LoginDto, RegisterDto, RefreshTokenDto } from "./dto/register.dto.js";
+import { authService } from "./auth.service.js";
+import type {
+  RequestOtpInput,
+  VerifyOtpInput,
+  LoginInput,
+  RegisterInput,
+  RefreshTokenInput,
+} from "./dto/register.dto.js";
 
 export class AuthController {
   async requestOtp(req: any, res: Response, next: any) {
     try {
-      const { phone } = req.body as RequestOtpDto;
+      const { phone } = req.body as RequestOtpInput;
       const result = await authService.requestOtp(phone);
       res.status(200).json(result);
     } catch (error) {
@@ -14,7 +21,7 @@ export class AuthController {
 
   async verifyOtp(req: any, res: Response, next: any) {
     try {
-      const { phone, otp } = req.body as VerifyOtpDto;
+      const { phone, otp } = req.body as VerifyOtpInput;
       const result = await authService.verifyOtp({ phone, otp });
       res.status(200).json(result);
     } catch (error) {
@@ -24,7 +31,7 @@ export class AuthController {
 
   async register(req: any, res: Response, next: any) {
     try {
-      const data = req.body as RegisterDto;
+      const data = req.body as RegisterInput;
       const result = await authService.register(data);
       res.status(201).json(result);
     } catch (error) {
@@ -34,7 +41,7 @@ export class AuthController {
 
   async login(req: any, res: Response, next: any) {
     try {
-      const data = req.body as LoginDto;
+      const data = req.body as LoginInput;
       const result = await authService.login(data);
       res.status(200).json(result);
     } catch (error) {
@@ -44,7 +51,7 @@ export class AuthController {
 
   async refreshToken(req: any, res: Response, next: any) {
     try {
-      const { refreshToken } = req.body as RefreshTokenDto;
+      const { refreshToken } = req.body as RefreshTokenInput;
       const result = await authService.refreshToken(refreshToken);
       res.status(200).json(result);
     } catch (error) {

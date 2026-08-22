@@ -58,7 +58,10 @@ let env: Env;
 
 export function getEnv(): Env {
   if (!env) {
-    const parsed = envSchema.safeParse(process.env);
+    const parsed = envSchema.safeParse({
+      ...process.env,
+      DATABASE_URL: process.env.DATABASE_URL ?? process.env.RAILWAY_DATABASE_URL,
+    });
     if (!parsed.success) {
       const errors = parsed.error.issues
         .map((i) => `${i.path.join(".")}: ${i.message}`)

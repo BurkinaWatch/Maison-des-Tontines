@@ -13,9 +13,12 @@ import {
 import { useRouter } from "expo-router";
 import { GlassCard, GlassInput, GlassButton } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
+import { authService } from "../../src/services/auth.service";
+import { useAuthStore } from "../../src/store/authStore";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const login = useAuthStore((state) => state.login);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -32,14 +35,15 @@ export default function LoginScreen() {
     setError("");
 
     try {
-      await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/otp/request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber: phoneNumber.trim() }),
-      });
+      const result = await authService.requestOTP(phoneNumber.trim());
 
       setIsOtpSent(true);
-      Alert.alert("OTP Sent", "Check your phone for the verification code");
+      Alert.alert(
+        "OTP Sent",
+        result.developmentOtp
+          ? `Development code: ${result.developmentOtp}`
+          : "Check your phone for the verification code"
+      );
     } catch {
       setError("Failed to send OTP. Please try again.");
     } finally {
@@ -57,36 +61,10 @@ export default function LoginScreen() {
     setError("");
 
     try {
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/auth/verify`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            phoneNumber: phoneNumber.trim(),
-            otp: otp.trim(),
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok && data.token) {
-        await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            phoneNumber: phoneNumber.trim(),
-            otp: otp.trim(),
-          }),
-        });
-
-        router.replace("/(tabs)/");
-      } else {
-        setError(data.message || "Invalid OTP");
-      }
-    } catch {
-      setError("Login failed. Please try again.");
+      await login(phoneNumber.trim(), otp.trim());
+      router.replace("/(tabs)");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

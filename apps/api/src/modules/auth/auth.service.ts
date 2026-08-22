@@ -20,14 +20,18 @@ export class AuthService {
       throw new Error("Invalid phone number format");
     }
 
+    const isMockOtp = this.env.NODE_ENV !== "production" && this.env.MOCK_PROVIDER_ENABLED === "true";
+    if (!isMockOtp) {
+      throw new Error("SMS delivery is not configured. Configure an SMS provider before requesting OTP codes.");
+    }
+
     const otp = generateOtp(this.env.OTP_LENGTH);
     const otpExpiry = new Date(Date.now() + this.env.OTP_EXPIRY_MINUTES * 60 * 1000);
 
-    // In production, send OTP via SMS provider. Here we simulate.
     logger.info("OTP requested", {
       phone: normalizedPhone,
-      otp,
       expiresAt: otpExpiry.toISOString(),
+      mode: "development-mock",
     });
 
     await this.prisma.$executeRawUnsafe(
@@ -40,7 +44,7 @@ export class AuthService {
       otpExpiry
     );
 
-    return { message: "OTP sent successfully" };
+    return { message: "OTP generated successfully", developmentOtp: otp };
   }
 
   async verifyOtp(data: VerifyOtpInput): Promise<AuthResponse> {
@@ -91,7 +95,22 @@ export class AuthService {
       throw new Error("Phone number already registered");
     }
 
-    const passwordHash = await bcrypt.hash(data.password, 12);
+    if (data.otp) {
+      const verification = await this.prisma.$queryRawUnsafe<any>(
+        `SELECT * FROM "otp_verifications" WHERE "phone" = $1 LIMIT 1`,
+        normalizedPhone
+      );
+
+      if (!verification || verification[0]?.otp !== data.otp) {
+        throw new Error("Invalid or expired OTP");
+      }
+
+      if (new Date() > new Date(verification[0].expiresAt)) {
+        throw new Error("OTP has expired");
+      }
+    }
+
+    const passwordHash = await bcrypt.hash(data.password ?? randomUUID(), 12);
 
     const user = await this.prisma.user.create({
       data: {
@@ -122,6 +141,13 @@ export class AuthService {
         ipAddress: "system",
       },
     });
+
+    if (data.otp) {
+      await this.prisma.$executeRawUnsafe(
+        `DELETE FROM "otp_verifications" WHERE "phone" = $1`,
+        normalizedPhone
+      );
+    }
 
     logger.info("User registered", { userId: user.id, phone: user.phone });
     return this.generateTokens(user.id, user.phone, user.role);

@@ -2,6 +2,13 @@ import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 
 const TOKEN_KEY = "auth_token";
+const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION || "v1";
+
+function buildApiUrl(baseUrl: string, endpoint: string): string {
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
+  const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  return `${normalizedBaseUrl}/api/${API_VERSION}${normalizedEndpoint}`;
+}
 
 export const api = {
   baseUrl:
@@ -30,7 +37,7 @@ export const api = {
     options: RequestInit = {}
   ): Promise<T> {
     const token = await this.getToken();
-    const url = `${this.baseUrl}/api${endpoint}`;
+    const url = buildApiUrl(this.baseUrl, endpoint);
 
     const headers: HeadersInit = {
       "Content-Type": "application/json",

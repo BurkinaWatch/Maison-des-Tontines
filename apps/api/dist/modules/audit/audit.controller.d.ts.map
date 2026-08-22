@@ -1,0 +1,1 @@
+{"version":3,"file":"audit.controller.d.ts","sourceRoot":"","sources":["../../../src/modules/audit/audit.controller.ts"],"names":[],"mappings":"AAAA,OAAO,EAAW,QAAQ,EAAE,YAAY,EAAE,MAAM,SAAS,CAAC;AAI1D,qBAAa,eAAe;IACpB,SAAS,CAAC,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,QAAQ,EAAE,IAAI,EAAE,YAAY;IAuBrD,MAAM,CAAC,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,QAAQ,EAAE,IAAI,EAAE,YAAY;CASzD"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"late-penalty.rule.d.ts","sourceRoot":"","sources":["../../../../../src/modules/tontines/tontine-engine/rules/late-penalty.rule.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,YAAY,EAAE,MAAM,aAAa,CAAC;AAE3C,qBAAa,eAAe;IAC1B,IAAI,SAAqB;IAEzB,YAAY,CAAC,OAAO,EAAE,YAAY,GAAG,OAAO;IAItC,KAAK,CAAC,OAAO,EAAE,YAAY,GAAG,OAAO,CAAC,IAAI,CAAC;CASlD"}

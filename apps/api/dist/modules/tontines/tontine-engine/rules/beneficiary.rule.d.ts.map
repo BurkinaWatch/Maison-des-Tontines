@@ -1,0 +1,1 @@
+{"version":3,"file":"beneficiary.rule.d.ts","sourceRoot":"","sources":["../../../../../src/modules/tontines/tontine-engine/rules/beneficiary.rule.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,UAAU,EAAE,MAAM,aAAa,CAAC;AAEzC,qBAAa,eAAgB,YAAW,UAAU;IAChD,IAAI,SAAqB;IAEzB,YAAY,CAAC,OAAO,EAAE,GAAG,GAAG,OAAO;IAI7B,KAAK,CAAC,OAAO,EAAE,GAAG,GAAG,OAAO,CAAC,IAAI,CAAC;CAIzC"}

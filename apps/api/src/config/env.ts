@@ -40,7 +40,7 @@ export const envSchema = z.object({
   SMS_API_KEY: z.string().optional(),
   EMAIL_PROVIDER: z.string().optional(),
   EMAIL_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().email().default("noreply@maisondestontines.com"),
+  EMAIL_FROM: z.string().email().default("onboarding@resend.dev"),
 
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
 

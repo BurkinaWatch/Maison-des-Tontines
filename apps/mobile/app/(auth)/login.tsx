@@ -44,8 +44,8 @@ export default function LoginScreen() {
           ? `Development code: ${result.developmentOtp}`
           : "Check your email for the verification code"
       );
-    } catch {
-      setError("Failed to send OTP. Please try again.");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Impossible d’envoyer le code. Réessayez.");
     } finally {
       setIsLoading(false);
     }

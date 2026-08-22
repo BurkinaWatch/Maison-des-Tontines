@@ -38,7 +38,9 @@ export class AuthService {
         email: normalizedEmail,
         error: (error as Error).message,
       });
-      throw new Error("Unable to send the verification email. Please try again.");
+      throw new Error(
+        "Impossible d’envoyer le code par e-mail. En preview, utilisez l’adresse e-mail associée au compte Resend ou configurez EMAIL_FROM avec un domaine Resend vérifié."
+      );
     }
 
     logger.info("Verification email sent", { email: normalizedEmail, expiresAt: otpExpiry.toISOString() });

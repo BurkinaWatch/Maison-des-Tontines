@@ -18,4 +18,4 @@ The preview supplies JWT signing values from the existing `SESSION_SECRET`; prod
 
 ## Verification emails
 
-Account verification codes are delivered through the attached Resend integration. Set `EMAIL_FROM` to an email address or domain verified in Resend before sending emails to real users.
+Account verification codes are delivered through the attached Resend integration. The preview uses Resend's test sender, which can only email the address associated with the connected Resend account. Set `EMAIL_FROM` to an email address or domain verified in Resend before sending emails to real users.

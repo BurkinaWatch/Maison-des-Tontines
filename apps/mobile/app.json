@@ -4,6 +4,9 @@
     "slug": "maison-des-tontines",
     "version": "1.0.0",
     "orientation": "portrait",
+    "web": {
+      "output": "server"
+    },
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "maison-tontines",

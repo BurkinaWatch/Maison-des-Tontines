@@ -33,6 +33,7 @@
     "tar": "7.5.22"
   },
   "dependencies": {
+    "@replit/connectors-sdk": "^0.4.2",
     "react-native-worklets": "0.5.1"
   }
 }

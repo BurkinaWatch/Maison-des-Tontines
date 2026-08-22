@@ -14,12 +14,13 @@ export interface PaginatedResponse<T> {
 }
 
 export interface LoginRequest {
-  phoneNumber: string;
+  email: string;
   otp: string;
 }
 
 export interface RegisterRequest {
   phoneNumber: string;
+  email: string;
   firstName: string;
   lastName: string;
   otp: string;

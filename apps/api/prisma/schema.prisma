@@ -10,12 +10,12 @@ datasource db {
 
 model OtpVerification {
   id        String    @id @default(cuid())
-  phone     String    @unique 
+  email     String    @unique
   otp       String    
   expiresAt DateTime  
   createdAt DateTime  @default(now()) 
 
-  @@index([phone])
+  @@index([email])
   @@index([expiresAt])
 }
 

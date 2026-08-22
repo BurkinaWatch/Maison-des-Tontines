@@ -1,22 +1,20 @@
 import { z } from "zod";
 
 export const RequestOtpDto = z.object({
-  phone: z.string().regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number format"),
+  email: z.string().email("Invalid email address"),
 });
 
 export const RegisterDto = z.object({
   phone: z.string().regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number format"),
-  email: z.string().email().optional().nullable(),
+  email: z.string().email("Invalid email address"),
   name: z.string().min(2, "Name must be at least 2 characters").max(255),
   password: z.string().min(8, "Password must be at least 8 characters").optional(),
-  otp: z.string().length(6, "OTP must be 6 digits").optional(),
-}).refine((data) => Boolean(data.password || data.otp), {
-  message: "A password or verification code is required",
+  otp: z.string().regex(/^\d{6}$/, "OTP must be 6 digits"),
 });
 
 export const VerifyOtpDto = z.object({
-  phone: z.string().regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number format"),
-  otp: z.string().length(6, "OTP must be 6 digits"),
+  email: z.string().email("Invalid email address"),
+  otp: z.string().regex(/^\d{6}$/, "OTP must be 6 digits"),
 });
 
 export const LoginDto = z.object({
@@ -29,7 +27,7 @@ export const RefreshTokenDto = z.object({
 });
 
 export const ResendOtpDto = z.object({
-  phone: z.string().regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number format"),
+  email: z.string().email("Invalid email address"),
 });
 
 export type RegisterInput = z.infer<typeof RegisterDto>;

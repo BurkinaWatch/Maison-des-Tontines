@@ -39,7 +39,7 @@ export const authService = {
     const response = await api.post<ApiAuthResponse>(
       "/auth/otp/verify",
       {
-        phone: credentials.phoneNumber,
+        email: credentials.email,
         otp: credentials.otp,
       }
     );
@@ -52,6 +52,7 @@ export const authService = {
       "/auth/register",
       {
         phone: data.phoneNumber,
+        email: data.email,
         name: `${data.firstName} ${data.lastName}`.trim(),
         otp: data.otp,
       }
@@ -60,13 +61,13 @@ export const authService = {
     return { user: toMobileUser(response.user), token: response.accessToken };
   },
 
-  async requestOTP(phoneNumber: string): Promise<OtpRequestResponse> {
-    return api.post<OtpRequestResponse>("/auth/otp/request", { phone: phoneNumber });
+  async requestOTP(email: string): Promise<OtpRequestResponse> {
+    return api.post<OtpRequestResponse>("/auth/otp/request", { email });
   },
 
-  async verifyOTP(phoneNumber: string, otp: string): Promise<{ token: string }> {
+  async verifyOTP(email: string, otp: string): Promise<{ token: string }> {
     const response = await api.post<ApiAuthResponse>("/auth/otp/verify", {
-      phone: phoneNumber,
+      email,
       otp,
     });
     return { token: response.accessToken };

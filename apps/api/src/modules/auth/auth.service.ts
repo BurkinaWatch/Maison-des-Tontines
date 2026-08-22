@@ -1,87 +1,85 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import { getPrisma } from "../../config/database.js";
 import { getEnv } from "../../config/env.js";
 import { logger } from "../../config/logger.js";
-import { AuthResponse, AuthPayload } from "../../types/user.types.js";
+import { AuthResponse } from "../../types/user.types.js";
+import { AuthPayload } from "../../middleware/auth.js";
 import { generateOtp, validatePhone, normalizePhone } from "../../utils/phone.js";
-import { generateIdempotencyKey } from "../../utils/idempotency.js";
-import type { RegisterInput, VerifyOtpInput, LoginInput, RefreshTokenInput } from "../dto/register.dto.js";
+import type { RegisterInput, VerifyOtpInput, LoginInput } from "./dto/register.dto.js";
 import { randomUUID } from "crypto";
+import { sendVerificationEmail } from "./email.service.js";
 
 export class AuthService {
   private prisma = getPrisma();
   private env = getEnv();
 
-  async requestOtp(phone: string): Promise<{ message: string }> {
-    const normalizedPhone = normalizePhone(phone);
-
-    if (!validatePhone(normalizedPhone)) {
-      throw new Error("Invalid phone number format");
-    }
-
-    const isMockOtp = this.env.NODE_ENV !== "production" && this.env.MOCK_PROVIDER_ENABLED === "true";
-    if (!isMockOtp) {
-      throw new Error("SMS delivery is not configured. Configure an SMS provider before requesting OTP codes.");
-    }
-
+  async requestOtp(email: string): Promise<{ message: string; developmentOtp?: string }> {
+    const normalizedEmail = normalizeEmail(email);
     const otp = generateOtp(this.env.OTP_LENGTH);
     const otpExpiry = new Date(Date.now() + this.env.OTP_EXPIRY_MINUTES * 60 * 1000);
 
-    logger.info("OTP requested", {
-      phone: normalizedPhone,
-      expiresAt: otpExpiry.toISOString(),
-      mode: "development-mock",
+    await this.prisma.otpVerification.upsert({
+      where: { email: normalizedEmail },
+      create: { id: randomUUID(), email: normalizedEmail, otp, expiresAt: otpExpiry },
+      update: { otp, expiresAt: otpExpiry, createdAt: new Date() },
     });
 
-    await this.prisma.$executeRawUnsafe(
-      `INSERT INTO "otp_verifications" (id, "phone", "otp", "expiresAt", "createdAt")
-       VALUES ($1, $2, $3, $4, NOW())
-       ON CONFLICT ("phone") DO UPDATE SET "otp" = $3, "expiresAt" = $4, "createdAt" = NOW()`,
-      randomUUID(),
-      normalizedPhone,
-      otp,
-      otpExpiry
-    );
+    try {
+      await sendVerificationEmail({
+        to: normalizedEmail,
+        from: this.env.EMAIL_FROM,
+        otp,
+        expiresInMinutes: this.env.OTP_EXPIRY_MINUTES,
+      });
+    } catch (error) {
+      await this.prisma.otpVerification.delete({ where: { email: normalizedEmail } }).catch(() => undefined);
+      logger.error("Verification email delivery failed", {
+        email: normalizedEmail,
+        error: (error as Error).message,
+      });
+      throw new Error("Unable to send the verification email. Please try again.");
+    }
 
-    return { message: "OTP generated successfully", developmentOtp: otp };
+    logger.info("Verification email sent", { email: normalizedEmail, expiresAt: otpExpiry.toISOString() });
+    return {
+      message: "Verification code sent by email",
+      ...(this.env.NODE_ENV !== "production" && this.env.MOCK_PROVIDER_ENABLED === "true"
+        ? { developmentOtp: otp }
+        : {}),
+    };
   }
 
   async verifyOtp(data: VerifyOtpInput): Promise<AuthResponse> {
-    const normalizedPhone = normalizePhone(data.phone);
+    const normalizedEmail = normalizeEmail(data.email);
+    const verification = await this.prisma.otpVerification.findUnique({
+      where: { email: normalizedEmail },
+    });
 
-    const verification = await this.prisma.$queryRawUnsafe<any>(
-      `SELECT * FROM "otp_verifications" WHERE "phone" = $1 LIMIT 1`,
-      normalizedPhone
-    );
-
-    if (!verification || verification[0]?.otp !== data.otp) {
+    if (!verification || verification.otp !== data.otp) {
       throw new Error("Invalid or expired OTP");
     }
 
-    if (new Date() > new Date(verification[0].expiresAt)) {
+    if (new Date() > verification.expiresAt) {
       throw new Error("OTP has expired");
     }
 
-    // Check if user exists
     let user = await this.prisma.user.findUnique({
-      where: { phone: normalizedPhone },
+      where: { email: normalizedEmail },
     });
 
     if (!user) {
       throw new Error("User not found. Please register first.");
     }
 
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "otp_verifications" WHERE "phone" = $1`,
-      normalizedPhone
-    );
+    await this.prisma.otpVerification.delete({ where: { email: normalizedEmail } });
 
-    return this.generateTokens(user.id, user.phone, user.role);
+    return this.generateTokens(user.id, user.phone, user.role, user.email, user.name);
   }
 
   async register(data: RegisterInput): Promise<AuthResponse> {
     const normalizedPhone = normalizePhone(data.phone);
+    const normalizedEmail = normalizeEmail(data.email);
 
     if (!validatePhone(normalizedPhone)) {
       throw new Error("Invalid phone number format");
@@ -95,19 +93,24 @@ export class AuthService {
       throw new Error("Phone number already registered");
     }
 
-    if (data.otp) {
-      const verification = await this.prisma.$queryRawUnsafe<any>(
-        `SELECT * FROM "otp_verifications" WHERE "phone" = $1 LIMIT 1`,
-        normalizedPhone
-      );
+    const existingEmail = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
 
-      if (!verification || verification[0]?.otp !== data.otp) {
-        throw new Error("Invalid or expired OTP");
-      }
+    if (existingEmail) {
+      throw new Error("Email address already registered");
+    }
 
-      if (new Date() > new Date(verification[0].expiresAt)) {
-        throw new Error("OTP has expired");
-      }
+    const verification = await this.prisma.otpVerification.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (!verification || verification.otp !== data.otp) {
+      throw new Error("Invalid or expired OTP");
+    }
+
+    if (new Date() > verification.expiresAt) {
+      throw new Error("OTP has expired");
     }
 
     const passwordHash = await bcrypt.hash(data.password ?? randomUUID(), 12);
@@ -115,7 +118,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         phone: normalizedPhone,
-        email: data.email,
+        email: normalizedEmail,
         name: data.name,
         passwordHash,
       },
@@ -137,20 +140,15 @@ export class AuthService {
         action: "USER_REGISTERED",
         resource: "user",
         resourceId: user.id,
-        metadata: { phone: user.phone, name: user.name },
+        metadata: JSON.stringify({ phone: user.phone, name: user.name }),
         ipAddress: "system",
       },
     });
 
-    if (data.otp) {
-      await this.prisma.$executeRawUnsafe(
-        `DELETE FROM "otp_verifications" WHERE "phone" = $1`,
-        normalizedPhone
-      );
-    }
+    await this.prisma.otpVerification.delete({ where: { email: normalizedEmail } });
 
-    logger.info("User registered", { userId: user.id, phone: user.phone });
-    return this.generateTokens(user.id, user.phone, user.role);
+    logger.info("User registered", { userId: user.id, email: user.email });
+    return this.generateTokens(user.id, user.phone, user.role, user.email, user.name);
   }
 
   async login(data: LoginInput): Promise<AuthResponse> {
@@ -246,7 +244,13 @@ export class AuthService {
     return { message: "Logged out from all devices" };
   }
 
-  private generateTokens(userId: string, phone: string, role: string): AuthResponse {
+  private generateTokens(
+    userId: string,
+    phone: string,
+    role: string,
+    email: string | null = null,
+    name: string = phone
+  ): AuthResponse {
     const env = this.env;
 
     const accessPayload: AuthPayload = {
@@ -256,7 +260,7 @@ export class AuthService {
     };
 
     const accessToken = jwt.sign(accessPayload, env.JWT_ACCESS_SECRET, {
-      expiresIn: env.JWT_ACCESS_EXPIRY,
+      expiresIn: env.JWT_ACCESS_EXPIRY as SignOptions["expiresIn"],
     });
 
     const refreshPayload = {
@@ -265,7 +269,7 @@ export class AuthService {
     };
 
     const refreshToken = jwt.sign(refreshPayload, env.JWT_REFRESH_SECRET, {
-      expiresIn: env.JWT_REFRESH_EXPIRY,
+      expiresIn: env.JWT_REFRESH_EXPIRY as SignOptions["expiresIn"],
     });
 
     // Store refresh token
@@ -296,8 +300,8 @@ export class AuthService {
       user: {
         id: userId,
         phone,
-        email: null,
-        name: phone,
+        email,
+        name,
         role,
       },
     };
@@ -305,3 +309,7 @@ export class AuthService {
 }
 
 export const authService = new AuthService();
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}

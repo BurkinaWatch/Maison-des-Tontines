@@ -9,8 +9,8 @@ interface AuthStore {
   isLoading: boolean;
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
-  login: (phoneNumber: string, otp: string) => Promise<void>;
-  register: (phoneNumber: string, firstName: string, lastName: string, otp: string) => Promise<void>;
+  login: (email: string, otp: string) => Promise<void>;
+  register: (phoneNumber: string, email: string, firstName: string, lastName: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
   initialize: () => Promise<void>;
 }
@@ -24,10 +24,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   setUser: (user) => set({ user }),
   setToken: (token) => set({ token, isAuthenticated: !!token }),
 
-  login: async (phoneNumber, otp) => {
+  login: async (email, otp) => {
     set({ isLoading: true });
     try {
-      const response = await authService.login({ phoneNumber, otp });
+      const response = await authService.login({ email, otp });
       set({
         user: response.user,
         token: response.token,
@@ -40,11 +40,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 
-  register: async (phoneNumber, firstName, lastName, otp) => {
+  register: async (phoneNumber, email, firstName, lastName, otp) => {
     set({ isLoading: true });
     try {
       const response = await authService.register({
         phoneNumber,
+        email,
         firstName,
         lastName,
         otp,

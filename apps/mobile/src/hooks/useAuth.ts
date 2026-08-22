@@ -18,8 +18,8 @@ export const useAuth = () => {
   });
 
   const loginMutation = useMutation({
-    mutationFn: ({ phoneNumber, otp }: { phoneNumber: string; otp: string }) =>
-      authService.login({ phoneNumber, otp }),
+    mutationFn: ({ email, otp }: { email: string; otp: string }) =>
+      authService.login({ email, otp }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
@@ -28,16 +28,18 @@ export const useAuth = () => {
   const registerMutation = useMutation({
     mutationFn: ({
       phoneNumber,
+      email,
       firstName,
       lastName,
       otp,
     }: {
       phoneNumber: string;
+      email: string;
       firstName: string;
       lastName: string;
       otp: string;
     }) =>
-      authService.register({ phoneNumber, firstName, lastName, otp }),
+      authService.register({ phoneNumber, email, firstName, lastName, otp }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
@@ -50,10 +52,10 @@ export const useAuth = () => {
     currentUserQuery,
     loginMutation,
     registerMutation,
-    login: (phoneNumber: string, otp: string) =>
-      loginMutation.mutateAsync({ phoneNumber, otp }),
-    register: (phoneNumber: string, firstName: string, lastName: string, otp: string) =>
-      registerMutation.mutateAsync({ phoneNumber, firstName, lastName, otp }),
+    login: (email: string, otp: string) =>
+      loginMutation.mutateAsync({ email, otp }),
+    register: (phoneNumber: string, email: string, firstName: string, lastName: string, otp: string) =>
+      registerMutation.mutateAsync({ phoneNumber, email, firstName, lastName, otp }),
     logout: () => logout(),
     initialize: () => initialize(),
   };

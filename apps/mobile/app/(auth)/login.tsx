@@ -19,15 +19,15 @@ import { useAuthStore } from "../../src/store/authStore";
 export default function LoginScreen() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [error, setError] = useState("");
 
   const handleRequestOTP = async () => {
-    if (!phoneNumber.trim()) {
-      setError("Please enter your phone number");
+    if (!email.trim()) {
+      setError("Please enter your email address");
       return;
     }
 
@@ -35,14 +35,14 @@ export default function LoginScreen() {
     setError("");
 
     try {
-      const result = await authService.requestOTP(phoneNumber.trim());
+      const result = await authService.requestOTP(email.trim());
 
       setIsOtpSent(true);
       Alert.alert(
         "OTP Sent",
         result.developmentOtp
           ? `Development code: ${result.developmentOtp}`
-          : "Check your phone for the verification code"
+          : "Check your email for the verification code"
       );
     } catch {
       setError("Failed to send OTP. Please try again.");
@@ -61,7 +61,7 @@ export default function LoginScreen() {
     setError("");
 
     try {
-      await login(phoneNumber.trim(), otp.trim());
+      await login(email.trim(), otp.trim());
       router.replace("/(tabs)");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Login failed. Please try again.");
@@ -87,19 +87,20 @@ export default function LoginScreen() {
         <GlassCard style={styles.card}>
           {!isOtpSent ? (
             <View>
-              <Text style={styles.label}>Phone Number</Text>
+              <Text style={styles.label}>Email address</Text>
               <TextInput
                 style={styles.input}
-                placeholder="+225 01 00 00 00"
+                placeholder="vous@exemple.com"
                 placeholderTextColor={colors.textTertiary}
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                keyboardType="phone-pad"
-                autoComplete="tel"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
               />
               {error ? <Text style={styles.error}>{error}</Text> : null}
               <GlassButton
-                title="Send OTP"
+                title="Send verification code"
                 onPress={handleRequestOTP}
                 loading={isLoading}
                 style={styles.button}
@@ -119,7 +120,7 @@ export default function LoginScreen() {
                 autoFocus
               />
               <Text style={styles.hint}>
-                Sent to {phoneNumber}
+                Sent to {email}
               </Text>
               {error ? <Text style={styles.error}>{error}</Text> : null}
               <GlassButton
@@ -129,7 +130,7 @@ export default function LoginScreen() {
                 style={styles.button}
               />
               <Pressable onPress={() => setIsOtpSent(false)}>
-                <Text style={styles.link}>Change phone number</Text>
+                <Text style={styles.link}>Change email address</Text>
               </Pressable>
             </View>
           )}

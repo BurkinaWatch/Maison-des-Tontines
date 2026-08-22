@@ -13,3 +13,7 @@ The mobile workspace uses Expo SDK 54 and is available in the Replit preview on 
 ## Backend status
 
 The Express API is not included in the preview workflow. Before starting it, configure the required `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` secrets and a Redis service for BullMQ workers. The API uses the checked-in SQLite development database by default.
+
+## Verification emails
+
+Account verification codes are delivered through the attached Resend integration. Set `EMAIL_FROM` to an email address or domain verified in Resend before sending emails to real users.

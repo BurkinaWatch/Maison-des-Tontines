@@ -11,8 +11,8 @@ import type {
 export class AuthController {
   async requestOtp(req: any, res: Response, next: any) {
     try {
-      const { phone } = req.body as RequestOtpInput;
-      const result = await authService.requestOtp(phone);
+      const { email } = req.body as RequestOtpInput;
+      const result = await authService.requestOtp(email);
       res.status(200).json(result);
     } catch (error) {
       next(error);
@@ -21,8 +21,8 @@ export class AuthController {
 
   async verifyOtp(req: any, res: Response, next: any) {
     try {
-      const { phone, otp } = req.body as VerifyOtpInput;
-      const result = await authService.verifyOtp({ phone, otp });
+      const { email, otp } = req.body as VerifyOtpInput;
+      const result = await authService.verifyOtp({ email, otp });
       res.status(200).json(result);
     } catch (error) {
       next(error);

@@ -20,6 +20,7 @@ export default function RegisterScreen() {
   const router = useRouter();
   const register = useAuthStore((state) => state.register);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [otp, setOtp] = useState("");
@@ -28,7 +29,7 @@ export default function RegisterScreen() {
   const [error, setError] = useState("");
 
   const handleRequestOTP = async () => {
-    if (!phoneNumber.trim() || !firstName.trim() || !lastName.trim()) {
+    if (!phoneNumber.trim() || !email.trim() || !firstName.trim() || !lastName.trim()) {
       setError("Please fill in all fields");
       return;
     }
@@ -37,14 +38,14 @@ export default function RegisterScreen() {
     setError("");
 
     try {
-      const result = await authService.requestOTP(phoneNumber.trim());
+      const result = await authService.requestOTP(email.trim());
 
       setIsOtpSent(true);
       Alert.alert(
         "OTP Sent",
         result.developmentOtp
           ? `Development code: ${result.developmentOtp}`
-          : "Check your phone for the verification code"
+          : "Check your email for the verification code"
       );
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to send OTP. Please try again.");
@@ -65,6 +66,7 @@ export default function RegisterScreen() {
     try {
       await register(
         phoneNumber.trim(),
+        email.trim(),
         firstName.trim(),
         lastName.trim(),
         otp.trim()
@@ -118,6 +120,17 @@ export default function RegisterScreen() {
                 keyboardType="phone-pad"
                 autoComplete="tel"
               />
+              <Text style={styles.label}>Email address</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="vous@exemple.com"
+                placeholderTextColor={colors.textTertiary}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+              />
               {error ? <Text style={styles.error}>{error}</Text> : null}
               <GlassButton
                 title="Continue"
@@ -128,7 +141,7 @@ export default function RegisterScreen() {
             </View>
           ) : (
             <View>
-              <Text style={styles.label}>Enter OTP</Text>
+              <Text style={styles.label}>Enter verification code</Text>
               <TextInput
                 style={styles.input}
                 placeholder="000000"
@@ -140,7 +153,7 @@ export default function RegisterScreen() {
                 autoFocus
               />
               <Text style={styles.hint}>
-                Sent to {phoneNumber}
+                Sent to {email}
               </Text>
               {error ? <Text style={styles.error}>{error}</Text> : null}
               <GlassButton
@@ -150,7 +163,7 @@ export default function RegisterScreen() {
                 style={styles.button}
               />
               <Pressable onPress={() => setIsOtpSent(false)}>
-                <Text style={styles.link}>Change phone number</Text>
+                <Text style={styles.link}>Change email address</Text>
               </Pressable>
             </View>
           )}

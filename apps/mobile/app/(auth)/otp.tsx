@@ -13,10 +13,13 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { GlassButton } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
+import { authService } from "../../src/services/auth.service";
+import { useAuthStore } from "../../src/store/authStore";
 
 export default function OtpScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ phoneNumber: string }>();
+  const params = useLocalSearchParams<{ email: string }>();
+  const login = useAuthStore((state) => state.login);
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -48,29 +51,10 @@ export default function OtpScreen() {
     setError("");
 
     try {
-      const phone = params.phoneNumber || "";
-
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            phoneNumber: phone,
-            otp: otp.trim(),
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        router.replace("/(tabs)/");
-      } else {
-        setError(data.message || "Invalid OTP");
-      }
-    } catch {
-      setError("Verification failed. Please try again.");
+      await login(params.email || "", otp.trim());
+      router.replace("/(tabs)");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Verification failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -81,16 +65,9 @@ export default function OtpScreen() {
     setCountdown(60);
 
     try {
-      await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/auth/otp/request`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phoneNumber: params.phoneNumber }),
-        }
-      );
+      await authService.requestOTP(params.email || "");
 
-      Alert.alert("OTP Resent", "Check your phone for the new code");
+      Alert.alert("Code resent", "Check your email for the new code");
     } catch {
       Alert.alert("Error", "Failed to resend OTP");
     }
@@ -104,9 +81,9 @@ export default function OtpScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.logo}>🔐</Text>
-          <Text style={styles.title}>Verify Phone</Text>
+          <Text style={styles.title}>Verify email</Text>
           <Text style={styles.subtitle}>
-            Enter the code sent to {params.phoneNumber || "your phone"}
+            Enter the code sent to {params.email || "your email address"}
           </Text>
         </View>
 
@@ -122,12 +99,6 @@ export default function OtpScreen() {
                 newOtp[index] = text;
                 setOtp(newOtp.join(""));
 
-                if (text && index < 5) {
-                  const inputs = [
-                    ...document.querySelectorAll("input"),
-                  ];
-                  (inputs[index + 1] as any)?.focus?.();
-                }
               }}
               value={otp[index] || ""}
             />
@@ -147,7 +118,7 @@ export default function OtpScreen() {
         <View style={styles.resendContainer}>
           {canResend ? (
             <Pressable onPress={handleResendOTP}>
-              <Text style={styles.resendText}>Resend OTP</Text>
+              <Text style={styles.resendText}>Resend code</Text>
             </Pressable>
           ) : (
             <Text style={styles.countdownText}>

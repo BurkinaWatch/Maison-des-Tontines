@@ -47,9 +47,13 @@ args = 'DATABASE_URL="file:./dev.db" JWT_ACCESS_SECRET="${SESSION_SECRET}-previe
 waitForPort = 4000
 
 [[ports]]
+localPort = 4000
+externalPort = 3000
+
+[[ports]]
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 4000
-externalPort = 4000
+[postMerge]
+path = "scripts/post-merge-setup.sh"
+timeoutMs = 180000

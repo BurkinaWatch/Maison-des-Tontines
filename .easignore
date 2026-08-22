@@ -1,0 +1,33 @@
+# Existing repository ignores
+node_modules/
+.expo/
+**/.expo/
+.env
+apps/api/logs/
+apps/api/generated/
+apps/api/prisma/postgresql/schema.prisma
+
+# Replit workspace state and build caches
+/.agents/
+/.cache/
+/.config/
+/.local/
+/.upm/
+/attached_assets/
+/screenshots/
+
+# Services and packages not required to build the Android application
+/apps/api/
+/packages/
+/scripts/
+/bootstrap.ps1
+/.replit
+/replit.md
+/README.md
+/turbo.json
+
+# Build the Expo app as an isolated package with public npm dependencies
+/package.json
+/package-lock.json
+/pnpm-lock.yaml
+/pnpm-workspace.yaml

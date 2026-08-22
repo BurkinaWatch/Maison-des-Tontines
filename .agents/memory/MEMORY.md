@@ -2,3 +2,4 @@
 - [Expo preview API routing](expo-preview-api-routing.md) — Proxy preview API calls through an Expo same-origin server route, not Metro middleware or a second browser port.
 - [Expo web auth storage](expo-web-auth-storage.md) — Use localStorage for Expo web sessions and SecureStore only on native platforms.
 - [Refresh-token uniqueness](refresh-token-uniqueness.md) — Give every JWT refresh token unique session entropy, even when sessions start in the same second.
+- [Railway migration environment](railway-migration-environment.md) — Gate PostgreSQL migrations to production so local tools never target the Railway URL.

@@ -8,9 +8,9 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "pnpm --filter @maison-des-tontines/api prisma:generate && pnpm --filter @maison-des-tontines/api build",
+    "build": "pnpm --filter @maison-des-tontines/api prisma:generate && pnpm --filter @maison-des-tontines/api prisma:generate:postgres && pnpm --filter @maison-des-tontines/api build",
     "dev": "turbo run dev",
-    "start": "pnpm --filter @maison-des-tontines/api start",
+    "start": "NODE_ENV=production pnpm --filter @maison-des-tontines/api prisma:migrate:production && NODE_ENV=production pnpm --filter @maison-des-tontines/api start",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "db:generate": "prisma generate",

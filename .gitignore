@@ -3,3 +3,5 @@ node_modules/
 **/.expo/
 .env
 apps/api/logs/
+apps/api/generated/
+apps/api/prisma/postgresql/schema.prisma

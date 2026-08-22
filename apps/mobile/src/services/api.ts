@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 
 const TOKEN_KEY = "auth_token";
 const REFRESH_TOKEN_KEY = "auth_refresh_token";
@@ -19,6 +20,50 @@ function buildApiUrl(baseUrl: string, endpoint: string): string {
   return `${normalizedBaseUrl}/api/${API_VERSION}${normalizedEndpoint}`;
 }
 
+function isWeb(): boolean {
+  return Platform.OS === "web";
+}
+
+function getWebStorage(): Storage | null {
+  if (!isWeb() || typeof window === "undefined") {
+    return null;
+  }
+
+  return window.localStorage;
+}
+
+async function getStoredValue(key: string): Promise<string | null> {
+  if (isWeb()) {
+    return getWebStorage()?.getItem(key) ?? null;
+  }
+
+  return SecureStore.getItemAsync(key);
+}
+
+async function setStoredValue(key: string, value: string): Promise<void> {
+  if (isWeb()) {
+    const storage = getWebStorage();
+
+    if (!storage) {
+      throw new Error("Web storage is unavailable");
+    }
+
+    storage.setItem(key, value);
+    return;
+  }
+
+  await SecureStore.setItemAsync(key, value);
+}
+
+async function deleteStoredValue(key: string): Promise<void> {
+  if (isWeb()) {
+    getWebStorage()?.removeItem(key);
+    return;
+  }
+
+  await SecureStore.deleteItemAsync(key);
+}
+
 export const api = {
   baseUrl:
     process.env.EXPO_PUBLIC_API_URL ||
@@ -27,19 +72,19 @@ export const api = {
 
   async getToken(): Promise<string | null> {
     try {
-      return await SecureStore.getItemAsync(TOKEN_KEY);
+      return await getStoredValue(TOKEN_KEY);
     } catch {
       return null;
     }
   },
 
   async setToken(token: string): Promise<void> {
-    await SecureStore.setItemAsync(TOKEN_KEY, token);
+    await setStoredValue(TOKEN_KEY, token);
   },
 
   async getRefreshToken(): Promise<string | null> {
     try {
-      return await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      return await getStoredValue(REFRESH_TOKEN_KEY);
     } catch {
       return null;
     }
@@ -47,15 +92,15 @@ export const api = {
 
   async setTokens(accessToken: string, refreshToken: string): Promise<void> {
     await Promise.all([
-      SecureStore.setItemAsync(TOKEN_KEY, accessToken),
-      SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken),
+      setStoredValue(TOKEN_KEY, accessToken),
+      setStoredValue(REFRESH_TOKEN_KEY, refreshToken),
     ]);
   },
 
   async removeToken(): Promise<void> {
     await Promise.all([
-      SecureStore.deleteItemAsync(TOKEN_KEY),
-      SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
+      deleteStoredValue(TOKEN_KEY),
+      deleteStoredValue(REFRESH_TOKEN_KEY),
     ]);
   },
 

@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { getEnv } from "../../config/env.js";
+import { getEnv } from "../config/env.js";
 
 export async function enqueueReminderJob(type: string, data: any) {
   const env = getEnv();

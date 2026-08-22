@@ -58,7 +58,7 @@ export class TontinesService {
                     orderBy: { payoutOrder: "asc" },
                 },
                 cycles: { orderBy: { sequence: "asc" } },
-                votes: { orderBy: { createdAt: "desc" }, take: 5 },
+                votes: { orderBy: { openedAt: "desc" }, take: 5 },
             },
         });
     }

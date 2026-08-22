@@ -3,6 +3,7 @@ import { EngineRule } from "../types.js";
 export interface RotationContext {
   tontineId: string;
   members: Array<{ id: string; payoutOrder: number | null }>;
+  rules: Record<string, unknown>;
   selectedBeneficiaryId: string | null;
   rotationType: string;
 }
@@ -15,7 +16,9 @@ export class RotationRule implements EngineRule {
   }
 
   async apply(context: RotationContext): Promise<void> {
-    const rotationType = context.rules.rotationType || "fixed";
+    const configuredRotationType = context.rules.rotationType;
+    const rotationType =
+      typeof configuredRotationType === "string" ? configuredRotationType : "fixed";
     context.rotationType = rotationType;
 
     if (rotationType === "fixed" && context.members.length > 0) {

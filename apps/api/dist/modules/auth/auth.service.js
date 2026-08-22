@@ -1,78 +1,36 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 import { getPrisma } from "../../config/database.js";
 import { getEnv } from "../../config/env.js";
 import { logger } from "../../config/logger.js";
-import { generateOtp, validatePhone, normalizePhone } from "../../utils/phone.js";
-import { randomUUID } from "crypto";
+import { validatePhone, normalizePhone } from "../../utils/phone.js";
 export class AuthService {
     prisma = getPrisma();
     env = getEnv();
-    async requestOtp(phone) {
-        const normalizedPhone = normalizePhone(phone);
-        if (!validatePhone(normalizedPhone)) {
-            throw new Error("Invalid phone number format");
-        }
-        const isMockOtp = this.env.NODE_ENV !== "production" && this.env.MOCK_PROVIDER_ENABLED === "true";
-        if (!isMockOtp) {
-            throw new Error("SMS delivery is not configured. Configure an SMS provider before requesting OTP codes.");
-        }
-        const otp = generateOtp(this.env.OTP_LENGTH);
-        const otpExpiry = new Date(Date.now() + this.env.OTP_EXPIRY_MINUTES * 60 * 1000);
-        logger.info("OTP requested", {
-            phone: normalizedPhone,
-            expiresAt: otpExpiry.toISOString(),
-            mode: "development-mock",
-        });
-        await this.prisma.$executeRawUnsafe(`INSERT INTO "otp_verifications" (id, "phone", "otp", "expiresAt", "createdAt")
-       VALUES ($1, $2, $3, $4, NOW())
-       ON CONFLICT ("phone") DO UPDATE SET "otp" = $3, "expiresAt" = $4, "createdAt" = NOW()`, randomUUID(), normalizedPhone, otp, otpExpiry);
-        return { message: "OTP generated successfully", developmentOtp: otp };
-    }
-    async verifyOtp(data) {
-        const normalizedPhone = normalizePhone(data.phone);
-        const verification = await this.prisma.$queryRawUnsafe(`SELECT * FROM "otp_verifications" WHERE "phone" = $1 LIMIT 1`, normalizedPhone);
-        if (!verification || verification[0]?.otp !== data.otp) {
-            throw new Error("Invalid or expired OTP");
-        }
-        if (new Date() > new Date(verification[0].expiresAt)) {
-            throw new Error("OTP has expired");
-        }
-        // Check if user exists
-        let user = await this.prisma.user.findUnique({
-            where: { phone: normalizedPhone },
-        });
-        if (!user) {
-            throw new Error("User not found. Please register first.");
-        }
-        await this.prisma.$executeRawUnsafe(`DELETE FROM "otp_verifications" WHERE "phone" = $1`, normalizedPhone);
-        return this.generateTokens(user.id, user.phone, user.role);
-    }
     async register(data) {
         const normalizedPhone = normalizePhone(data.phone);
+        const normalizedEmail = normalizeEmail(data.email);
         if (!validatePhone(normalizedPhone)) {
-            throw new Error("Invalid phone number format");
+            throw createAuthError("Invalid phone number format", 400);
         }
         const existingUser = await this.prisma.user.findFirst({
             where: { phone: normalizedPhone },
         });
         if (existingUser) {
-            throw new Error("Phone number already registered");
+            throw createAuthError("Phone number already registered", 409);
         }
-        if (data.otp) {
-            const verification = await this.prisma.$queryRawUnsafe(`SELECT * FROM "otp_verifications" WHERE "phone" = $1 LIMIT 1`, normalizedPhone);
-            if (!verification || verification[0]?.otp !== data.otp) {
-                throw new Error("Invalid or expired OTP");
-            }
-            if (new Date() > new Date(verification[0].expiresAt)) {
-                throw new Error("OTP has expired");
-            }
+        const existingEmail = await this.prisma.user.findUnique({
+            where: { email: normalizedEmail },
+        });
+        if (existingEmail) {
+            throw createAuthError("Email address already registered", 409);
         }
-        const passwordHash = await bcrypt.hash(data.password ?? randomUUID(), 12);
+        const passwordHash = await bcrypt.hash(data.password, 12);
         const user = await this.prisma.user.create({
             data: {
                 phone: normalizedPhone,
-                email: data.email,
+                email: normalizedEmail,
                 name: data.name,
                 passwordHash,
             },
@@ -92,37 +50,34 @@ export class AuthService {
                 action: "USER_REGISTERED",
                 resource: "user",
                 resourceId: user.id,
-                metadata: { phone: user.phone, name: user.name },
+                metadata: JSON.stringify({ phone: user.phone, name: user.name }),
                 ipAddress: "system",
             },
         });
-        if (data.otp) {
-            await this.prisma.$executeRawUnsafe(`DELETE FROM "otp_verifications" WHERE "phone" = $1`, normalizedPhone);
-        }
-        logger.info("User registered", { userId: user.id, phone: user.phone });
-        return this.generateTokens(user.id, user.phone, user.role);
+        logger.info("User registered", { userId: user.id, email: user.email });
+        return this.generateTokens(user.id, user.phone, user.role, user.email, user.name);
     }
     async login(data) {
-        const normalizedPhone = normalizePhone(data.phone);
-        const user = await this.prisma.user.findFirst({
-            where: { phone: normalizedPhone },
+        const normalizedEmail = normalizeEmail(data.email);
+        const user = await this.prisma.user.findUnique({
+            where: { email: normalizedEmail },
         });
         if (!user) {
-            throw new Error("Invalid phone number or password");
+            throw createAuthError("Invalid email address or password", 401);
         }
         const passwordMatch = await bcrypt.compare(data.password, user.passwordHash);
         if (!passwordMatch) {
-            throw new Error("Invalid phone number or password");
+            throw createAuthError("Invalid email address or password", 401);
         }
         if (user.status !== "ACTIVE") {
-            throw new Error(`Account is ${user.status.toLowerCase()}. Please contact support.`);
+            throw createAuthError(`Account is ${user.status.toLowerCase()}. Please contact support.`, 403);
         }
         // Update last login
         await this.prisma.user.update({
             where: { id: user.id },
             data: { updatedAt: new Date() },
         });
-        return this.generateTokens(user.id, user.phone, user.role);
+        return this.generateTokens(user.id, user.phone, user.role, user.email, user.name);
     }
     async refreshToken(refreshToken) {
         const env = this.env;
@@ -149,11 +104,11 @@ export class AuthService {
                 where: { id: storedToken.id },
                 data: { revokedAt: new Date() },
             });
-            const tokens = this.generateTokens(user.id, user.phone, user.role);
+            const tokens = await this.generateTokens(user.id, user.phone, user.role, user.email, user.name);
             return tokens;
         }
         catch {
-            throw new Error("Invalid or expired refresh token");
+            throw createAuthError("Invalid or expired refresh token", 401);
         }
     }
     async logout(userId, refreshToken) {
@@ -174,7 +129,7 @@ export class AuthService {
         });
         return { message: "Logged out from all devices" };
     }
-    generateTokens(userId, phone, role) {
+    async generateTokens(userId, phone, role, email = null, name = phone) {
         const env = this.env;
         const accessPayload = {
             sub: userId,
@@ -187,6 +142,7 @@ export class AuthService {
         const refreshPayload = {
             sub: userId,
             type: "refresh",
+            jti: randomUUID(),
         };
         const refreshToken = jwt.sign(refreshPayload, env.JWT_REFRESH_SECRET, {
             expiresIn: env.JWT_REFRESH_EXPIRY,
@@ -204,14 +160,12 @@ export class AuthService {
         else {
             expiresAt.setDate(expiresAt.getDate() + 7);
         }
-        this.prisma.refreshToken.create({
+        await this.prisma.refreshToken.create({
             data: {
                 userId,
                 token: refreshToken,
                 expiresAt,
             },
-        }).catch((err) => {
-            logger.error("Failed to store refresh token", { error: err.message });
         });
         return {
             accessToken,
@@ -219,12 +173,18 @@ export class AuthService {
             user: {
                 id: userId,
                 phone,
-                email: null,
-                name: phone,
+                email,
+                name,
                 role,
             },
         };
     }
 }
 export const authService = new AuthService();
+function normalizeEmail(email) {
+    return email.trim().toLowerCase();
+}
+function createAuthError(message, statusCode) {
+    return Object.assign(new Error(message), { statusCode });
+}
 //# sourceMappingURL=auth.service.js.map

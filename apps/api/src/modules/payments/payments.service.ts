@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { getPrisma } from "../../config/database.js";
-import { logger } from "../../config/database.js";
 
 export class PaymentsService {
   async getProviders() {

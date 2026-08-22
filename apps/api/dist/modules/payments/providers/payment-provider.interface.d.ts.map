@@ -1,1 +1,1 @@
-{"version":3,"file":"payment-provider.interface.d.ts","sourceRoot":"","sources":["../../../../src/modules/payments/providers/payment-provider.interface.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,wBAAwB,EAAE,wBAAwB,EAAE,yBAAyB,EAAE,qBAAqB,EAAE,yBAAyB,EAAE,MAAM,iCAAiC,CAAC"}
+{"version":3,"file":"payment-provider.interface.d.ts","sourceRoot":"","sources":["../../../../src/modules/payments/providers/payment-provider.interface.ts"],"names":[],"mappings":"AAAA,YAAY,EACV,wBAAwB,EACxB,wBAAwB,EACxB,yBAAyB,EACzB,qBAAqB,EACrB,yBAAyB,GAC1B,MAAM,iCAAiC,CAAC"}

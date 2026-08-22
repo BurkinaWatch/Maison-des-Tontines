@@ -18,13 +18,13 @@ export function auditMiddleware(req, res, next) {
                     action: `${req.method}_${req.route?.path || req.path}`,
                     resource: req.params?.tontineId || "unknown",
                     resourceId: req.params?.id || null,
-                    metadata: {
+                    metadata: JSON.stringify({
                         method: req.method,
                         path: req.path,
                         status: statusCode,
                         query: req.query,
                         body: req.body ? { ...req.body, password: undefined } : undefined,
-                    },
+                    }),
                     ipAddress: req.ip || "unknown",
                 },
             });

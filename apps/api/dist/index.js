@@ -9,7 +9,6 @@ import { requestLogger } from "./config/logger.js";
 import { apiRateLimiter } from "./middleware/rateLimit.js";
 import routes from "./routes.js";
 import { getEnv } from "./config/env.js";
-import { startWorkers } from "./jobs/reminder.job.js";
 dotenv.config();
 const env = getEnv();
 const app = express();
@@ -35,9 +34,15 @@ async function start() {
         const prisma = (await import("./config/database.js")).getPrisma();
         await prisma.$connect();
         console.log("Database connected successfully");
-        await startWorkers();
-        console.log("BullMQ workers started");
-        app.listen(env.PORT, () => {
+        if (process.env.ENABLE_WORKERS !== "false") {
+            const { startWorkers } = await import("./jobs/reminder.job.js");
+            await startWorkers();
+            console.log("BullMQ workers started");
+        }
+        else {
+            console.log("BullMQ workers disabled");
+        }
+        app.listen(env.PORT, "0.0.0.0", () => {
             console.log(`Server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
             console.log(`API prefix: ${env.API_PREFIX}`);
         });

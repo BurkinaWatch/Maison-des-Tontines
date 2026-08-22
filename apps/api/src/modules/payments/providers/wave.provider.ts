@@ -1,4 +1,18 @@
-import { PaymentProviderInterface, PaymentInitiationRequest, PaymentInitiationResponse, PaymentStatusResponse, WebhookVerificationResult } from "../types/payment.types.js";
+import type {
+  PaymentProviderInterface,
+  PaymentInitiationRequest,
+  PaymentInitiationResponse,
+  PaymentStatusResponse,
+  WebhookVerificationResult,
+} from "../../../types/payment.types.js";
+
+type WavePaymentResponse = {
+  amount?: number;
+  id?: string;
+  message?: string;
+  paid_at?: string;
+  status?: string;
+};
 
 export class WaveProvider implements PaymentProviderInterface {
   name = "wave";
@@ -20,7 +34,7 @@ export class WaveProvider implements PaymentProviderInterface {
         }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as WavePaymentResponse;
 
       if (!response.ok) {
         return {
@@ -33,8 +47,8 @@ export class WaveProvider implements PaymentProviderInterface {
 
       return {
         success: true,
-        providerRef: data.id,
-        status: data.status,
+        providerRef: data.id ?? "",
+        status: data.status ?? "PENDING",
       };
     } catch (error) {
       return {
@@ -54,11 +68,11 @@ export class WaveProvider implements PaymentProviderInterface {
         },
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as WavePaymentResponse;
 
       return {
-        status: data.status,
-        amount: data.amount,
+        status: data.status ?? "UNKNOWN",
+        amount: data.amount ?? 0,
         transactionId: providerRef,
         paidAt: data.paid_at ? new Date(data.paid_at) : undefined,
       };
@@ -113,12 +127,12 @@ export class WaveProvider implements PaymentProviderInterface {
         }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as WavePaymentResponse;
 
       return {
         success: response.ok,
-        providerRef: data.id || providerRef,
-        status: data.status,
+        providerRef: data.id ?? providerRef,
+        status: data.status ?? (response.ok ? "COMPLETED" : "FAILED"),
       };
     } catch (error) {
       return {

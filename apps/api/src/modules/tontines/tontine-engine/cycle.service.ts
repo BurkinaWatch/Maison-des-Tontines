@@ -54,7 +54,6 @@ export class CycleService {
 
     await prisma.tontineCycle.createMany({
       data: cycles,
-      skipDuplicates: true,
     });
 
     logger.info("Cycles created", { tontineId, count: totalCycles });
@@ -114,6 +113,10 @@ export class CycleService {
     );
 
     const beneficiaryId = await this.engine.selectBeneficiary(beneficiaryOrder, cycle.sequence);
+
+    if (!beneficiaryId) {
+      throw new Error("No eligible beneficiary found for this cycle");
+    }
 
     const updatedCycle = await prisma.tontineCycle.update({
       where: { id: cycleId },

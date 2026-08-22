@@ -59,6 +59,19 @@ export class UsersController {
             if (!user) {
                 return res.status(404).json({ error: "User not found" });
             }
+            if (!currentPassword || !newPassword || newPassword.length < 8) {
+                return res.status(400).json({
+                    error: "Invalid password",
+                    message: "Provide your current password and a new password of at least 8 characters.",
+                });
+            }
+            const passwordMatches = await bcrypt.compare(currentPassword, user.passwordHash);
+            if (!passwordMatches) {
+                return res.status(401).json({
+                    error: "Unauthorized",
+                    message: "Current password is incorrect.",
+                });
+            }
             const newPasswordHash = await bcrypt.hash(newPassword, 12);
             await getPrisma().user.update({
                 where: { id: userId },

@@ -5,8 +5,8 @@ export declare class AIService {
         data: {
             message: string;
             contributionRate: number;
-            potReceived: any;
-            potAmount: any;
+            potReceived: number | null;
+            potAmount: number | null;
         };
     }[]>;
 }

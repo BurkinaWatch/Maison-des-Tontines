@@ -27,15 +27,15 @@ export declare const InitiatePayoutDto: z.ZodObject<{
     phoneNumber: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     tontineId: string;
-    memberId: string;
     cycleId: string;
+    memberId: string;
     amount: number;
     method: "MOBILE_MONEY" | "CASH" | "BANK_TRANSFER";
     phoneNumber: string;
 }, {
     tontineId: string;
-    memberId: string;
     cycleId: string;
+    memberId: string;
     amount: number;
     phoneNumber: string;
     method?: "MOBILE_MONEY" | "CASH" | "BANK_TRANSFER" | undefined;

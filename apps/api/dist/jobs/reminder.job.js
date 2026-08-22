@@ -36,7 +36,7 @@ export async function startWorkers() {
                             channel: "PUSH",
                             title: "Contribution Reminder",
                             body: `Please contribute to ${cycle.name} before it closes.`,
-                            data: { tontineId, cycleId },
+                            data: JSON.stringify({ tontineId, cycleId }),
                             status: "PENDING",
                         },
                     });
@@ -83,7 +83,7 @@ export async function startWorkers() {
                     channel: "PUSH",
                     title: "Reconciliation Alert",
                     body: `Cycle ${cycle.name} has a discrepancy: expected ${expectedTotal}, received ${totalPaid}`,
-                    data: { cycleId, totalPaid, expectedTotal },
+                    data: JSON.stringify({ cycleId, totalPaid, expectedTotal }),
                     status: "PENDING",
                 },
             });

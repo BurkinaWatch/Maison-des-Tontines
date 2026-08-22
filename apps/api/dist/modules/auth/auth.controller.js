@@ -1,24 +1,5 @@
+import { authService } from "./auth.service.js";
 export class AuthController {
-    async requestOtp(req, res, next) {
-        try {
-            const { phone } = req.body;
-            const result = await authService.requestOtp(phone);
-            res.status(200).json(result);
-        }
-        catch (error) {
-            next(error);
-        }
-    }
-    async verifyOtp(req, res, next) {
-        try {
-            const { phone, otp } = req.body;
-            const result = await authService.verifyOtp({ phone, otp });
-            res.status(200).json(result);
-        }
-        catch (error) {
-            next(error);
-        }
-    }
     async register(req, res, next) {
         try {
             const data = req.body;

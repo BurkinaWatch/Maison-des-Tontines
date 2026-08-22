@@ -10,8 +10,18 @@ export declare class AuditLogger {
         limit?: number;
         offset?: number;
     }): Promise<{
-        logs: any;
-        total: any;
+        logs: {
+            id: string;
+            createdAt: Date;
+            actorRole: string;
+            action: string;
+            resource: string;
+            resourceId: string | null;
+            metadata: string;
+            ipAddress: string;
+            actorId: string | null;
+        }[];
+        total: number;
     }>;
 }
 export declare const auditLogger: AuditLogger;

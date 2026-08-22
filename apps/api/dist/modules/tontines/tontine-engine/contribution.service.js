@@ -19,6 +19,15 @@ const ContributionStatus = {
     DISPUTED: "DISPUTED",
     REFUNDED: "REFUNDED",
 };
+const CycleStatus = {
+    UPCOMING: "UPCOMING",
+    OPEN: "OPEN",
+    PARTIALLY_FUNDED: "PARTIALLY_FUNDED",
+    FUNDED: "FUNDED",
+    PAYOUT_PENDING: "PAYOUT_PENDING",
+    COMPLETED: "COMPLETED",
+    EXCEPTION: "EXCEPTION",
+};
 export class ContributionService {
     engine;
     latePenaltyRule;

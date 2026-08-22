@@ -7,14 +7,14 @@ export declare const CreateDisputeDto: z.ZodObject<{
     description: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     type: string;
-    description: string;
     tontineId: string;
+    description: string;
     cycleId?: string | null | undefined;
     contributionId?: string | null | undefined;
 }, {
     type: string;
-    description: string;
     tontineId: string;
+    description: string;
     cycleId?: string | null | undefined;
     contributionId?: string | null | undefined;
 }>;
@@ -26,14 +26,14 @@ export declare const OpenDisputeDto: z.ZodObject<{
     description: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     type: string;
-    description: string;
     tontineId: string;
+    description: string;
     cycleId?: string | null | undefined;
     contributionId?: string | null | undefined;
 }, {
     type: string;
-    description: string;
     tontineId: string;
+    description: string;
     cycleId?: string | null | undefined;
     contributionId?: string | null | undefined;
 }>;

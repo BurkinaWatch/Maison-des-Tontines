@@ -16,7 +16,7 @@ export class WaveProvider {
                     external_id: request.reference,
                 }),
             });
-            const data = await response.json();
+            const data = (await response.json());
             if (!response.ok) {
                 return {
                     success: false,
@@ -27,8 +27,8 @@ export class WaveProvider {
             }
             return {
                 success: true,
-                providerRef: data.id,
-                status: data.status,
+                providerRef: data.id ?? "",
+                status: data.status ?? "PENDING",
             };
         }
         catch (error) {
@@ -47,10 +47,10 @@ export class WaveProvider {
                     "Authorization": `Bearer ${process.env.WAVE_API_KEY}`,
                 },
             });
-            const data = await response.json();
+            const data = (await response.json());
             return {
-                status: data.status,
-                amount: data.amount,
+                status: data.status ?? "UNKNOWN",
+                amount: data.amount ?? 0,
                 transactionId: providerRef,
                 paidAt: data.paid_at ? new Date(data.paid_at) : undefined,
             };
@@ -102,11 +102,11 @@ export class WaveProvider {
                     amount,
                 }),
             });
-            const data = await response.json();
+            const data = (await response.json());
             return {
                 success: response.ok,
-                providerRef: data.id || providerRef,
-                status: data.status,
+                providerRef: data.id ?? providerRef,
+                status: data.status ?? (response.ok ? "COMPLETED" : "FAILED"),
             };
         }
         catch (error) {

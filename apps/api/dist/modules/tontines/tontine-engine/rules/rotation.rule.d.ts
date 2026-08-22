@@ -5,6 +5,7 @@ export interface RotationContext {
         id: string;
         payoutOrder: number | null;
     }>;
+    rules: Record<string, unknown>;
     selectedBeneficiaryId: string | null;
     rotationType: string;
 }

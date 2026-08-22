@@ -6,16 +6,16 @@ export declare const CreateCycleDto: z.ZodObject<{
     startDate: z.ZodUnion<[z.ZodString, z.ZodDate]>;
     endDate: z.ZodNullable<z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodDate]>>>;
 }, "strip", z.ZodTypeAny, {
-    name: string;
-    startDate: string | Date;
     tontineId: string;
+    name: string;
     sequence: number;
+    startDate: string | Date;
     endDate?: string | Date | null | undefined;
 }, {
-    name: string;
-    startDate: string | Date;
     tontineId: string;
+    name: string;
     sequence: number;
+    startDate: string | Date;
     endDate?: string | Date | null | undefined;
 }>;
 export type CreateCycleInput = z.infer<typeof CreateCycleDto>;

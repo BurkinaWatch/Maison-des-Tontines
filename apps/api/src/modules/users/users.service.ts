@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
-import { trustService } from "../../trust/trust-profile.engine.js";
+import { trustService } from "../trust/trust-profile.engine.js";
 
 export class UsersService {
   async getUserById(userId: string) {

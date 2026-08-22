@@ -1,4 +1,10 @@
-import { PaymentProviderInterface, PaymentInitiationRequest, PaymentInitiationResponse, PaymentStatusResponse, WebhookVerificationResult } from "../../types/payment.types.js";
+import type {
+  PaymentProviderInterface,
+  PaymentInitiationRequest,
+  PaymentInitiationResponse,
+  PaymentStatusResponse,
+  WebhookVerificationResult,
+} from "../../../types/payment.types.js";
 import { getPrisma } from "../../../config/database.js";
 
 export class MockProvider implements PaymentProviderInterface {
@@ -18,7 +24,7 @@ export class MockProvider implements PaymentProviderInterface {
         data: {
           name: "mock",
           type: "MOCK",
-          config: {},
+          config: JSON.stringify({}),
           isActive: true,
         },
       });
@@ -31,7 +37,10 @@ export class MockProvider implements PaymentProviderInterface {
           currency: request.currency,
           status: "PENDING",
           direction: "IN",
-          metadata: { ...request.metadata, phoneNumber: request.phoneNumber },
+          metadata: JSON.stringify({
+            ...request.metadata,
+            phoneNumber: request.phoneNumber,
+          }),
         },
       });
 
@@ -50,7 +59,10 @@ export class MockProvider implements PaymentProviderInterface {
         currency: request.currency,
         status: "PENDING",
         direction: "IN",
-        metadata: { ...request.metadata, phoneNumber: request.phoneNumber },
+        metadata: JSON.stringify({
+          ...request.metadata,
+          phoneNumber: request.phoneNumber,
+        }),
       },
     });
 

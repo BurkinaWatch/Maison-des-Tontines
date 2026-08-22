@@ -3,11 +3,11 @@ export declare const UpdateProfileDto: z.ZodObject<{
     name: z.ZodOptional<z.ZodString>;
     email: z.ZodNullable<z.ZodOptional<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
-    email?: string | null | undefined;
     name?: string | undefined;
+    email?: string | null | undefined;
 }, {
-    email?: string | null | undefined;
     name?: string | undefined;
+    email?: string | null | undefined;
 }>;
 export declare const ChangePasswordDto: z.ZodObject<{
     currentPassword: z.ZodString;

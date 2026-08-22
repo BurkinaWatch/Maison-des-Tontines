@@ -4,7 +4,8 @@ export class RotationRule {
         return true;
     }
     async apply(context) {
-        const rotationType = context.rules.rotationType || "fixed";
+        const configuredRotationType = context.rules.rotationType;
+        const rotationType = typeof configuredRotationType === "string" ? configuredRotationType : "fixed";
         context.rotationType = rotationType;
         if (rotationType === "fixed" && context.members.length > 0) {
             const sortedMembers = [...context.members].sort((a, b) => (a.payoutOrder || 0) - (b.payoutOrder || 0));

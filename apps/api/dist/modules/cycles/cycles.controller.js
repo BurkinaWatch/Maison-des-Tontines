@@ -1,4 +1,5 @@
 import { getPrisma } from "../../config/database.js";
+import { tontineEngineModule } from "../tontines/tontine-engine/module.js";
 export class CyclesController {
     async getTontineCycles(req, res, next) {
         try {

@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
-import { TontineEngineModule } from "./module.js";
 
 export function auditMiddleware(req: any, res: Response, next: NextFunction) {
   const originalSend = res.send.bind(res);
@@ -24,13 +23,13 @@ export function auditMiddleware(req: any, res: Response, next: NextFunction) {
           action: `${req.method}_${req.route?.path || req.path}`,
           resource: req.params?.tontineId || "unknown",
           resourceId: req.params?.id || null,
-          metadata: {
+          metadata: JSON.stringify({
             method: req.method,
             path: req.path,
             status: statusCode,
             query: req.query,
             body: req.body ? { ...req.body, password: undefined } : undefined,
-          },
+          }),
           ipAddress: req.ip || "unknown",
         },
       });

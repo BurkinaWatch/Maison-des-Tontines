@@ -23,6 +23,16 @@ const ContributionStatus = {
   REFUNDED: "REFUNDED",
 } as const;
 
+const CycleStatus = {
+  UPCOMING: "UPCOMING",
+  OPEN: "OPEN",
+  PARTIALLY_FUNDED: "PARTIALLY_FUNDED",
+  FUNDED: "FUNDED",
+  PAYOUT_PENDING: "PAYOUT_PENDING",
+  COMPLETED: "COMPLETED",
+  EXCEPTION: "EXCEPTION",
+} as const;
+
 export class ContributionService {
   constructor(private engine: TontineEngine, private latePenaltyRule: any) {}
 

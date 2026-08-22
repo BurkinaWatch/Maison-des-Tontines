@@ -14,24 +14,24 @@ export declare const CreateTontineDto: z.ZodObject<{
     type: "ROTATIVE" | "SAVINGS" | "GOAL" | "HYBRID" | "CUSTOM";
     frequency: "daily" | "weekly" | "biweekly" | "monthly" | "bimonthly" | "quarterly" | "semesterly" | "yearly";
     name: string;
-    contributionAmount: number;
     currency: string;
+    contributionAmount: number;
     startDate: string | Date;
-    rules?: Record<string, string> | undefined;
     description?: string | null | undefined;
     endDate?: string | Date | null | undefined;
     maxMembers?: number | null | undefined;
+    rules?: Record<string, string> | undefined;
 }, {
     type: "ROTATIVE" | "SAVINGS" | "GOAL" | "HYBRID" | "CUSTOM";
     frequency: "daily" | "weekly" | "biweekly" | "monthly" | "bimonthly" | "quarterly" | "semesterly" | "yearly";
     name: string;
     contributionAmount: number;
     startDate: string | Date;
-    rules?: Record<string, string> | undefined;
     description?: string | null | undefined;
     currency?: string | undefined;
     endDate?: string | Date | null | undefined;
     maxMembers?: number | null | undefined;
+    rules?: Record<string, string> | undefined;
 }>;
 export declare const UpdateTontineDto: z.ZodObject<{
     name: z.ZodOptional<z.ZodString>;
@@ -42,15 +42,15 @@ export declare const UpdateTontineDto: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     status?: "ACTIVE" | "DRAFT" | "INVITING" | "PAUSED" | "COMPLETED" | "CANCELLED" | "DISPUTED" | undefined;
     name?: string | undefined;
-    rules?: Record<string, string> | undefined;
     description?: string | null | undefined;
     maxMembers?: number | null | undefined;
+    rules?: Record<string, string> | undefined;
 }, {
     status?: "ACTIVE" | "DRAFT" | "INVITING" | "PAUSED" | "COMPLETED" | "CANCELLED" | "DISPUTED" | undefined;
     name?: string | undefined;
-    rules?: Record<string, string> | undefined;
     description?: string | null | undefined;
     maxMembers?: number | null | undefined;
+    rules?: Record<string, string> | undefined;
 }>;
 export type CreateTontineInput = z.infer<typeof CreateTontineDto>;
 export type UpdateTontineInput = z.infer<typeof UpdateTontineDto>;

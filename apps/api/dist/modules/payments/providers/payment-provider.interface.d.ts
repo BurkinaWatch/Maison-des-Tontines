@@ -1,2 +1,2 @@
-export { PaymentProviderInterface, PaymentInitiationRequest, PaymentInitiationResponse, PaymentStatusResponse, WebhookVerificationResult } from "./payment-provider.interface.js";
+export type { PaymentProviderInterface, PaymentInitiationRequest, PaymentInitiationResponse, PaymentStatusResponse, WebhookVerificationResult, } from "../../../types/payment.types.js";
 //# sourceMappingURL=payment-provider.interface.d.ts.map

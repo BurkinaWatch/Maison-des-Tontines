@@ -6,7 +6,6 @@ export function errorHandler(err, req, res, next) {
         method: req.method,
         url: req.url,
         ip: req.ip,
-        body: req.body,
     });
     const statusCode = err.statusCode || 500;
     const message = err.message || "Internal server error";

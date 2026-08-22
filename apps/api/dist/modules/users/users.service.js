@@ -1,5 +1,5 @@
 import { getPrisma } from "../../config/database.js";
-import { trustService } from "../../trust/trust-profile.engine.js";
+import { trustService } from "../trust/trust-profile.engine.js";
 export class UsersService {
     async getUserById(userId) {
         return getPrisma().user.findUnique({

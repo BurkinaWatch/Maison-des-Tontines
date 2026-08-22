@@ -13,7 +13,7 @@ export class MockProvider {
                 data: {
                     name: "mock",
                     type: "MOCK",
-                    config: {},
+                    config: JSON.stringify({}),
                     isActive: true,
                 },
             });
@@ -25,7 +25,10 @@ export class MockProvider {
                     currency: request.currency,
                     status: "PENDING",
                     direction: "IN",
-                    metadata: { ...request.metadata, phoneNumber: request.phoneNumber },
+                    metadata: JSON.stringify({
+                        ...request.metadata,
+                        phoneNumber: request.phoneNumber,
+                    }),
                 },
             });
             return {
@@ -42,7 +45,10 @@ export class MockProvider {
                 currency: request.currency,
                 status: "PENDING",
                 direction: "IN",
-                metadata: { ...request.metadata, phoneNumber: request.phoneNumber },
+                metadata: JSON.stringify({
+                    ...request.metadata,
+                    phoneNumber: request.phoneNumber,
+                }),
             },
         });
         return {

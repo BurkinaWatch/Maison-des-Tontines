@@ -1,12 +1,8 @@
 import { AuthResponse } from "../../types/user.types.js";
-import { RegisterInput, VerifyOtpInput, LoginInput } from "../dto/register.dto.js";
+import type { RegisterInput, LoginInput } from "./dto/register.dto.js";
 export declare class AuthService {
     private prisma;
     private env;
-    requestOtp(phone: string): Promise<{
-        message: string;
-    }>;
-    verifyOtp(data: VerifyOtpInput): Promise<AuthResponse>;
     register(data: RegisterInput): Promise<AuthResponse>;
     login(data: LoginInput): Promise<AuthResponse>;
     refreshToken(refreshToken: string): Promise<{

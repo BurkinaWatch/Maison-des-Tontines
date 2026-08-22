@@ -1,4 +1,4 @@
-import { PaymentProviderInterface, PaymentInitiationRequest, PaymentInitiationResponse, PaymentStatusResponse, WebhookVerificationResult } from "../../types/payment.types.js";
+import type { PaymentProviderInterface, PaymentInitiationRequest, PaymentInitiationResponse, PaymentStatusResponse, WebhookVerificationResult } from "../../../types/payment.types.js";
 export declare class MockProvider implements PaymentProviderInterface {
     name: string;
     type: string;

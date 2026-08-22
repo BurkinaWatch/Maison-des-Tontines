@@ -9,8 +9,34 @@ export declare class CycleService {
         startDate: Date;
         status: "UPCOMING";
     }[]>;
-    advanceCycle(tontineId: string, cycleId: string): Promise<any>;
-    completeCycle(tontineId: string, cycleId: string): Promise<any>;
+    advanceCycle(tontineId: string, cycleId: string): Promise<{
+        status: string;
+        id: string;
+        tontineId: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        sequence: number;
+        startDate: Date;
+        endDate: Date | null;
+        beneficiaryMemberId: string | null;
+        potAmount: number | null;
+        potReceived: number | null;
+    }>;
+    completeCycle(tontineId: string, cycleId: string): Promise<{
+        status: string;
+        id: string;
+        tontineId: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        sequence: number;
+        startDate: Date;
+        endDate: Date | null;
+        beneficiaryMemberId: string | null;
+        potAmount: number | null;
+        potReceived: number | null;
+    }>;
     private checkTontineCompletion;
 }
 //# sourceMappingURL=cycle.service.d.ts.map

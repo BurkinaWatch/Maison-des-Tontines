@@ -22,14 +22,8 @@ export const envSchema = z.object({
   REDIS_PASSWORD: z.string().optional(),
   REDIS_PREFIX: z.string().default("mt"),
 
-  OTP_LENGTH: z.coerce.number().default(6),
-  OTP_EXPIRY_MINUTES: z.coerce.number().default(10),
-  OTP_RATE_LIMIT_MINUTES: z.coerce.number().default(5),
-
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000),
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
-
-  MOCK_PROVIDER_ENABLED: z.string().default("true"),
 
   WAVE_API_KEY: z.string().optional(),
   WAVE_API_SECRET: z.string().optional(),
@@ -38,11 +32,6 @@ export const envSchema = z.object({
 
   SMS_PROVIDER: z.string().optional(),
   SMS_API_KEY: z.string().optional(),
-  EMAIL_PROVIDER: z.string().optional(),
-  EMAIL_API_KEY: z.string().optional(),
-  RESEND_FROM_EMAIL: z.string().min(1).optional(),
-  EMAIL_FROM: z.string().email().default("onboarding@resend.dev"),
-
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
 
   MAX_FILE_SIZE_MB: z.coerce.number().default(10),
@@ -62,7 +51,6 @@ export function getEnv(): Env {
     const parsed = envSchema.safeParse({
       ...process.env,
       DATABASE_URL: process.env.DATABASE_URL ?? process.env.RAILWAY_DATABASE_URL,
-      EMAIL_FROM: process.env.RESEND_FROM_EMAIL ?? process.env.EMAIL_FROM,
     });
     if (!parsed.success) {
       const errors = parsed.error.issues

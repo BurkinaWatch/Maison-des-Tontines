@@ -7,53 +7,23 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { GlassCard, GlassInput, GlassButton } from "../../src/components/ui";
+import { GlassCard, GlassButton } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
-import { authService } from "../../src/services/auth.service";
 import { useAuthStore } from "../../src/store/authStore";
 
 export default function LoginScreen() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isOtpSent, setIsOtpSent] = useState(false);
   const [error, setError] = useState("");
 
-  const handleRequestOTP = async () => {
-    if (!email.trim()) {
-      setError("Please enter your email address");
-      return;
-    }
-
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const result = await authService.requestOTP(email.trim());
-
-      setIsOtpSent(true);
-      Alert.alert(
-        "OTP Sent",
-        result.developmentOtp
-          ? `Development code: ${result.developmentOtp}`
-          : "Check your email for the verification code"
-      );
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Impossible d’envoyer le code. Réessayez.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleLogin = async () => {
-    if (!otp.trim() || otp.length !== 6) {
-      setError("Please enter the 6-digit OTP");
+    if (!email.trim() || !password) {
+      setError("Please enter your email address and password");
       return;
     }
 
@@ -61,7 +31,7 @@ export default function LoginScreen() {
     setError("");
 
     try {
-      await login(email.trim(), otp.trim());
+      await login(email.trim(), password);
       router.replace("/(tabs)");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Login failed. Please try again.");
@@ -79,61 +49,42 @@ export default function LoginScreen() {
         <View style={styles.header}>
           <Text style={styles.logo}>🏠</Text>
           <Text style={styles.title}>Maison des Tontines</Text>
-          <Text style={styles.subtitle}>
-            {isOtpSent ? "Enter verification code" : "Welcome back"}
-          </Text>
+          <Text style={styles.subtitle}>Welcome back</Text>
         </View>
 
         <GlassCard style={styles.card}>
-          {!isOtpSent ? (
-            <View>
-              <Text style={styles.label}>Email address</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="vous@exemple.com"
-                placeholderTextColor={colors.textTertiary}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-              />
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-              <GlassButton
-                title="Send verification code"
-                onPress={handleRequestOTP}
-                loading={isLoading}
-                style={styles.button}
-              />
-            </View>
-          ) : (
-            <View>
-              <Text style={styles.label}>Enter OTP</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="000000"
-                placeholderTextColor={colors.textTertiary}
-                value={otp}
-                onChangeText={setOtp}
-                keyboardType="number-pad"
-                maxLength={6}
-                autoFocus
-              />
-              <Text style={styles.hint}>
-                Sent to {email}
-              </Text>
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-              <GlassButton
-                title="Verify & Login"
-                onPress={handleLogin}
-                loading={isLoading}
-                style={styles.button}
-              />
-              <Pressable onPress={() => setIsOtpSent(false)}>
-                <Text style={styles.link}>Change email address</Text>
-              </Pressable>
-            </View>
-          )}
+          <View>
+            <Text style={styles.label}>Email address</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="vous@exemple.com"
+              placeholderTextColor={colors.textTertiary}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Your password"
+              placeholderTextColor={colors.textTertiary}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="current-password"
+              onSubmitEditing={handleLogin}
+            />
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            <GlassButton
+              title="Sign in"
+              onPress={handleLogin}
+              loading={isLoading}
+              style={styles.button}
+            />
+          </View>
         </GlassCard>
 
         <View style={styles.footer}>
@@ -194,11 +145,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  hint: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    marginBottom: spacing.md,
   },
   error: {
     ...typography.caption,

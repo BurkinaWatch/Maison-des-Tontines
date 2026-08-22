@@ -7,13 +7,10 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { GlassCard, GlassInput, GlassButton } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
-import { authService } from "../../src/services/auth.service";
 import { useAuthStore } from "../../src/store/authStore";
 
 export default function RegisterScreen() {
@@ -23,40 +20,24 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isOtpSent, setIsOtpSent] = useState(false);
   const [error, setError] = useState("");
 
-  const handleRequestOTP = async () => {
-    if (!phoneNumber.trim() || !email.trim() || !firstName.trim() || !lastName.trim()) {
+  const handleRegister = async () => {
+    if (!phoneNumber.trim() || !email.trim() || !firstName.trim() || !lastName.trim() || !password) {
       setError("Please fill in all fields");
       return;
     }
 
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const result = await authService.requestOTP(email.trim());
-
-      setIsOtpSent(true);
-      Alert.alert(
-        "OTP Sent",
-        result.developmentOtp
-          ? `Development code: ${result.developmentOtp}`
-          : "Check your email for the verification code"
-      );
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to send OTP. Please try again.");
-    } finally {
-      setIsLoading(false);
+    if (password.length < 8) {
+      setError("Your password must be at least 8 characters");
+      return;
     }
-  };
 
-  const handleRegister = async () => {
-    if (!otp.trim() || otp.length !== 6) {
-      setError("Please enter the 6-digit OTP");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
 
@@ -69,7 +50,7 @@ export default function RegisterScreen() {
         email.trim(),
         firstName.trim(),
         lastName.trim(),
-        otp.trim()
+        password
       );
       router.replace("/(tabs)");
     } catch (error) {
@@ -94,79 +75,73 @@ export default function RegisterScreen() {
         </View>
 
         <GlassCard style={styles.card}>
-          {!isOtpSent ? (
-            <View>
-              <GlassInput
-                label="First Name"
-                value={firstName}
-                onChangeText={setFirstName}
-                placeholder="Jean"
-                autoCapitalize="words"
-              />
-              <GlassInput
-                label="Last Name"
-                value={lastName}
-                onChangeText={setLastName}
-                placeholder="Dupont"
-                autoCapitalize="words"
-              />
-              <Text style={styles.label}>Phone Number</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="+225 01 00 00 00"
-                placeholderTextColor={colors.textTertiary}
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-              />
-              <Text style={styles.label}>Email address</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="vous@exemple.com"
-                placeholderTextColor={colors.textTertiary}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-              />
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-              <GlassButton
-                title="Continue"
-                onPress={handleRequestOTP}
-                loading={isLoading}
-                style={styles.button}
-              />
-            </View>
-          ) : (
-            <View>
-              <Text style={styles.label}>Enter verification code</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="000000"
-                placeholderTextColor={colors.textTertiary}
-                value={otp}
-                onChangeText={setOtp}
-                keyboardType="number-pad"
-                maxLength={6}
-                autoFocus
-              />
-              <Text style={styles.hint}>
-                Sent to {email}
-              </Text>
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-              <GlassButton
-                title="Verify & Create Account"
-                onPress={handleRegister}
-                loading={isLoading}
-                style={styles.button}
-              />
-              <Pressable onPress={() => setIsOtpSent(false)}>
-                <Text style={styles.link}>Change email address</Text>
-              </Pressable>
-            </View>
-          )}
+          <View>
+            <GlassInput
+              label="First Name"
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="Jean"
+              autoCapitalize="words"
+            />
+            <GlassInput
+              label="Last Name"
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Dupont"
+              autoCapitalize="words"
+            />
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="+225 01 00 00 00"
+              placeholderTextColor={colors.textTertiary}
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+              autoComplete="tel"
+            />
+            <Text style={styles.label}>Email address</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="vous@exemple.com"
+              placeholderTextColor={colors.textTertiary}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="At least 8 characters"
+              placeholderTextColor={colors.textTertiary}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="new-password"
+            />
+            <Text style={styles.label}>Confirm password</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Repeat your password"
+              placeholderTextColor={colors.textTertiary}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="new-password"
+              onSubmitEditing={handleRegister}
+            />
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            <GlassButton
+              title="Create account"
+              onPress={handleRegister}
+              loading={isLoading}
+              style={styles.button}
+            />
+          </View>
         </GlassCard>
 
         <View style={styles.footer}>
@@ -227,11 +202,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  hint: {
-    ...typography.caption,
-    color: colors.textTertiary,
-    marginBottom: spacing.md,
   },
   error: {
     ...typography.caption,

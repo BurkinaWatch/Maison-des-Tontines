@@ -15,7 +15,7 @@ export interface PaginatedResponse<T> {
 
 export interface LoginRequest {
   email: string;
-  otp: string;
+  password: string;
 }
 
 export interface RegisterRequest {
@@ -23,7 +23,7 @@ export interface RegisterRequest {
   email: string;
   firstName: string;
   lastName: string;
-  otp: string;
+  password: string;
 }
 
 export interface CreateTontineRequest {

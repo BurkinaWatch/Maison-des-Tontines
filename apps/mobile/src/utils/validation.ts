@@ -11,10 +11,11 @@ export const nameSchema = z
   .max(50, "Name must be less than 50 characters")
   .regex(/^[a-zA-Z\s\-']+$/, "Name contains invalid characters");
 
-export const otpSchema = z
+export const emailSchema = z.string().email("Invalid email address");
+
+export const passwordSchema = z
   .string()
-  .length(6, "OTP must be 6 digits")
-  .regex(/^[0-9]+$/, "OTP must contain only numbers");
+  .min(8, "Password must be at least 8 characters");
 
 export const amountSchema = z
   .number()
@@ -32,15 +33,16 @@ export const descriptionSchema = z
   .max(500, "Description must be less than 500 characters");
 
 export const loginSchema = z.object({
-  phoneNumber: phoneSchema,
-  otp: otpSchema,
+  email: emailSchema,
+  password: passwordSchema,
 });
 
 export const registerSchema = z.object({
   phoneNumber: phoneSchema,
+  email: emailSchema,
   firstName: nameSchema,
   lastName: nameSchema,
-  otp: otpSchema,
+  password: passwordSchema,
 });
 
 export const createTontineSchema = z.object({

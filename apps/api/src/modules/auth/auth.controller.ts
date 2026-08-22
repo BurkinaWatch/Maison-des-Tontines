@@ -1,34 +1,12 @@
 import { Response } from "express";
 import { authService } from "./auth.service.js";
 import type {
-  RequestOtpInput,
-  VerifyOtpInput,
   LoginInput,
   RegisterInput,
   RefreshTokenInput,
 } from "./dto/register.dto.js";
 
 export class AuthController {
-  async requestOtp(req: any, res: Response, next: any) {
-    try {
-      const { email } = req.body as RequestOtpInput;
-      const result = await authService.requestOtp(email);
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  async verifyOtp(req: any, res: Response, next: any) {
-    try {
-      const { email, otp } = req.body as VerifyOtpInput;
-      const result = await authService.verifyOtp({ email, otp });
-      res.status(200).json(result);
-    } catch (error) {
-      next(error);
-    }
-  }
-
   async register(req: any, res: Response, next: any) {
     try {
       const data = req.body as RegisterInput;

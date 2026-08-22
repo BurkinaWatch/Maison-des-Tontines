@@ -14,11 +14,6 @@ interface ApiAuthResponse {
   };
 }
 
-interface OtpRequestResponse {
-  message: string;
-  developmentOtp?: string;
-}
-
 function toMobileUser(user: ApiAuthResponse["user"]): User {
   const [firstName = "", ...lastNameParts] = user.name.trim().split(/\s+/);
 
@@ -34,17 +29,15 @@ function toMobileUser(user: ApiAuthResponse["user"]): User {
   };
 }
 
+async function storeSession(response: ApiAuthResponse): Promise<{ user: User; token: string }> {
+  await api.setTokens(response.accessToken, response.refreshToken);
+  return { user: toMobileUser(response.user), token: response.accessToken };
+}
+
 export const authService = {
   async login(credentials: LoginRequest): Promise<{ user: User; token: string }> {
-    const response = await api.post<ApiAuthResponse>(
-      "/auth/otp/verify",
-      {
-        email: credentials.email,
-        otp: credentials.otp,
-      }
-    );
-    await api.setToken(response.accessToken);
-    return { user: toMobileUser(response.user), token: response.accessToken };
+    const response = await api.post<ApiAuthResponse>("/auth/login", credentials);
+    return storeSession(response);
   },
 
   async register(data: RegisterRequest): Promise<{ user: User; token: string }> {
@@ -54,38 +47,39 @@ export const authService = {
         phone: data.phoneNumber,
         email: data.email,
         name: `${data.firstName} ${data.lastName}`.trim(),
-        otp: data.otp,
+        password: data.password,
       }
     );
-    await api.setToken(response.accessToken);
-    return { user: toMobileUser(response.user), token: response.accessToken };
-  },
-
-  async requestOTP(email: string): Promise<OtpRequestResponse> {
-    return api.post<OtpRequestResponse>("/auth/otp/request", { email });
-  },
-
-  async verifyOTP(email: string, otp: string): Promise<{ token: string }> {
-    const response = await api.post<ApiAuthResponse>("/auth/otp/verify", {
-      email,
-      otp,
-    });
-    return { token: response.accessToken };
+    return storeSession(response);
   },
 
   async logout(): Promise<void> {
-    await api.post("/auth/logout");
-    await api.removeToken();
+    const refreshToken = await api.getRefreshToken();
+    try {
+      if (refreshToken) {
+        await api.post("/auth/logout", { refreshToken });
+      }
+    } finally {
+      await api.removeToken();
+    }
   },
 
   async getCurrentUser(): Promise<User> {
-    const response = await api.get<{ user: User }>("/auth/me");
-    return response.user;
+    const response = await api.get<{ user: ApiAuthResponse["user"] }>("/users/me");
+    return toMobileUser(response.user);
   },
 
   async refreshToken(): Promise<string> {
-    const response = await api.post<{ token: string }>("/auth/refresh");
-    await api.setToken(response.token);
-    return response.token;
+    const refreshToken = await api.getRefreshToken();
+    if (!refreshToken) {
+      throw new Error("No active session");
+    }
+
+    const response = await api.post<{ accessToken: string; refreshToken: string }>(
+      "/auth/refresh",
+      { refreshToken }
+    );
+    await api.setTokens(response.accessToken, response.refreshToken);
+    return response.accessToken;
   },
 };

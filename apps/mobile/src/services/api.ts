@@ -2,6 +2,7 @@ import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 
 const TOKEN_KEY = "auth_token";
+const REFRESH_TOKEN_KEY = "auth_refresh_token";
 const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION || "v1";
 
 function getDefaultApiUrl(): string {
@@ -36,8 +37,26 @@ export const api = {
     await SecureStore.setItemAsync(TOKEN_KEY, token);
   },
 
+  async getRefreshToken(): Promise<string | null> {
+    try {
+      return await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  },
+
+  async setTokens(accessToken: string, refreshToken: string): Promise<void> {
+    await Promise.all([
+      SecureStore.setItemAsync(TOKEN_KEY, accessToken),
+      SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken),
+    ]);
+  },
+
   async removeToken(): Promise<void> {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await Promise.all([
+      SecureStore.deleteItemAsync(TOKEN_KEY),
+      SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
+    ]);
   },
 
   async request<T>(

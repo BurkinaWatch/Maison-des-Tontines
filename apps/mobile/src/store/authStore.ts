@@ -9,8 +9,8 @@ interface AuthStore {
   isLoading: boolean;
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
-  login: (email: string, otp: string) => Promise<void>;
-  register: (phoneNumber: string, email: string, firstName: string, lastName: string, otp: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (phoneNumber: string, email: string, firstName: string, lastName: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   initialize: () => Promise<void>;
 }
@@ -24,10 +24,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   setUser: (user) => set({ user }),
   setToken: (token) => set({ token, isAuthenticated: !!token }),
 
-  login: async (email, otp) => {
+  login: async (email, password) => {
     set({ isLoading: true });
     try {
-      const response = await authService.login({ email, otp });
+      const response = await authService.login({ email, password });
       set({
         user: response.user,
         token: response.token,
@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 
-  register: async (phoneNumber, email, firstName, lastName, otp) => {
+  register: async (phoneNumber, email, firstName, lastName, password) => {
     set({ isLoading: true });
     try {
       const response = await authService.register({
@@ -48,7 +48,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         email,
         firstName,
         lastName,
-        otp,
+        password,
       });
       set({
         user: response.user,

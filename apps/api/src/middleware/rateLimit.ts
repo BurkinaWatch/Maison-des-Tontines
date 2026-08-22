@@ -27,12 +27,3 @@ export const authRateLimiter = rateLimit({
     message: "Please try again later.",
   },
 });
-
-export const otpRateLimiter = rateLimit({
-  windowMs: env.OTP_RATE_LIMIT_MINUTES * 60 * 1000,
-  max: 3,
-  message: {
-    error: "Too many OTP requests",
-    message: "Please wait before requesting another OTP.",
-  },
-});

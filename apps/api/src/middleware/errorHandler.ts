@@ -13,7 +13,6 @@ export function errorHandler(
     method: req.method,
     url: req.url,
     ip: req.ip,
-    body: req.body,
   });
 
   const statusCode = (err as any).statusCode || 500;

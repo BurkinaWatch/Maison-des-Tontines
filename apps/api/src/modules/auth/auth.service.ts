@@ -1,90 +1,24 @@
 import bcrypt from "bcrypt";
 import jwt, { type SignOptions } from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 import { getPrisma } from "../../config/database.js";
 import { getEnv } from "../../config/env.js";
 import { logger } from "../../config/logger.js";
 import { AuthResponse } from "../../types/user.types.js";
 import { AuthPayload } from "../../middleware/auth.js";
-import { generateOtp, validatePhone, normalizePhone } from "../../utils/phone.js";
-import type { RegisterInput, VerifyOtpInput, LoginInput } from "./dto/register.dto.js";
-import { randomUUID } from "crypto";
-import { sendVerificationEmail } from "./email.service.js";
+import { validatePhone, normalizePhone } from "../../utils/phone.js";
+import type { RegisterInput, LoginInput } from "./dto/register.dto.js";
 
 export class AuthService {
   private prisma = getPrisma();
   private env = getEnv();
-
-  async requestOtp(email: string): Promise<{ message: string; developmentOtp?: string }> {
-    const normalizedEmail = normalizeEmail(email);
-    const otp = generateOtp(this.env.OTP_LENGTH);
-    const otpExpiry = new Date(Date.now() + this.env.OTP_EXPIRY_MINUTES * 60 * 1000);
-
-    await this.prisma.otpVerification.upsert({
-      where: { email: normalizedEmail },
-      create: { id: randomUUID(), email: normalizedEmail, otp, expiresAt: otpExpiry },
-      update: { otp, expiresAt: otpExpiry, createdAt: new Date() },
-    });
-
-    try {
-      await sendVerificationEmail({
-        to: normalizedEmail,
-        from: this.env.EMAIL_FROM,
-        otp,
-        expiresInMinutes: this.env.OTP_EXPIRY_MINUTES,
-      });
-    } catch (error) {
-      await this.prisma.otpVerification.delete({ where: { email: normalizedEmail } }).catch(() => undefined);
-      logger.error("Verification email delivery failed", {
-        email: normalizedEmail,
-        error: (error as Error).message,
-      });
-      throw new Error(
-        "Impossible d’envoyer le code par e-mail. En preview, utilisez l’adresse e-mail associée au compte Resend ou configurez EMAIL_FROM avec un domaine Resend vérifié."
-      );
-    }
-
-    logger.info("Verification email sent", { email: normalizedEmail, expiresAt: otpExpiry.toISOString() });
-    return {
-      message: "Verification code sent by email",
-      ...(this.env.NODE_ENV !== "production" && this.env.MOCK_PROVIDER_ENABLED === "true"
-        ? { developmentOtp: otp }
-        : {}),
-    };
-  }
-
-  async verifyOtp(data: VerifyOtpInput): Promise<AuthResponse> {
-    const normalizedEmail = normalizeEmail(data.email);
-    const verification = await this.prisma.otpVerification.findUnique({
-      where: { email: normalizedEmail },
-    });
-
-    if (!verification || verification.otp !== data.otp) {
-      throw new Error("Invalid or expired OTP");
-    }
-
-    if (new Date() > verification.expiresAt) {
-      throw new Error("OTP has expired");
-    }
-
-    let user = await this.prisma.user.findUnique({
-      where: { email: normalizedEmail },
-    });
-
-    if (!user) {
-      throw new Error("User not found. Please register first.");
-    }
-
-    await this.prisma.otpVerification.delete({ where: { email: normalizedEmail } });
-
-    return this.generateTokens(user.id, user.phone, user.role, user.email, user.name);
-  }
 
   async register(data: RegisterInput): Promise<AuthResponse> {
     const normalizedPhone = normalizePhone(data.phone);
     const normalizedEmail = normalizeEmail(data.email);
 
     if (!validatePhone(normalizedPhone)) {
-      throw new Error("Invalid phone number format");
+      throw createAuthError("Invalid phone number format", 400);
     }
 
     const existingUser = await this.prisma.user.findFirst({
@@ -92,7 +26,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new Error("Phone number already registered");
+      throw createAuthError("Phone number already registered", 409);
     }
 
     const existingEmail = await this.prisma.user.findUnique({
@@ -100,22 +34,10 @@ export class AuthService {
     });
 
     if (existingEmail) {
-      throw new Error("Email address already registered");
+      throw createAuthError("Email address already registered", 409);
     }
 
-    const verification = await this.prisma.otpVerification.findUnique({
-      where: { email: normalizedEmail },
-    });
-
-    if (!verification || verification.otp !== data.otp) {
-      throw new Error("Invalid or expired OTP");
-    }
-
-    if (new Date() > verification.expiresAt) {
-      throw new Error("OTP has expired");
-    }
-
-    const passwordHash = await bcrypt.hash(data.password ?? randomUUID(), 12);
+    const passwordHash = await bcrypt.hash(data.password, 12);
 
     const user = await this.prisma.user.create({
       data: {
@@ -147,30 +69,28 @@ export class AuthService {
       },
     });
 
-    await this.prisma.otpVerification.delete({ where: { email: normalizedEmail } });
-
     logger.info("User registered", { userId: user.id, email: user.email });
     return this.generateTokens(user.id, user.phone, user.role, user.email, user.name);
   }
 
   async login(data: LoginInput): Promise<AuthResponse> {
-    const normalizedPhone = normalizePhone(data.phone);
+    const normalizedEmail = normalizeEmail(data.email);
 
-    const user = await this.prisma.user.findFirst({
-      where: { phone: normalizedPhone },
+    const user = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
     });
 
     if (!user) {
-      throw new Error("Invalid phone number or password");
+      throw createAuthError("Invalid email address or password", 401);
     }
 
     const passwordMatch = await bcrypt.compare(data.password, user.passwordHash);
     if (!passwordMatch) {
-      throw new Error("Invalid phone number or password");
+      throw createAuthError("Invalid email address or password", 401);
     }
 
     if (user.status !== "ACTIVE") {
-      throw new Error(`Account is ${user.status.toLowerCase()}. Please contact support.`);
+      throw createAuthError(`Account is ${user.status.toLowerCase()}. Please contact support.`, 403);
     }
 
     // Update last login
@@ -179,7 +99,7 @@ export class AuthService {
       data: { updatedAt: new Date() },
     });
 
-    return this.generateTokens(user.id, user.phone, user.role);
+    return this.generateTokens(user.id, user.phone, user.role, user.email, user.name);
   }
 
   async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
@@ -217,10 +137,10 @@ export class AuthService {
         data: { revokedAt: new Date() },
       });
 
-      const tokens = this.generateTokens(user.id, user.phone, user.role);
+      const tokens = await this.generateTokens(user.id, user.phone, user.role, user.email, user.name);
       return tokens;
     } catch {
-      throw new Error("Invalid or expired refresh token");
+      throw createAuthError("Invalid or expired refresh token", 401);
     }
   }
 
@@ -246,13 +166,13 @@ export class AuthService {
     return { message: "Logged out from all devices" };
   }
 
-  private generateTokens(
+  private async generateTokens(
     userId: string,
     phone: string,
     role: string,
     email: string | null = null,
     name: string = phone
-  ): AuthResponse {
+  ): Promise<AuthResponse> {
     const env = this.env;
 
     const accessPayload: AuthPayload = {
@@ -268,6 +188,7 @@ export class AuthService {
     const refreshPayload = {
       sub: userId,
       type: "refresh",
+      jti: randomUUID(),
     };
 
     const refreshToken = jwt.sign(refreshPayload, env.JWT_REFRESH_SECRET, {
@@ -286,14 +207,12 @@ export class AuthService {
       expiresAt.setDate(expiresAt.getDate() + 7);
     }
 
-    this.prisma.refreshToken.create({
+    await this.prisma.refreshToken.create({
       data: {
         userId,
         token: refreshToken,
         expiresAt,
       },
-    }).catch((err) => {
-      logger.error("Failed to store refresh token", { error: (err as Error).message });
     });
 
     return {
@@ -314,4 +233,8 @@ export const authService = new AuthService();
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+function createAuthError(message: string, statusCode: number): Error & { statusCode: number } {
+  return Object.assign(new Error(message), { statusCode });
 }

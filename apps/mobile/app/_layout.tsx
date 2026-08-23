@@ -1,6 +1,9 @@
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import * as Updates from "expo-updates";
+import { useEffect } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,6 +16,26 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
+  useEffect(() => {
+    if (__DEV__) {
+      return;
+    }
+
+    const applyUpdate = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch {
+        // A failed OTA check must never prevent the bundled app from opening.
+      }
+    };
+
+    void applyUpdate();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
@@ -58,3 +81,55 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+
+export function ErrorBoundary({
+  error,
+  retry,
+}: {
+  error: Error;
+  retry: () => void;
+}) {
+  return (
+    <View style={styles.errorContainer}>
+      <Text style={styles.errorTitle}>L’application a rencontré un problème</Text>
+      <Text style={styles.errorMessage}>{error.message}</Text>
+      <Pressable style={styles.retryButton} onPress={retry}>
+        <Text style={styles.retryText}>Réessayer</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  errorContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "#0a0a14",
+  },
+  errorTitle: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  errorMessage: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  retryButton: {
+    backgroundColor: "#d4a574",
+    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+  },
+  retryText: {
+    color: "#1a1a2e",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});

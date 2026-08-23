@@ -20,6 +20,7 @@ apps/api/prisma/postgresql/schema.prisma
 /apps/api/
 /packages/
 /scripts/
+/apps/mobile/dist/
 /bootstrap.ps1
 /.replit
 /replit.md

@@ -9,6 +9,9 @@
     "web": "expo start --web",
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc --noEmit"
+    ,
+    "ota:preview": "eas update --branch preview --message",
+    "ota:production": "eas update --branch production --message"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.0",
@@ -25,6 +28,7 @@
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
     "expo-system-ui": "~6.0.9",
+    "expo-updates": "~29.0.20",
     "nativewind": "^4.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",

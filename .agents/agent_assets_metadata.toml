@@ -28,3 +28,17 @@ mtime_ms = 1787456124433
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/4f5d0a84-8bbb-43df-81f2-df0948650b19/c0bdd622-94e8-4093-9910-d5ac185f5ae4"
 storage_version_token = "1787456130807664"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "jn5nJ_T1SW5eshxk2axSp"
+uri = "file://artifacts/maison-des-tontines-android-ota.apk"
+type = "unspecified"
+title = "Maison des Tontines — APK Android corrigée avec OTA"
+description = "APK Android de base corrigée : démarrage natif stabilisé, écran d’erreur visible et EAS Update configuré. Runtime 1.0.1, canal preview."
+logical_id = "9d4f8856-5b6d-4352-a23c-80764db5a835"
+content_hash = "sha256:4d3044d7f4ae53dce73ab237d4e41309aa63c0ab26864173cb344922aa644eeb"
+size = 91422127
+mtime_ms = 1787480082604
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/9d4f8856-5b6d-4352-a23c-80764db5a835/6a1369bf-c766-435c-bd60-6de83b11a042"
+storage_version_token = "1787480175527501"
+content_type = "application/octet-stream"

@@ -56,3 +56,17 @@ mtime_ms = 1787484949928
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/91966c02-f01a-4ab6-ab20-b945881dea8d/c8ce0f13-c901-4976-b14d-7e270e45c1e4"
 storage_version_token = "1787484960285727"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "6dq5FDWkRBoG7pozKAkbU"
+uri = "file://artifacts/maison-des-tontines-android-errorboundary-fix.apk"
+type = "unspecified"
+title = "Maison des Tontines — APK Android corrigée"
+description = "Correctif final de l’erreur ErrorBoundary : boundary React locale, route racine explicite, aucun rechargement OTA au démarrage et assets natifs valides."
+logical_id = "9e0163b2-f5c0-415e-8f0f-05fb73588a54"
+content_hash = "sha256:d2ce27fc9bf525f928859338bc83a15831f3b71cbe00c6345e53a3614ab16816"
+size = 87964656
+mtime_ms = 1787487103137
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/9e0163b2-f5c0-415e-8f0f-05fb73588a54/419d04ac-123b-48b0-bf82-445b7f1e7d48"
+storage_version_token = "1787487109867033"
+content_type = "application/octet-stream"

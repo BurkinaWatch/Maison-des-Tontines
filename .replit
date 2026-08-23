@@ -46,22 +46,6 @@ task = "shell.exec"
 args = 'DATABASE_URL="file:./dev.db" JWT_ACCESS_SECRET="${SESSION_SECRET}-preview-access" JWT_REFRESH_SECRET="${SESSION_SECRET}-preview-refresh" ENABLE_WORKERS=false CORS_ORIGIN="https://${REPLIT_DEV_DOMAIN},http://localhost:5000,http://127.0.0.1:5000" npm exec --workspace=@maison-des-tontines/api tsx src/index.ts'
 waitForPort = 4000
 
-[[ports]]
-localPort = 4000
-externalPort = 3000
-
-[[ports]]
-localPort = 4010
-externalPort = 3001
-
-[[ports]]
-localPort = 4011
-externalPort = 3002
-
-[[ports]]
-localPort = 5000
-externalPort = 80
-
 [postMerge]
 path = "scripts/post-merge-setup.sh"
 timeoutMs = 180000

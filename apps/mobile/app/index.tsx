@@ -1,1 +1,5 @@
-export { default } from "./(auth)/login";
+import LoginScreen from "./(auth)/login";
+
+export default function IndexScreen() {
+  return <LoginScreen />;
+}

@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { Tontine, CreateTontineRequest, Cycle, TontineMember } from "../../types/tontine";
+import { Tontine, CreateTontineRequest, Cycle, TontineMember } from "../types/tontine";
 
 export const tontineService = {
   async getTontines(): Promise<Tontine[]> {

@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { Contribution, Payout, ContributionStatus } from "../../types/contribution";
+import { Contribution, Payout, ContributionStatus } from "../types/contribution";
 
 export const contributionService = {
   async getContributions(tontineId?: string): Promise<Contribution[]> {

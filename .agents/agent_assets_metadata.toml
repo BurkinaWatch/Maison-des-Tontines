@@ -42,3 +42,17 @@ mtime_ms = 1787480082604
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/9d4f8856-5b6d-4352-a23c-80764db5a835/6a1369bf-c766-435c-bd60-6de83b11a042"
 storage_version_token = "1787480175527501"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "B2Gwl347_hWfZW9LxMjXf"
+uri = "file://artifacts/maison-des-tontines-android-1.0.2-no-ota.apk"
+type = "unspecified"
+title = "Maison des Tontines — APK Android 1.0.2 corrigée"
+description = "Build Android propre sans expo-updates ni rechargement OTA au démarrage, avec vrais assets d’icône et de splash. Désinstalle l’ancienne APK avant installation pour vider son cache OTA."
+logical_id = "91966c02-f01a-4ab6-ab20-b945881dea8d"
+content_hash = "sha256:37692b728d8cb28a9b3602d248350da9ce68b8a24557e3e3fd31edcdd51acf2b"
+size = 87963904
+mtime_ms = 1787484949928
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/91966c02-f01a-4ab6-ab20-b945881dea8d/c8ce0f13-c901-4976-b14d-7e270e45c1e4"
+storage_version_token = "1787484960285727"
+content_type = "application/octet-stream"

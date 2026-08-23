@@ -1,8 +1,6 @@
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import * as Updates from "expo-updates";
-import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const queryClient = new QueryClient({
@@ -16,26 +14,6 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  useEffect(() => {
-    if (__DEV__) {
-      return;
-    }
-
-    const applyUpdate = async () => {
-      try {
-        const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable) {
-          await Updates.fetchUpdateAsync();
-          await Updates.reloadAsync();
-        }
-      } catch {
-        // A failed OTA check must never prevent the bundled app from opening.
-      }
-    };
-
-    void applyUpdate();
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>

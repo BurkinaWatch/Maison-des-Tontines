@@ -1,3 +1,4 @@
 artifacts/maison-des-tontines-preview.apk filter=lfs diff=lfs merge=lfs -text
 artifacts/maison-des-tontines-preview-fixed.apk filter=lfs diff=lfs merge=lfs -text
 artifacts/maison-des-tontines-android-ota.apk filter=lfs diff=lfs merge=lfs -text
+artifacts/maison-des-tontines-android-1.0.2-no-ota.apk filter=lfs diff=lfs merge=lfs -text

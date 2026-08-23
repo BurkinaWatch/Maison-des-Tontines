@@ -2,7 +2,7 @@
   "expo": {
     "name": "Maison des Tontines",
     "slug": "maison-des-tontines",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "web": {
       "output": "server"
@@ -23,14 +23,12 @@
       "package": "com.maisondestontines.app",
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "RECEIVE_NOTIFICATIONS"
+        "VIBRATE"
       ]
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-notifications",
       [
         "expo-splash-screen",
         {
@@ -50,14 +48,6 @@
         "projectId": "9dbeffb3-4c3a-464d-b61a-92ade2d31d55"
       }
     },
-    "owner": "maison-des-tontines",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/9dbeffb3-4c3a-464d-b61a-92ade2d31d55",
-      "checkAutomatically": "ON_ERROR_RECOVERY",
-      "fallbackToCacheTimeout": 0
-    }
+    "owner": "maison-des-tontines"
   }
 }

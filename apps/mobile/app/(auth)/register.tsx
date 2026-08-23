@@ -145,12 +145,10 @@ export default function RegisterScreen() {
         </GlassCard>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Already have an account?{" "}
-            <Pressable onPress={() => router.back()}>
-              <Text style={styles.link}>Sign in</Text>
-            </Pressable>
-          </Text>
+          <Text style={styles.footerText}>Already have an account?</Text>
+          <Pressable onPress={() => router.back()}>
+            <Text style={[styles.link, styles.footerLink]}>Sign in</Text>
+          </Pressable>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -219,10 +217,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   footer: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
   },
   footerText: {
     ...typography.body,
     color: colors.textSecondary,
+  },
+  footerLink: {
+    marginTop: 0,
   },
 });

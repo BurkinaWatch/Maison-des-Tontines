@@ -14,3 +14,17 @@ mtime_ms = 1787440787439
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/65fa1cb8-29fe-47ca-8fa7-80e746a0aca2/a47ffeac-5d0d-408a-8e1d-45d47c593616"
 storage_version_token = "1787440794924167"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "o9VbZaXYIYZNoKwj2egjO"
+uri = "file://artifacts/maison-des-tontines-preview-fixed.apk"
+type = "unspecified"
+title = "Maison des Tontines — APK Android corrigée"
+description = "Nouvelle APK Expo EAS avec correction du rendu natif Android sur les écrans de connexion et d’inscription. Build terminé avec succès."
+logical_id = "4f5d0a84-8bbb-43df-81f2-df0948650b19"
+content_hash = "sha256:e0539ae559b7ba6648a0c7eda173c2c478f24cefa60e617ca2ccc16e526181e2"
+size = 87865972
+mtime_ms = 1787456124433
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/4f5d0a84-8bbb-43df-81f2-df0948650b19/c0bdd622-94e8-4093-9910-d5ac185f5ae4"
+storage_version_token = "1787456130807664"
+content_type = "application/octet-stream"

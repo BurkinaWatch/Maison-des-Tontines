@@ -88,12 +88,10 @@ export default function LoginScreen() {
         </GlassCard>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Don't have an account?{" "}
-            <Pressable onPress={() => router.push("/(auth)/register")}>
-              <Text style={styles.link}>Sign up</Text>
-            </Pressable>
-          </Text>
+          <Text style={styles.footerText}>Don't have an account?</Text>
+          <Pressable onPress={() => router.push("/(auth)/register")}>
+            <Text style={[styles.link, styles.footerLink]}>Sign up</Text>
+          </Pressable>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -162,10 +160,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   footer: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
   },
   footerText: {
     ...typography.body,
     color: colors.textSecondary,
+  },
+  footerLink: {
+    marginTop: 0,
   },
 });

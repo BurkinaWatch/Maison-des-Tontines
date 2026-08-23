@@ -11,11 +11,10 @@ import {
 import { useRouter } from "expo-router";
 import { GlassCard, GlassButton } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
-import { useAuthStore } from "../../src/store/authStore";
+import { authService } from "../../src/services/auth.service";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const login = useAuthStore((state) => state.login);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +30,7 @@ export default function LoginScreen() {
     setError("");
 
     try {
-      await login(email.trim(), password);
+      await authService.login({ email: email.trim(), password });
       router.replace("/(tabs)");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Login failed. Please try again.");

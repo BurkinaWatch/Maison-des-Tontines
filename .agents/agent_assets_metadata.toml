@@ -70,3 +70,17 @@ mtime_ms = 1787487103137
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/9e0163b2-f5c0-415e-8f0f-05fb73588a54/419d04ac-123b-48b0-bf82-445b7f1e7d48"
 storage_version_token = "1787487109867033"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "16i9tT47mZH6yqJ8u6E-y"
+uri = "file://artifacts/maison-des-tontines-android-startup-fix.apk"
+type = "unspecified"
+title = "Maison des Tontines — APK démarrage stabilisé"
+description = "APK Android avec route initiale Expo Router standard et écran de connexion sans chargement de Zustand au démarrage."
+logical_id = "d254bb57-bc5c-435b-b11c-3f693a9c7532"
+content_hash = "sha256:da125eda66dfb422e65139896d3ea2bcf996525576f2cd6f956d792c12046e7e"
+size = 87964652
+mtime_ms = 1787490008824
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/d254bb57-bc5c-435b-b11c-3f693a9c7532/7c8ac116-53ea-4250-96de-a577ffcf8e73"
+storage_version_token = "1787490017280468"
+content_type = "application/octet-stream"

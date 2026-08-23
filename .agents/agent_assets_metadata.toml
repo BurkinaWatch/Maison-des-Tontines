@@ -84,3 +84,17 @@ mtime_ms = 1787490008824
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/d254bb57-bc5c-435b-b11c-3f693a9c7532/7c8ac116-53ea-4250-96de-a577ffcf8e73"
 storage_version_token = "1787490017280468"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "gRAw1wlWGmAMylgw22kik"
+uri = "file://artifacts/maison-des-tontines-android-router-fix.apk"
+type = "unspecified"
+title = "Maison des Tontines — APK corrigée"
+description = "APK Android avec la route serveur retirée du bundle mobile : elle ne peut plus provoquer le crash ErrorBoundary au démarrage."
+logical_id = "05f70574-e0ca-4418-9142-b283b8c72b42"
+content_hash = "sha256:c6b4fa0cb7581ae29d3fca7a8e820bd6ab74ec43aeff2a4e32b254b3536fa735"
+size = 87964652
+mtime_ms = 1787494484536
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/05f70574-e0ca-4418-9142-b283b8c72b42/b1786673-ce82-4260-8aa4-dbbc56b56e2f"
+storage_version_token = "1787494527640016"
+content_type = "application/octet-stream"

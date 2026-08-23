@@ -49,3 +49,7 @@ waitForPort = 4000
 [postMerge]
 path = "scripts/post-merge-setup.sh"
 timeoutMs = 180000
+
+[[ports]]
+localPort = 5001
+externalPort = 3001

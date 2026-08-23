@@ -98,3 +98,17 @@ mtime_ms = 1787494484536
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/05f70574-e0ca-4418-9142-b283b8c72b42/b1786673-ce82-4260-8aa4-dbbc56b56e2f"
 storage_version_token = "1787494527640016"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "0ZxHfdBk8B44onyIiiwdy"
+uri = "file://artifacts/maison-des-tontines-android-stable-start.apk"
+type = "unspecified"
+title = "Maison des Tontines — APK démarrage stable"
+description = "Version Android avec un écran de connexion natif direct au démarrage, sans montage du navigateur Expo Router qui provoquait l’erreur ErrorBoundary."
+logical_id = "6b1b4eb8-16ed-493c-8a4c-9f11a9719916"
+content_hash = "sha256:6bcaed093dbd1b582bb5c1d5844e9ff0a40a01fa44bd13432d20da778e673288"
+size = 87966468
+mtime_ms = 1787496801587
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/6b1b4eb8-16ed-493c-8a4c-9f11a9719916/054d676f-752b-4b1d-91c3-e4c539478aff"
+storage_version_token = "1787496823418344"
+content_type = "application/octet-stream"

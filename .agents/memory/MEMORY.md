@@ -4,4 +4,4 @@
 - [Refresh-token uniqueness](refresh-token-uniqueness.md) — Give every JWT refresh token unique session entropy, even when sessions start in the same second.
 - [Railway migration environment](railway-migration-environment.md) — Gate PostgreSQL migrations to production so local tools never target the Railway URL.
 - [EAS monorepo APK builds](eas-monorepo-build.md) — Upload an isolated mobile archive when root npm locks contain Replit-only registry URLs.
-- [Expo Router API routes on Android](expo-router-api-routes-android.md) — Server-only `+api` files can become undefined Android routes and crash navigator startup.
+- [Expo Router Android startup isolation](expo-router-api-routes-android.md) — Keep a direct native entry screen ready when router registration fails before rendering.

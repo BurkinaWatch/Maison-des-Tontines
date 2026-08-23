@@ -5,3 +5,4 @@ artifacts/maison-des-tontines-android-1.0.2-no-ota.apk filter=lfs diff=lfs merge
 artifacts/maison-des-tontines-android-errorboundary-fix.apk filter=lfs diff=lfs merge=lfs -text
 artifacts/maison-des-tontines-android-startup-fix.apk filter=lfs diff=lfs merge=lfs -text
 artifacts/maison-des-tontines-android-router-fix.apk filter=lfs diff=lfs merge=lfs -text
+artifacts/maison-des-tontines-android-stable-start.apk filter=lfs diff=lfs merge=lfs -text

@@ -4,3 +4,4 @@
 - [Refresh-token uniqueness](refresh-token-uniqueness.md) — Give every JWT refresh token unique session entropy, even when sessions start in the same second.
 - [Railway migration environment](railway-migration-environment.md) — Gate PostgreSQL migrations to production so local tools never target the Railway URL.
 - [API test server startup](api-test-server-startup.md) — Avoid starting the HTTP listener when importing the Express app in test environments.
+- [Playwright preview runtime](playwright-preview-runtime.md) — Use Nix Chromium from PATH for preview browser smoke tests.

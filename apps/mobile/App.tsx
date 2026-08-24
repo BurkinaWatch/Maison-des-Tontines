@@ -140,6 +140,17 @@ function App() {
 
   const submit = isRegistering ? handleRegister : handleLogin;
 
+  if (connectedName) {
+    return (
+      <AuthenticatedScreen
+        name={connectedName}
+        isSubmitting={isSubmitting}
+        message={message}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
@@ -158,43 +169,7 @@ function App() {
                   : "Connecte-toi à ton compte"}
             </Text>
 
-            {connectedName ? (
-              <View style={styles.dashboard}>
-                <View style={styles.welcomePanel}>
-                  <Text style={styles.eyebrow}>TABLEAU DE BORD</Text>
-                  <Text style={styles.welcomeTitle}>Ton espace Maison des Tontines</Text>
-                  <Text style={styles.welcomeText}>
-                    Retrouve tes tontines, tes contributions et tes notifications.
-                  </Text>
-                </View>
-                <View style={styles.dashboardCard}>
-                  <Text style={styles.dashboardIcon}>Groupes</Text>
-                  <View style={styles.dashboardContent}>
-                    <Text style={styles.dashboardTitle}>Mes tontines</Text>
-                    <Text style={styles.dashboardText}>Consulte tes groupes et leur activité</Text>
-                  </View>
-                </View>
-                <View style={styles.dashboardCard}>
-                  <Text style={styles.dashboardIcon}>Paiements</Text>
-                  <View style={styles.dashboardContent}>
-                    <Text style={styles.dashboardTitle}>Contributions</Text>
-                    <Text style={styles.dashboardText}>Suis tes paiements et échéances</Text>
-                  </View>
-                </View>
-                <View style={styles.dashboardCard}>
-                  <Text style={styles.dashboardIcon}>Infos</Text>
-                  <View style={styles.dashboardContent}>
-                    <Text style={styles.dashboardTitle}>Notifications</Text>
-                    <Text style={styles.dashboardText}>Reste informé de la vie de tes tontines</Text>
-                  </View>
-                </View>
-                {message ? <Text style={styles.error}>{message}</Text> : null}
-                <Pressable onPress={handleLogout} disabled={isSubmitting} style={styles.logoutButton}>
-                  {isSubmitting ? <ActivityIndicator color={colors.accent} /> : <Text style={styles.logoutText}>Se déconnecter</Text>}
-                </Pressable>
-              </View>
-            ) : (
-              <>
+            <>
                 {isRegistering && (
                   <>
                     <Field label="Prénom" value={firstName} onChangeText={setFirstName} placeholder="Votre prénom" />
@@ -217,8 +192,7 @@ function App() {
                     <Text style={styles.link}>{isRegistering ? "Se connecter" : "Créer un compte"}</Text>
                   </Pressable>
                 </View>
-              </>
-            )}
+            </>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -231,6 +205,44 @@ export default function AppWithErrorBoundary() {
     <AppErrorBoundary>
       <App />
     </AppErrorBoundary>
+  );
+}
+
+function AuthenticatedScreen(props: {
+  name: string;
+  isSubmitting: boolean;
+  message: string;
+  onLogout: () => void;
+}) {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <View style={styles.authenticatedScreen}>
+        <Text style={styles.authenticatedTitle}>Maison des Tontines</Text>
+        <Text style={styles.authenticatedWelcome}>Bienvenue, {props.name}</Text>
+        <Text style={styles.authenticatedText}>
+          Connexion réussie. Ton espace est prêt.
+        </Text>
+        <View style={styles.authenticatedPanel}>
+          <Text style={styles.authenticatedPanelTitle}>Tableau de bord</Text>
+          <Text style={styles.authenticatedPanelText}>Mes tontines</Text>
+          <Text style={styles.authenticatedPanelText}>Contributions</Text>
+          <Text style={styles.authenticatedPanelText}>Notifications</Text>
+        </View>
+        {props.message ? <Text style={styles.error}>{props.message}</Text> : null}
+        <Pressable
+          onPress={props.onLogout}
+          disabled={props.isSubmitting}
+          style={styles.logoutButton}
+        >
+          {props.isSubmitting ? (
+            <ActivityIndicator color={colors.accent} />
+          ) : (
+            <Text style={styles.logoutText}>Se déconnecter</Text>
+          )}
+        </Pressable>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -290,4 +302,11 @@ const styles = StyleSheet.create({
   errorTitle: { color: colors.white, fontSize: 20, fontWeight: "700", textAlign: "center" },
   errorText: { color: colors.muted, fontSize: 14, lineHeight: 21, marginTop: 12, textAlign: "center" },
   errorDetails: { color: "#ffb4ad", fontSize: 12, lineHeight: 18, marginTop: 20, textAlign: "center" },
+  authenticatedScreen: { backgroundColor: colors.background, flex: 1, padding: 24 },
+  authenticatedTitle: { color: colors.accent, fontSize: 24, fontWeight: "700", marginTop: 24, textAlign: "center" },
+  authenticatedWelcome: { color: colors.white, fontSize: 22, fontWeight: "700", marginTop: 32, textAlign: "center" },
+  authenticatedText: { color: colors.muted, fontSize: 16, lineHeight: 23, marginTop: 12, textAlign: "center" },
+  authenticatedPanel: { backgroundColor: colors.card, borderColor: "rgba(255,255,255,0.14)", borderRadius: 16, borderWidth: 1, marginTop: 32, padding: 20 },
+  authenticatedPanelTitle: { color: colors.white, fontSize: 18, fontWeight: "700", marginBottom: 16 },
+  authenticatedPanelText: { borderTopColor: "rgba(255,255,255,0.12)", borderTopWidth: 1, color: colors.muted, fontSize: 16, paddingVertical: 14 },
 });

@@ -9,10 +9,8 @@ export function errorHandler(
 ) {
   logger.error("Unhandled error", {
     error: err.message,
-    stack: err.stack,
     method: req.method,
     url: req.url,
-    ip: req.ip,
   });
 
   const statusCode = (err as any).statusCode || 500;

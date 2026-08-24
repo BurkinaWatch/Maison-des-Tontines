@@ -2,10 +2,8 @@ import { logger } from "../config/logger.js";
 export function errorHandler(err, req, res, next) {
     logger.error("Unhandled error", {
         error: err.message,
-        stack: err.stack,
         method: req.method,
         url: req.url,
-        ip: req.ip,
     });
     const statusCode = err.statusCode || 500;
     const message = err.message || "Internal server error";

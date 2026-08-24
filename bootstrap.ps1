@@ -139,9 +139,8 @@ function Initialize-Database {
     
     Write-Info "Setting up database..."
     
-    # Extract database connection details from URL
-    # Format: postgresql://user:pass@host:port/dbname
-    if ($DbUrl -match 'postgresql://([^:]+):([^@]+)@([^:]+):(\d+)/([^?]+)') {
+    # Extract database connection details from the configured URL.
+    if ($DbUrl -match '^[a-z]+://([^:]+):([^@]+)@([^:]+):(\d+)/([^?]+)') {
         $user = $matches[1]
         $pass = $matches[2]
         $host = $matches[3]
@@ -190,9 +189,10 @@ function Start-ApiServer {
     
     Push-Location "$PROJECT_ROOT\apps\api"
     
-    # Set environment variables if not set
+    # DATABASE_URL must be supplied by the environment or apps/api/.env.
+    # Do not embed credentials in this script.
     if (-not $env:DATABASE_URL) {
-        $env:DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/maison_tontines?schema=public"
+        throw "DATABASE_URL is not set. Set it in the environment or apps/api/.env before starting the API."
     }
     
     try {

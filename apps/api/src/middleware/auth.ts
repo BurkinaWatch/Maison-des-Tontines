@@ -7,7 +7,6 @@ import { logger } from "../config/logger.js";
 export interface AuthPayload {
   sub: string;
   role: string;
-  phone: string;
 }
 
 export interface AuthenticatedRequest extends Request {

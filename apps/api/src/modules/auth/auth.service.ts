@@ -69,7 +69,7 @@ export class AuthService {
       },
     });
 
-    logger.info("User registered", { userId: user.id, email: user.email });
+    logger.info("User registered", { userId: user.id });
     return this.generateTokens(user.id, user.phone, user.role, user.email, user.name);
   }
 
@@ -178,7 +178,6 @@ export class AuthService {
     const accessPayload: AuthPayload = {
       sub: userId,
       role,
-      phone,
     };
 
     const accessToken = jwt.sign(accessPayload, env.JWT_ACCESS_SECRET, {

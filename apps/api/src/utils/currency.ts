@@ -3,14 +3,26 @@ export function formatCurrency(amount: number, currency: string = "XOF"): string
     style: "decimal",
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  }).format(amount);
+  }).format(amount).replace(/\u202f/g, " ");
 
   return `${currency} ${parts}`;
 }
 
 export function parseCurrency(value: string): number {
-  const cleaned = value.replace(/[^0-9.,]/g, "").replace(",", ".");
-  const parsed = parseFloat(cleaned);
+  const cleaned = value.replace(/[^0-9.,-]/g, "").trim();
+  const lastComma = cleaned.lastIndexOf(",");
+  const lastDot = cleaned.lastIndexOf(".");
+  const decimalSeparator = lastComma > lastDot ? "," : ".";
+  const hasDecimalPart =
+    decimalSeparator !== "." || lastDot !== -1
+      ? cleaned.length - Math.max(lastComma, lastDot) - 1 <= 2
+      : false;
+  const normalized = hasDecimalPart
+    ? cleaned
+        .replace(decimalSeparator === "," ? /\./g : /,/g, "")
+        .replace(decimalSeparator, ".")
+    : cleaned.replace(/[.,]/g, "");
+  const parsed = parseFloat(normalized);
   if (isNaN(parsed)) {
     throw new Error("Invalid currency format");
   }

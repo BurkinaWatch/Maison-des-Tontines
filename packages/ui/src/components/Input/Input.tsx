@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
-import { glassColors, glassBorderRadius, glassSpacing } from '../../theme/colors';
+import { glassColors } from '../../theme/colors';
+import { glassBorderRadius, glassSpacing } from '../../theme/spacing';
 
 interface InputProps {
   label?: string;

@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
-import { glassColors, glassBorderRadius, glassSpacing } from '../../theme/colors';
+import { glassColors } from '../../theme/colors';
+import { glassBorderRadius, glassSpacing } from '../../theme/spacing';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -117,6 +118,7 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
         <>
           {icon}
           <Text
+            onPress={onPress}
             style={[
               styles.text,
               {

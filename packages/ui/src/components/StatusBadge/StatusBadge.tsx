@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
-import { glassColors, glassBorderRadius, glassSpacing } from '../../theme/colors';
+import { glassColors } from '../../theme/colors';
+import { glassBorderRadius, glassSpacing } from '../../theme/spacing';
 
 type StatusVariant = 'success' | 'warning' | 'error' | 'info' | 'neutral';
 type StatusSize = 'sm' | 'md' | 'lg';
@@ -70,7 +71,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       ]}
     >
       <Text style={[styles.text, { color: getTextColor(), fontSize: getFontSize() }]}>
-        {label}
+        {label.toUpperCase()}
       </Text>
     </View>
   );

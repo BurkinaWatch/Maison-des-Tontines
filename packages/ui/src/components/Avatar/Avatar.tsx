@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
-import { glassColors, glassBorderRadius, glassSpacing } from '../../theme/colors';
+import { glassColors } from '../../theme/colors';
+import { glassBorderRadius, glassSpacing } from '../../theme/spacing';
 
 type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
 

@@ -6,8 +6,9 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { useTheme } from '../hooks/useTheme';
-import { glassColors, glassBorderRadius, glassSpacing } from '../theme/colors';
+import { useTheme } from '../../hooks/useTheme';
+import { glassColors } from '../../theme/colors';
+import { glassBorderRadius, glassSpacing } from '../../theme/spacing';
 
 interface GlassCardProps {
   children: React.ReactNode;

@@ -16,6 +16,7 @@ describe("Auth Routes", () => {
       .post("/api/v1/auth/register")
       .send({
         phone: "+221771234568",
+        email: "test-user@example.com",
         name: "Test User",
         password: "password123",
       });
@@ -26,7 +27,7 @@ describe("Auth Routes", () => {
     const response = await request(app)
       .post("/api/v1/auth/login")
       .send({
-        phone: "+221771234567",
+        email: "test-user@example.com",
         password: "password123",
       });
     expect([200, 401]).toContain(response.status);

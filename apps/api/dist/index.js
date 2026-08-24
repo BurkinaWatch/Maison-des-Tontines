@@ -64,6 +64,9 @@ process.on("SIGTERM", async () => {
     await prisma.$disconnect();
     process.exit(0);
 });
-start();
+if (!process.env.VITEST) {
+    start();
+}
+export { app };
 export default app;
 //# sourceMappingURL=index.js.map

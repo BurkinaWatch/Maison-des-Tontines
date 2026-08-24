@@ -43,7 +43,7 @@ export class TontinesController {
         try {
             const userId = req.userId;
             const { status, type, page = 1, limit = 20 } = req.query;
-            const where = {};
+            const where = { members: { some: { userId, status: "ACTIVE" } } };
             if (status)
                 where.status = status;
             if (type)

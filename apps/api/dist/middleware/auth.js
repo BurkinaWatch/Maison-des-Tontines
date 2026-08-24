@@ -83,4 +83,28 @@ export function requireTontineRole(tontineId, ...allowedRoles) {
         }
     };
 }
+export function requireTontineMembership(tontineParam = "tontineId") {
+    return async (req, res, next) => {
+        if (!req.userId)
+            return res.status(401).json({ error: "Unauthorized" });
+        const tontineId = req.params[tontineParam];
+        if (!tontineId)
+            return res.status(400).json({ error: "Invalid tontine identifier" });
+        try {
+            const membership = await getPrisma().tontineMember.findFirst({
+                where: { tontineId, userId: req.userId, status: "ACTIVE" },
+                select: { id: true, role: true },
+            });
+            if (!membership) {
+                return res.status(403).json({ error: "Forbidden", message: "Not a member of this tontine" });
+            }
+            req.params = { ...req.params, membershipId: membership.id };
+            next();
+        }
+        catch (error) {
+            logger.error("Tontine membership check failed", { error: error.message });
+            return res.status(500).json({ error: "Internal server error" });
+        }
+    };
+}
 //# sourceMappingURL=auth.js.map

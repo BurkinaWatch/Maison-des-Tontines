@@ -65,3 +65,8 @@ externalPort = 3001
 [[ports]]
 localPort = 5050
 externalPort = 3002
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["node", "apps/api/dist/index.js"]
+build = ["npm", "run", "build:api"]

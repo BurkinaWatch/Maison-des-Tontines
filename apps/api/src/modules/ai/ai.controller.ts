@@ -8,6 +8,14 @@ export class AIController {
       const userId = req.userId!;
       const { tontineId, message } = req.body;
 
+      const membership = await getPrisma().tontineMember.findFirst({
+        where: { tontineId, userId, status: "ACTIVE" },
+        select: { id: true },
+      });
+      if (!membership) {
+        return res.status(403).json({ error: "Not a member of this tontine" });
+      }
+
       const conversation = await getPrisma().aIConversation.create({
         data: {
           userId,
@@ -39,6 +47,14 @@ export class AIController {
   async getInsights(req: any, res: Response, next: NextFunction) {
     try {
       const { tontineId } = req.params;
+
+      const membership = await getPrisma().tontineMember.findFirst({
+        where: { tontineId, userId: req.userId!, status: "ACTIVE" },
+        select: { id: true },
+      });
+      if (!membership) {
+        return res.status(403).json({ error: "Not a member of this tontine" });
+      }
 
       const insights = await getPrisma().aIInsight.findMany({
         where: { tontineId },

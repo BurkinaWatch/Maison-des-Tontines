@@ -11,6 +11,7 @@ router.use(authMiddleware);
 
 router.post(
   "/cycles/:cycleId/contributions",
+  requireCycleMembership("cycleId"),
   validate(RecordContributionDto),
   controller.recordContribution
 );

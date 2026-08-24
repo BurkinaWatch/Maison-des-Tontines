@@ -16,6 +16,32 @@ export class DisputesController {
         return res.status(403).json({ error: "Not a member of this tontine" });
       }
 
+      if (cycleId) {
+        const cycle = await getPrisma().tontineCycle.findFirst({
+          where: { id: cycleId, tontineId },
+          select: { id: true },
+        });
+        if (!cycle) {
+          return res.status(404).json({ error: "Cycle not found in this tontine" });
+        }
+      }
+
+      if (contributionId) {
+        const contribution = await getPrisma().contribution.findFirst({
+          where: {
+            id: contributionId,
+            cycle: { tontineId },
+          },
+          select: { id: true, cycleId: true },
+        });
+        if (!contribution) {
+          return res.status(404).json({ error: "Contribution not found in this tontine" });
+        }
+        if (cycleId && contribution.cycleId !== cycleId) {
+          return res.status(400).json({ error: "Contribution does not belong to the requested cycle" });
+        }
+      }
+
       const dispute = await getPrisma().dispute.create({
         data: {
           tontineId,
@@ -52,6 +78,18 @@ export class DisputesController {
         return res.status(404).json({ error: "Dispute not found" });
       }
 
+      const membership = await getPrisma().tontineMember.findFirst({
+        where: {
+          tontineId: dispute.tontineId,
+          userId,
+          status: "ACTIVE",
+          role: { in: ["ADMIN", "ORGANIZER"] },
+        },
+      });
+      if (!membership) {
+        return res.status(403).json({ error: "Forbidden", message: "Organizer access required for this tontine" });
+      }
+
       const updatedDispute = await getPrisma().dispute.update({
         where: { id: disputeId },
         data: {
@@ -82,8 +120,19 @@ export class DisputesController {
     try {
       const { tontineId, status } = req.query;
 
-      const where: any = {};
-      if (tontineId) where.tontineId = tontineId;
+      if (typeof tontineId !== "string") {
+        return res.status(400).json({ error: "tontineId is required" });
+      }
+
+      const membership = await getPrisma().tontineMember.findFirst({
+        where: { tontineId, userId: req.userId!, status: "ACTIVE" },
+        select: { id: true },
+      });
+      if (!membership) {
+        return res.status(403).json({ error: "Not a member of this tontine" });
+      }
+
+      const where: any = { tontineId };
       if (status) where.status = status;
 
       const disputes = await getPrisma().dispute.findMany({

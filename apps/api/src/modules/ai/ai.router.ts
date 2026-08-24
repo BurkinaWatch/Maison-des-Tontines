@@ -10,7 +10,7 @@ const controller = new AIController();
 router.use(authMiddleware);
 
 const ChatDto = z.object({
-  tontineId: z.string().optional(),
+  tontineId: z.string(),
   message: z.string().min(1, "Message is required"),
 });
 

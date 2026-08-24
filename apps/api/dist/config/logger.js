@@ -2,33 +2,39 @@ import winston from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 import { getEnv } from "./env.js";
 const env = getEnv();
-const SENSITIVE_KEY = /(?:email|phone|ip(?:address)?|stack|useragent|authorization|token|password|secret)/i;
+const SENSITIVE_KEY = /(?:email|phone|ip(?:address)?|stack|user[-_]?agent|authorization|token|password|secret)/i;
 const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 const IPV4 = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g;
-const PHONE = /(?<!\w)(?:\+?\d[\d\s().-]{6,}\d)(?!\w)/g;
+const PHONE = /(?<!\w)(?:\+\d[\d\s().-]{6,}\d|\d{7,15})(?!\w)/g;
+const STACK_TRACE = /(?:^|\n)\s*at\s+.+(?:\n|$)/;
 function redactText(value) {
     return value
         .replace(EMAIL, "[REDACTED_EMAIL]")
         .replace(IPV4, "[REDACTED_IP]")
         .replace(PHONE, "[REDACTED_PHONE]");
 }
-function sanitize(value, key) {
+export function sanitizeForLogs(value, environment = env.NODE_ENV, key) {
     if (SENSITIVE_KEY.test(key ?? ""))
         return "[REDACTED]";
-    if (typeof value === "string")
+    if (typeof value === "string") {
+        if (environment === "production" && STACK_TRACE.test(value)) {
+            return "[REDACTED_STACK]";
+        }
         return redactText(value);
-    if (Array.isArray(value))
-        return value.map((item) => sanitize(item));
+    }
+    if (Array.isArray(value)) {
+        return value.map((item) => sanitizeForLogs(item, environment));
+    }
     if (value && typeof value === "object") {
         return Object.fromEntries(Object.entries(value).map(([childKey, childValue]) => [
             childKey,
-            sanitize(childValue, childKey),
+            sanitizeForLogs(childValue, environment, childKey),
         ]));
     }
     return value;
 }
 const securityFormat = winston.format((info) => {
-    const sanitized = sanitize(info);
+    const sanitized = sanitizeForLogs(info);
     if (env.NODE_ENV !== "development")
         delete sanitized.stack;
     return sanitized;

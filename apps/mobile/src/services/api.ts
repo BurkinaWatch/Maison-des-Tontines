@@ -64,6 +64,22 @@ async function deleteStoredValue(key: string): Promise<void> {
   await SecureStore.deleteItemAsync(key);
 }
 
+function getErrorMessage(body: unknown, status: number, statusText: string): string {
+  if (typeof body === "object" && body !== null) {
+    const message = (body as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+
+    const error = (body as { error?: unknown }).error;
+    if (typeof error === "string" && error.trim()) {
+      return error;
+    }
+  }
+
+  return `HTTP ${status}: ${statusText || "Request failed"}`;
+}
+
 export const api = {
   baseUrl:
     process.env.EXPO_PUBLIC_API_URL ||
@@ -120,16 +136,19 @@ export const api = {
       (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers,
+      });
+    } catch {
+      throw new Error("Unable to reach the service. Please check your connection and try again.");
+    }
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: `HTTP ${response.status}: ${response.statusText}`,
-      }));
-      throw new Error(error.message || "An error occurred");
+      const body = await response.json().catch(() => null);
+      throw new Error(getErrorMessage(body, response.status, response.statusText));
     }
 
     return response.json();

@@ -11,7 +11,7 @@ export interface Contribution {
   cycleId: string;
   userId: string;
   amount: number;
-  currency: string;
+  currency: Currency;
   status: ContributionStatus;
   method?: PaymentMethod;
   reference?: string;
@@ -28,7 +28,7 @@ export interface Payout {
   recipientId: string;
   recipientName: string;
   amount: number;
-  currency: string;
+  currency: Currency;
   status: PayoutStatus;
   method: PaymentMethod;
   reference?: string;

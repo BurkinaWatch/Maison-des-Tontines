@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Component, useState, type ErrorInfo, type ReactNode } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -15,6 +15,40 @@ import {
 
 type Screen = "login" | "register";
 
+class AppErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("Authenticated app render error", error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.errorScreen}>
+            <Text style={styles.logo}>⚠️</Text>
+            <Text style={styles.errorTitle}>L’application a rencontré un problème</Text>
+            <Text style={styles.errorText}>
+              La connexion a réussi, mais l’écran suivant n’a pas pu être affiché.
+            </Text>
+            <Text style={styles.errorDetails}>{this.state.error.message}</Text>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 function errorMessage(error: unknown, fallback: string) {
   if (error instanceof Error) {
     return error.name === "AbortError"
@@ -24,7 +58,7 @@ function errorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
-export default function App() {
+function App() {
   const [screen, setScreen] = useState<Screen>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -185,6 +219,14 @@ export default function App() {
   );
 }
 
+export default function AppWithErrorBoundary() {
+  return (
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
+  );
+}
+
 function Field(props: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; secureTextEntry?: boolean; keyboardType?: "default" | "email-address" | "phone-pad" }) {
   return (
     <>
@@ -237,4 +279,8 @@ const styles = StyleSheet.create({
   chevron: { color: colors.accent, fontSize: 28 },
   logoutButton: { alignItems: "center", borderColor: "rgba(212,165,116,0.7)", borderRadius: 12, borderWidth: 1, justifyContent: "center", marginTop: 8, minHeight: 48 },
   logoutText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
+  errorScreen: { alignItems: "center", flex: 1, justifyContent: "center", padding: 28 },
+  errorTitle: { color: colors.white, fontSize: 20, fontWeight: "700", textAlign: "center" },
+  errorText: { color: colors.muted, fontSize: 14, lineHeight: 21, marginTop: 12, textAlign: "center" },
+  errorDetails: { color: "#ffb4ad", fontSize: 12, lineHeight: 18, marginTop: 20, textAlign: "center" },
 });

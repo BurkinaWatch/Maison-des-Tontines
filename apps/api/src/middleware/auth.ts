@@ -84,13 +84,6 @@ export function requireRole(...allowedRoles: string[]) {
       return res.status(500).json({ error: "Internal server error" });
     }
 
-    if (!req.user) {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: `Access denied. Required roles: ${allowedRoles.join(", ")}`,
-      });
-    }
-
     next();
   };
 }

@@ -136,3 +136,27 @@ export function requireTontineMembership(tontineParam = "tontineId") {
     }
   };
 }
+
+export function requireCycleMembership(cycleParam = "cycleId") {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
+    try {
+      const cycle = await getPrisma().tontineCycle.findUnique({
+        where: { id: req.params[cycleParam] },
+        select: { tontineId: true },
+      });
+      if (!cycle) return res.status(404).json({ error: "Cycle not found" });
+      const membership = await getPrisma().tontineMember.findFirst({
+        where: { tontineId: cycle.tontineId, userId: req.userId, status: "ACTIVE" },
+        select: { id: true },
+      });
+      if (!membership) {
+        return res.status(403).json({ error: "Forbidden", message: "Not a member of this tontine" });
+      }
+      next();
+    } catch (error) {
+      logger.error("Cycle membership check failed", { error: (error as Error).message });
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  };
+}

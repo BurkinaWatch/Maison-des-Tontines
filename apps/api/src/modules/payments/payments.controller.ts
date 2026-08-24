@@ -81,6 +81,22 @@ export class PaymentsController {
   async initiatePayout(req: any, res: Response, next: NextFunction) {
     try {
       const { tontineId, cycleId, memberId, amount, method, phoneNumber } = req.body;
+      const userId = req.userId!;
+      const membership = await getPrisma().tontineMember.findFirst({
+        where: { tontineId, userId, status: "ACTIVE", role: { in: ["ORGANIZER", "ADMIN"] } },
+      });
+      if (!membership) {
+        return res.status(403).json({ error: "Forbidden", message: "Organizer access required" });
+      }
+      const cycle = await getPrisma().tontineCycle.findFirst({
+        where: { id: cycleId, tontineId },
+      });
+      const targetMember = await getPrisma().tontineMember.findFirst({
+        where: { id: memberId, tontineId, status: "ACTIVE" },
+      });
+      if (!cycle || !targetMember) {
+        return res.status(404).json({ error: "Invalid tontine, cycle, or member" });
+      }
 
       const payout = await getPrisma().payout.create({
         data: {

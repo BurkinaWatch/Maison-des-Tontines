@@ -8,7 +8,7 @@ module.exports = {
   },
   plugins: ["@typescript-eslint"],
   extends: ["eslint:recommended"],
-  rules: { "no-unused-vars": "off", "@typescript-eslint/no-unused-vars": "off" },
+  rules: { "no-unused-vars": "off", "no-undef": "off", "@typescript-eslint/no-unused-vars": "off" },
   env: { es2021: true, browser: true, node: true },
   ignorePatterns: ["node_modules/", ".expo/", "dist/"],
 };

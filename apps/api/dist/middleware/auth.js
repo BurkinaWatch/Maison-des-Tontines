@@ -38,15 +38,29 @@ export function optionalAuth(req, res, next) {
     next();
 }
 export function requireRole(...allowedRoles) {
-    return (req, res, next) => {
+    return async (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({ error: "Unauthorized" });
         }
-        if (!allowedRoles.includes(req.user.role)) {
-            return res.status(403).json({
-                error: "Forbidden",
-                message: `Access denied. Required roles: ${allowedRoles.join(", ")}`,
+        try {
+            const currentUser = await getPrisma().user.findUnique({
+                where: { id: req.user.sub },
+                select: { role: true, status: true },
             });
+            if (!currentUser || currentUser.status !== "ACTIVE") {
+                return res.status(403).json({ error: "Forbidden", message: "Account is not active" });
+            }
+            req.user.role = currentUser.role;
+            if (!allowedRoles.includes(currentUser.role)) {
+                return res.status(403).json({
+                    error: "Forbidden",
+                    message: `Access denied. Required roles: ${allowedRoles.join(", ")}`,
+                });
+            }
+        }
+        catch (error) {
+            logger.error("Global role check failed", { error: error.message });
+            return res.status(500).json({ error: "Internal server error" });
         }
         next();
     };

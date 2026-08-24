@@ -1,6 +1,14 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { PassThrough } from "node:stream";
 import jwt from "jsonwebtoken";
-import { sanitizeForLogs } from "../../src/config/logger.js";
+import winston from "winston";
+import {
+  createProductionTransports,
+  sanitizeForLogs,
+} from "../../src/config/logger.js";
 import { errorHandler } from "../../src/middleware/errorHandler.js";
 
 describe("production log privacy", () => {
@@ -25,6 +33,60 @@ describe("production log privacy", () => {
     expect(log.email).toBe("[REDACTED]");
     expect(log["user-agent"]).toBe("[REDACTED]");
     expect(log.error).toBe("[REDACTED_STACK]");
+  });
+
+  it("sanitizes every production transport without writing to real log files", async () => {
+    const logDirectory = await mkdtemp(join(tmpdir(), "privacy-logs-"));
+    const consoleOutput = new PassThrough();
+    let serializedConsole = "";
+    consoleOutput.on("data", (chunk) => {
+      serializedConsole += chunk.toString();
+    });
+
+    const productionLogger = winston.createLogger({
+      level: "info",
+      transports: createProductionTransports({
+        logDirectory,
+        consoleStream: consoleOutput,
+      }),
+    });
+
+    try {
+      productionLogger.info("Request from test@example.com at 192.0.2.44", {
+        email: "test@example.com",
+        phone: "+221 77 123 45 67",
+        ipAddress: "192.0.2.44",
+        "user-agent": "PrivateBrowser/1.0",
+        error: "Error: failed\n    at handler (/users/alice/app.js:10:2)",
+      });
+      productionLogger.error("Failure for test@example.com", {
+        email: "test@example.com",
+        phone: "+221 77 123 45 67",
+        ip: "192.0.2.44",
+        userAgent: "PrivateBrowser/1.0",
+        stack: "Error: failed\n    at handler (/users/alice/app.js:10:2)",
+      });
+
+      await new Promise<void>((resolve) => productionLogger.on("finish", resolve).end());
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const files = await readdir(logDirectory);
+      const logFiles = files.filter((file) => file.endsWith(".log"));
+      const fileOutput = (
+        await Promise.all(logFiles.map((file) => readFile(join(logDirectory, file), "utf8")))
+      ).join("\n");
+      const serializedOutput = `${serializedConsole}\n${fileOutput}`;
+
+      expect(logFiles).toHaveLength(2);
+      expect(serializedOutput).not.toContain("test@example.com");
+      expect(serializedOutput).not.toContain("+221");
+      expect(serializedOutput).not.toContain("192.0.2.44");
+      expect(serializedOutput).not.toContain("PrivateBrowser/1.0");
+      expect(serializedOutput).not.toContain("at handler");
+    } finally {
+      productionLogger.close();
+      await rm(logDirectory, { recursive: true, force: true });
+    }
   });
 });
 

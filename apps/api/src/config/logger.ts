@@ -1,5 +1,6 @@
 import winston from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
+import type { Writable } from "node:stream";
 import { getEnv } from "./env.js";
 
 const env = getEnv();
@@ -44,17 +45,28 @@ export function sanitizeForLogs(
   return value;
 }
 
-const securityFormat = winston.format((info) => {
-  const sanitized = sanitizeForLogs(info) as winston.Logform.TransformableInfo;
-  if (env.NODE_ENV !== "development") delete sanitized.stack;
-  return sanitized;
-});
+const securityFormat = (
+  environment: "development" | "test" | "production" = env.NODE_ENV,
+) =>
+  winston.format((info) => {
+    const sanitized = sanitizeForLogs(info, environment) as winston.Logform.TransformableInfo;
+    if (environment !== "development") delete sanitized.stack;
+    return sanitized;
+  })();
 
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
   winston.format.errors({ stack: true }),
   winston.format.splat(),
   securityFormat(),
+  winston.format.json()
+);
+
+const productionLogFormat = winston.format.combine(
+  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+  winston.format.errors({ stack: true }),
+  winston.format.splat(),
+  securityFormat("production"),
   winston.format.json()
 );
 
@@ -71,33 +83,51 @@ const consoleFormat = winston.format.combine(
   })
 );
 
-const transports: winston.transport[] = [
-  new winston.transports.Console({
-    format: env.NODE_ENV === "development" ? consoleFormat : logFormat,
-  }),
-];
+export function createProductionTransports(options: {
+  logDirectory?: string;
+  consoleStream?: Writable;
+} = {}): winston.transport[] {
+  const logDirectory = options.logDirectory ?? "logs";
 
-if (env.NODE_ENV !== "test") {
-  transports.push(
+  return [
+    new winston.transports.Console({
+      format: productionLogFormat,
+      ...(options.consoleStream ? { stream: options.consoleStream } : {}),
+    }),
     new DailyRotateFile({
-      filename: "logs/application-%DATE%.log",
+      filename: `${logDirectory}/application-%DATE%.log`,
       datePattern: "YYYY-MM-DD",
       zippedArchive: true,
       maxSize: "20m",
       maxFiles: "14d",
-      format: logFormat,
+      format: productionLogFormat,
     }),
     new DailyRotateFile({
-      filename: "logs/error-%DATE%.log",
+      filename: `${logDirectory}/error-%DATE%.log`,
       datePattern: "YYYY-MM-DD",
       zippedArchive: true,
       maxSize: "20m",
       maxFiles: "30d",
       level: "error",
-      format: logFormat,
-    })
-  );
+      format: productionLogFormat,
+    }),
+  ];
 }
+
+const transports: winston.transport[] =
+  env.NODE_ENV === "test"
+    ? [
+        new winston.transports.Console({
+          format: logFormat,
+        }),
+      ]
+    : env.NODE_ENV === "development"
+      ? [
+          new winston.transports.Console({
+            format: consoleFormat,
+          }),
+        ]
+      : createProductionTransports();
 
 export const logger = winston.createLogger({
   level: env.NODE_ENV === "development" ? "debug" : "info",

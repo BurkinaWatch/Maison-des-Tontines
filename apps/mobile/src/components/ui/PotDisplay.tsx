@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TextStyle } from "react-native";
 import { colors, spacing, typography } from "../../theme";
 
 interface PotDisplayProps {

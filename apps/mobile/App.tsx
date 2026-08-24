@@ -167,20 +167,27 @@ function App() {
                     Retrouve tes tontines, tes contributions et tes notifications.
                   </Text>
                 </View>
-                {[
-                  ["👥", "Mes tontines", "Consulte tes groupes et leur activité"],
-                  ["💳", "Contributions", "Suis tes paiements et échéances"],
-                  ["🔔", "Notifications", "Reste informé de la vie de tes tontines"],
-                ].map(([icon, title, text]) => (
-                  <Pressable key={title} style={styles.dashboardCard}>
-                    <Text style={styles.dashboardIcon}>{icon}</Text>
-                    <View style={styles.dashboardContent}>
-                      <Text style={styles.dashboardTitle}>{title}</Text>
-                      <Text style={styles.dashboardText}>{text}</Text>
-                    </View>
-                    <Text style={styles.chevron}>›</Text>
-                  </Pressable>
-                ))}
+                <View style={styles.dashboardCard}>
+                  <Text style={styles.dashboardIcon}>Groupes</Text>
+                  <View style={styles.dashboardContent}>
+                    <Text style={styles.dashboardTitle}>Mes tontines</Text>
+                    <Text style={styles.dashboardText}>Consulte tes groupes et leur activité</Text>
+                  </View>
+                </View>
+                <View style={styles.dashboardCard}>
+                  <Text style={styles.dashboardIcon}>Paiements</Text>
+                  <View style={styles.dashboardContent}>
+                    <Text style={styles.dashboardTitle}>Contributions</Text>
+                    <Text style={styles.dashboardText}>Suis tes paiements et échéances</Text>
+                  </View>
+                </View>
+                <View style={styles.dashboardCard}>
+                  <Text style={styles.dashboardIcon}>Infos</Text>
+                  <View style={styles.dashboardContent}>
+                    <Text style={styles.dashboardTitle}>Notifications</Text>
+                    <Text style={styles.dashboardText}>Reste informé de la vie de tes tontines</Text>
+                  </View>
+                </View>
                 {message ? <Text style={styles.error}>{message}</Text> : null}
                 <Pressable onPress={handleLogout} disabled={isSubmitting} style={styles.logoutButton}>
                   {isSubmitting ? <ActivityIndicator color={colors.accent} /> : <Text style={styles.logoutText}>Se déconnecter</Text>}
@@ -263,16 +270,16 @@ const styles = StyleSheet.create({
   button: { alignItems: "center", backgroundColor: colors.accent, borderRadius: 12, justifyContent: "center", marginTop: 20, minHeight: 54 },
   disabled: { opacity: 0.7 },
   buttonText: { color: colors.background, fontSize: 16, fontWeight: "700" },
-  accountPrompt: { alignItems: "center", flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center", marginTop: 18 },
+  accountPrompt: { alignItems: "center", flexDirection: "row", flexWrap: "wrap", justifyContent: "center", marginTop: 18 },
   accountText: { color: colors.muted, fontSize: 14 },
   link: { color: colors.accent, fontSize: 14, fontWeight: "700" },
-  dashboard: { gap: 12, marginTop: 6 },
+  dashboard: { marginTop: 6 },
   welcomePanel: { backgroundColor: "rgba(212,165,116,0.12)", borderColor: "rgba(212,165,116,0.35)", borderRadius: 14, borderWidth: 1, padding: 16 },
   eyebrow: { color: colors.accent, fontSize: 11, fontWeight: "700", letterSpacing: 1.2, marginBottom: 6 },
   welcomeTitle: { color: colors.white, fontSize: 19, fontWeight: "700" },
   welcomeText: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 6 },
-  dashboardCard: { alignItems: "center", backgroundColor: colors.input, borderColor: "rgba(255,255,255,0.12)", borderRadius: 12, borderWidth: 1, flexDirection: "row", minHeight: 66, paddingHorizontal: 14 },
-  dashboardIcon: { fontSize: 24, marginRight: 12 },
+  dashboardCard: { alignItems: "center", backgroundColor: colors.input, borderColor: "rgba(255,255,255,0.12)", borderRadius: 12, borderWidth: 1, flexDirection: "row", marginTop: 12, minHeight: 66, paddingHorizontal: 14 },
+  dashboardIcon: { color: colors.accent, fontSize: 12, fontWeight: "700", marginRight: 12 },
   dashboardContent: { flex: 1 },
   dashboardTitle: { color: colors.white, fontSize: 15, fontWeight: "700" },
   dashboardText: { color: colors.muted, fontSize: 12, marginTop: 3 },

@@ -9,7 +9,10 @@ let nativeRefreshToken: string | null = null;
 
 function getDefaultApiUrl(): string {
   if (typeof window !== "undefined" && window.location.hostname) {
-    return window.location.origin;
+    // Replit exposes the API workflow on external port 3000 while Expo
+    // preview runs on external port 80. Calling the preview origin directly
+    // returns Expo's HTML shell instead of an API response.
+    return `${window.location.protocol}//${window.location.hostname}:3000`;
   }
 
   return "https://api.maisondestontines.com";
@@ -137,14 +140,21 @@ export const api = {
       headers,
     });
 
+    const contentType = response.headers.get("content-type") || "";
+    const body = contentType.includes("application/json")
+      ? await response.json().catch(() => null)
+      : null;
+
     if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: `HTTP ${response.status}: ${response.statusText}`,
-      }));
-      throw new Error(error.message || "An error occurred");
+      throw new Error(
+        body?.message || `HTTP ${response.status}: ${response.statusText}`
+      );
     }
 
-    return response.json();
+    if (!body) {
+      throw new Error("The server returned an invalid response");
+    }
+    return body as T;
   },
 
   get<T>(endpoint: string): Promise<T> {

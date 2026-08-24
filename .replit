@@ -43,7 +43,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = 'DATABASE_URL="file:./dev.db" JWT_ACCESS_SECRET="${SESSION_SECRET}-preview-access" JWT_REFRESH_SECRET="${SESSION_SECRET}-preview-refresh" ENABLE_WORKERS=false CORS_ORIGIN="https://${REPLIT_DEV_DOMAIN},http://localhost:5000,http://127.0.0.1:5000" npm exec --workspace=@maison-des-tontines/api tsx src/index.ts'
+args = 'DATABASE_URL="file:./dev.db" JWT_ACCESS_SECRET="${SESSION_SECRET}-preview-access" JWT_REFRESH_SECRET="${SESSION_SECRET}-preview-refresh" ENABLE_WORKERS=false CORS_ORIGIN="https://${REPLIT_DEV_DOMAIN},https://${REPLIT_DEV_DOMAIN}:3000,http://localhost:5000,http://127.0.0.1:5000" npm exec --workspace=@maison-des-tontines/api tsx src/index.ts'
 waitForPort = 4000
 
 [postMerge]

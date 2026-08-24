@@ -11,12 +11,16 @@ describe("Health Check", () => {
 });
 
 describe("Auth Routes", () => {
+  const testSuffix = Date.now().toString();
+  const testEmail = `test-user-${testSuffix}@example.com`;
+  const testPhone = `+221771${testSuffix.slice(-7)}`;
+
   it("should register a new user", async () => {
     const response = await request(app)
       .post("/api/v1/auth/register")
       .send({
-        phone: "+221771234568",
-        email: "test-user@example.com",
+        phone: testPhone,
+        email: testEmail,
         name: "Test User",
         password: "password123",
       });
@@ -27,7 +31,7 @@ describe("Auth Routes", () => {
     const response = await request(app)
       .post("/api/v1/auth/login")
       .send({
-        email: "test-user@example.com",
+        email: testEmail,
         password: "password123",
       });
     expect([200, 401]).toContain(response.status);

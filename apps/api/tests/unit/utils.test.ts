@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { generateOtp } from "../../../src/utils/phone.ts";
-import { formatCurrency, parseCurrency } from "../../../src/utils/currency.ts";
-import { isOverdue, calculateLateDays, getNextDate } from "../../../src/utils/date.ts";
+import { generateOtp } from "../../src/utils/phone.ts";
+import { formatCurrency, parseCurrency } from "../../src/utils/currency.ts";
+import { isOverdue, calculateLateDays, getNextDate } from "../../src/utils/date.ts";
 
 describe("Utils", () => {
   describe("generateOtp", () => {

@@ -30,7 +30,7 @@ export const PotDisplay: React.FC<PotDisplayProps> = ({
       amount: { fontSize: 40, fontWeight: "700", lineHeight: 48, letterSpacing: -0.5 },
       label: typography.body,
     },
-  };
+  } satisfies Record<string, { amount: TextStyle; label: TextStyle }>;
 
   return (
     <View style={styles.container}>

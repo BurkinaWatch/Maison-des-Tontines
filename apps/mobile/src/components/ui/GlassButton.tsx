@@ -112,4 +112,4 @@ const styles = {
   text: {
     textAlign: "center",
   },
-};
+} satisfies Record<string, ViewStyle>;

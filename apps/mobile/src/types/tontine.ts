@@ -1,11 +1,11 @@
 import { Currency } from "./contribution";
+export type { Currency } from "./contribution";
 
 export type TontineType = "rotating" | "savings" | "investment" | "social";
 export type TontineStatus = "draft" | "active" | "completed" | "suspended";
 export type CycleStatus = "upcoming" | "current" | "completed" | "skipped";
 export type ContributionStatus = "pending" | "paid" | "late" | "missed";
-export type PayoutStatus = "pending" | "processing" | "completed" | "failed";
-export type DisputeStatus = "open" | "under_review" | "resolved" | "closed";
+export type { PayoutStatus, DisputeStatus } from "./contribution";
 
 export interface Tontine {
   id: string;
@@ -48,6 +48,8 @@ export interface TontineRules {
   allowEarlyPayout: boolean;
   earlyPayoutPenalty: number;
 }
+
+export type { CreateTontineRequest } from "./api";
 
 export interface Cycle {
   id: string;

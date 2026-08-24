@@ -1,5 +1,8 @@
 export type ContributionStatus = "pending" | "paid" | "late" | "missed";
 export type PaymentMethod = "mobile_money" | "bank_transfer" | "cash" | "card";
+export type Currency = "XOF" | "USD" | "EUR" | "GBP" | "NGN" | "GHS" | "XAF";
+export type PayoutStatus = "pending" | "processing" | "completed" | "failed";
+export type DisputeStatus = "open" | "under_review" | "resolved" | "closed";
 
 export interface Contribution {
   id: string;

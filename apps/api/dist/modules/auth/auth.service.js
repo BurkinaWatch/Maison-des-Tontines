@@ -123,11 +123,14 @@ export class AuthService {
         return { message: "Logged out successfully" };
     }
     async logoutAll(userId) {
+        await this.revokeAllRefreshTokens(userId);
+        return { message: "Logged out from all devices" };
+    }
+    async revokeAllRefreshTokens(userId) {
         await this.prisma.refreshToken.updateMany({
             where: { userId, revokedAt: null },
             data: { revokedAt: new Date() },
         });
-        return { message: "Logged out from all devices" };
     }
     async generateTokens(userId, phone, role, email = null, name = phone) {
         const env = this.env;

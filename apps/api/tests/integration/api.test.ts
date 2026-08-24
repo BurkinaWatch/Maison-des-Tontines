@@ -36,6 +36,33 @@ describe("Auth Routes", () => {
       });
     expect([200, 401]).toContain(response.status);
   });
+
+  it("should revoke refresh tokens after a password change", async () => {
+    const suffix = Date.now().toString();
+    const credentials = {
+      phone: `+22177${suffix.slice(-7)}`,
+      email: `password-${suffix}@example.com`,
+      name: "Password Test User",
+      password: "password123",
+    };
+
+    const registration = await request(app)
+      .post("/api/v1/auth/register")
+      .send(credentials);
+    expect(registration.status).toBe(201);
+
+    const oldRefreshToken = registration.body.refreshToken;
+    const passwordChange = await request(app)
+      .patch("/api/v1/users/me/password")
+      .set("Authorization", `Bearer ${registration.body.accessToken}`)
+      .send({ currentPassword: credentials.password, newPassword: "newPassword123" });
+    expect(passwordChange.status).toBe(200);
+
+    const refresh = await request(app)
+      .post("/api/v1/auth/refresh")
+      .send({ refreshToken: oldRefreshToken });
+    expect(refresh.status).toBe(401);
+  });
 });
 
 describe("Tontines Routes", () => {

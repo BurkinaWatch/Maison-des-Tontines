@@ -1,5 +1,7 @@
 import { getPrisma } from "../../config/database.js";
 import { trustService } from "../trust/trust-profile.engine.js";
+import bcrypt from "bcrypt";
+import { authService } from "../auth/auth.service.js";
 export class UsersService {
     async getUserById(userId) {
         return getPrisma().user.findUnique({
@@ -20,7 +22,10 @@ export class UsersService {
     async updateProfile(userId, data) {
         return getPrisma().user.update({
             where: { id: userId },
-            data,
+            data: {
+                ...(data.name !== undefined && { name: data.name.trim() }),
+                ...(data.email !== undefined && { email: data.email === null ? null : data.email.trim().toLowerCase() }),
+            },
             select: {
                 id: true,
                 phone: true,
@@ -39,12 +44,17 @@ export class UsersService {
         if (!user) {
             throw new Error("User not found");
         }
-        // In a real app, verify currentPassword against user.passwordHash using bcrypt.compare
-        // For now, we'll just update the password
-        return getPrisma().user.update({
+        const passwordMatches = await bcrypt.compare(currentPassword, user.passwordHash);
+        if (!passwordMatches) {
+            throw new Error("Current password is incorrect");
+        }
+        const passwordHash = await bcrypt.hash(newPassword, 12);
+        const updatedUser = await getPrisma().user.update({
             where: { id: userId },
-            data: { updatedAt: new Date() },
+            data: { passwordHash },
         });
+        await authService.revokeAllRefreshTokens(userId);
+        return updatedUser;
     }
     async getTrustProfile(userId) {
         return trustService.getTrustScore(userId);

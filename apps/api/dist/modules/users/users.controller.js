@@ -1,6 +1,7 @@
 import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
 import bcrypt from "bcrypt";
+import { authService } from "../auth/auth.service.js";
 export class UsersController {
     async getProfile(req, res, next) {
         try {
@@ -86,6 +87,7 @@ export class UsersController {
                 where: { id: userId },
                 data: { passwordHash: newPasswordHash },
             });
+            await authService.revokeAllRefreshTokens(userId);
             logger.info("Password changed", { userId });
             res.json({ message: "Password changed successfully" });
         }

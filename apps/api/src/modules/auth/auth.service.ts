@@ -158,12 +158,16 @@ export class AuthService {
   }
 
   async logoutAll(userId: string): Promise<{ message: string }> {
+    await this.revokeAllRefreshTokens(userId);
+
+    return { message: "Logged out from all devices" };
+  }
+
+  async revokeAllRefreshTokens(userId: string): Promise<void> {
     await this.prisma.refreshToken.updateMany({
       where: { userId, revokedAt: null },
       data: { revokedAt: new Date() },
     });
-
-    return { message: "Logged out from all devices" };
   }
 
   private async generateTokens(

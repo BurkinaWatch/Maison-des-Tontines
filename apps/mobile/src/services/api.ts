@@ -1,10 +1,11 @@
 import Constants from "expo-constants";
-import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
 const TOKEN_KEY = "auth_token";
 const REFRESH_TOKEN_KEY = "auth_refresh_token";
 const API_VERSION = process.env.EXPO_PUBLIC_API_VERSION || "v1";
+let nativeAccessToken: string | null = null;
+let nativeRefreshToken: string | null = null;
 
 function getDefaultApiUrl(): string {
   if (typeof window !== "undefined" && window.location.hostname) {
@@ -37,7 +38,10 @@ async function getStoredValue(key: string): Promise<string | null> {
     return getWebStorage()?.getItem(key) ?? null;
   }
 
-  return SecureStore.getItemAsync(key);
+  // Keep the first native recovery build independent from SecureStore.
+  // A native SecureStore failure can terminate the Android process before
+  // React Native has a chance to show an error screen.
+  return key === TOKEN_KEY ? nativeAccessToken : nativeRefreshToken;
 }
 
 async function setStoredValue(key: string, value: string): Promise<void> {
@@ -52,7 +56,11 @@ async function setStoredValue(key: string, value: string): Promise<void> {
     return;
   }
 
-  await SecureStore.setItemAsync(key, value);
+  if (key === TOKEN_KEY) {
+    nativeAccessToken = value;
+  } else {
+    nativeRefreshToken = value;
+  }
 }
 
 async function deleteStoredValue(key: string): Promise<void> {
@@ -61,7 +69,11 @@ async function deleteStoredValue(key: string): Promise<void> {
     return;
   }
 
-  await SecureStore.deleteItemAsync(key);
+  if (key === TOKEN_KEY) {
+    nativeAccessToken = null;
+  } else {
+    nativeRefreshToken = null;
+  }
 }
 
 export const api = {

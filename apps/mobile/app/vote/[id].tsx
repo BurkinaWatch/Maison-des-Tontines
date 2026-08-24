@@ -10,7 +10,7 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaWrapper } from "../../src/components/layout";
 import { AppHeader } from "../../src/components/layout/AppHeader";
-import { GlassCard, GlassButton, StatusBadge, MemberAvatar } from "../../src/components/ui";
+import { GlassCard, GlassButton, GlassInput, StatusBadge, MemberAvatar } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 
 export default function VoteScreen() {

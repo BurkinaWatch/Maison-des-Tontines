@@ -1,5 +1,22 @@
 export type ContributionStatus = "pending" | "paid" | "late" | "missed";
 export type PaymentMethod = "mobile_money" | "bank_transfer" | "cash" | "card";
+export type Currency =
+  | "XOF"
+  | "XAF"
+  | "USD"
+  | "EUR"
+  | "GBP"
+  | "NGN"
+  | "GHS"
+  | "GNF"
+  | "KES"
+  | "UGX"
+  | "TZS"
+  | "RWF"
+  | "BIF"
+  | "MRU";
+export type PayoutStatus = "pending" | "processing" | "completed" | "failed";
+export type DisputeStatus = "open" | "under_review" | "resolved" | "closed";
 
 export interface Contribution {
   id: string;
@@ -8,7 +25,7 @@ export interface Contribution {
   cycleId: string;
   userId: string;
   amount: number;
-  currency: string;
+  currency: Currency;
   status: ContributionStatus;
   method?: PaymentMethod;
   reference?: string;
@@ -25,7 +42,7 @@ export interface Payout {
   recipientId: string;
   recipientName: string;
   amount: number;
-  currency: string;
+  currency: Currency;
   status: PayoutStatus;
   method: PaymentMethod;
   reference?: string;

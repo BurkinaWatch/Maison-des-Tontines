@@ -5,13 +5,13 @@ import { Contribution } from "../types/contribution";
 export const useContributions = (tontineId?: string) => {
   const queryClient = useQueryClient();
 
-  const { data: upcoming = [], isLoading: upcomingLoading } = useQuery({
+  const { data: upcoming = [], isLoading: upcomingLoading, refetch: refetchUpcoming } = useQuery({
     queryKey: ["contributions", "upcoming", tontineId],
     queryFn: () => contributionService.getUpcoming(),
     staleTime: 30 * 1000,
   });
 
-  const { data: history = [], isLoading: historyLoading } = useQuery({
+  const { data: history = [], isLoading: historyLoading, refetch: refetchHistory } = useQuery({
     queryKey: ["contributions", "history", tontineId],
     queryFn: () => contributionService.getHistory(tontineId),
     staleTime: 60 * 1000,
@@ -29,6 +29,7 @@ export const useContributions = (tontineId?: string) => {
     upcoming,
     history,
     isLoading: upcomingLoading || historyLoading,
+    refetch: () => Promise.all([refetchUpcoming(), refetchHistory()]),
     payContribution: (contributionId: string) =>
       payMutation.mutateAsync(contributionId),
     isPaying: payMutation.isPending,

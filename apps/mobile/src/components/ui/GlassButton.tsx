@@ -87,7 +87,13 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
   );
 };
 
-const styles = {
+const styles: {
+  button: ViewStyle;
+  disabled: ViewStyle;
+  content: ViewStyle;
+  iconContainer: ViewStyle;
+  text: TextStyle;
+} = {
   button: {
     borderRadius: borderRadius.md,
     paddingVertical: spacing.md,

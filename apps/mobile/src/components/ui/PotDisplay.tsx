@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TextStyle } from "react-native";
 import { colors, spacing, typography } from "../../theme";
 
 interface PotDisplayProps {
@@ -17,7 +17,7 @@ export const PotDisplay: React.FC<PotDisplayProps> = ({
 }) => {
   const progress = totalPot > 0 ? (collected / totalPot) * 100 : 0;
 
-  const sizeStyles = {
+  const sizeStyles: Record<"small" | "medium" | "large", { amount: TextStyle; label: TextStyle }> = {
     small: {
       amount: typography.heading2,
       label: typography.caption,

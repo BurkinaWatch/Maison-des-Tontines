@@ -13,7 +13,7 @@ export default function NotFoundScreen() {
         The page you're looking for doesn't exist or has been moved.
       </Text>
       <Pressable
-        onPress={() => router.replace("/(tabs)/")}
+        onPress={() => router.replace("/")}
         style={styles.button}
       >
         <Text style={styles.buttonText}>Go Home</Text>

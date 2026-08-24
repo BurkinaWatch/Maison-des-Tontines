@@ -14,7 +14,6 @@ export default function TabsLayout() {
         },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textTertiary,
-        contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Tabs.Screen

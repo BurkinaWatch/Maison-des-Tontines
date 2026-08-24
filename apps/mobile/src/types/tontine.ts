@@ -1,4 +1,7 @@
 import { Currency } from "./contribution";
+import { CreateTontineRequest } from "./api";
+
+export type { Currency, CreateTontineRequest };
 
 export type TontineType = "rotating" | "savings" | "investment" | "social";
 export type TontineStatus = "draft" | "active" | "completed" | "suspended";

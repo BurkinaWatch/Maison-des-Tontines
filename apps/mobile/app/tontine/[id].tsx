@@ -143,13 +143,13 @@ export default function TontineDetailScreen() {
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Type</Text>
                 <Text style={styles.infoValue}>
-                  {tontine?.type.charAt(0).toUpperCase() + tontine?.type.slice(1)}
+                  {tontine ? tontine.type.charAt(0).toUpperCase() + tontine.type.slice(1) : ""}
                 </Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Frequency</Text>
                 <Text style={styles.infoValue}>
-                  {tontine?.frequency.charAt(0).toUpperCase() + tontine?.frequency.slice(1)}
+                  {tontine ? tontine.frequency.charAt(0).toUpperCase() + tontine.frequency.slice(1) : ""}
                 </Text>
               </View>
               <View style={styles.infoRow}>

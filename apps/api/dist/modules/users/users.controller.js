@@ -28,10 +28,19 @@ export class UsersController {
     async updateProfile(req, res, next) {
         try {
             const userId = req.userId;
-            const data = req.body;
+            const { name, email } = req.body;
+            if (name !== undefined && (typeof name !== "string" || name.trim().length < 2)) {
+                return res.status(400).json({ error: "Invalid name" });
+            }
+            if (email !== undefined && email !== null && (typeof email !== "string" || !email.includes("@"))) {
+                return res.status(400).json({ error: "Invalid email" });
+            }
             const user = await getPrisma().user.update({
                 where: { id: userId },
-                data,
+                data: {
+                    ...(name !== undefined && { name: name.trim() }),
+                    ...(email !== undefined && { email: email === null ? null : email.trim().toLowerCase() }),
+                },
                 select: {
                     id: true,
                     phone: true,

@@ -75,6 +75,9 @@ process.on("SIGTERM", async () => {
   process.exit(0);
 });
 
-start();
+if (!process.env.VITEST) {
+  start();
+}
 
+export { app };
 export default app;

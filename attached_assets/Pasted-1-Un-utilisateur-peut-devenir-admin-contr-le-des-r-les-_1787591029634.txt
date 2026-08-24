@@ -1,0 +1,144 @@
+1-  Un utilisateur peut devenir admin  contrôle des rôles mal sécurisé.
+
+
+
+2-  IDOR 
+
+ accéder aux données d’un autre utilisateur en changeant un ID.
+
+
+
+3 - Clés API exposées 
+
+clés directement présentes dans le frontend.
+
+
+
+4- Absence d’authentification sur certaines API.
+
+
+
+5- Contrôle d’accès uniquement côté frontend.
+
+
+
+6- SQL Injection — entrées utilisateur directement utilisées dans des requêtes SQL.
+
+
+
+7- XSS 
+
+contenu utilisateur affiché sans échappement.
+
+
+
+8-  Mots de passe mal protégés 
+
+stockage en clair ou hashage faible.
+
+
+
+9- JWT mal configurés 
+
+ mauvaise validation ou gestion des tokens.
+
+
+
+10- Sessions mal gérées 
+
+ tokens qui restent valides trop longtemps.
+
+
+
+11.  Mass Assignment 
+
+l'utilisateur peut modifier des champs qu'il ne devrait pas pouvoir modifier, comme role.
+
+
+
+12. Upload de fichiers non sécurisé.
+
+
+
+13. Absence de rate limiting 
+
+Brute force ou spam facilité.
+
+
+
+14.  CORS mal configuré.
+
+
+
+15. Secrets dans le code ou le dépôt Git.
+
+
+
+16.  Informations sensibles dans les messages d'erreur.
+
+
+
+17. Dépendances vulnérables ou obsolètes.
+
+
+
+18. Validation insuffisante des données côté serveur.
+
+
+
+19.  Fonctions sensibles accessibles sans vérification d'autorisation.
+
+
+
+20.  Code généré par l'IA utilisé sans revue de sécurité ni tests.
+
+
+
+ 
+
+2-  IDOR 
+ accéder aux données d’un autre utilisateur en changeant un ID.
+
+3 - Clés API exposées 
+clés directement présentes dans le frontend.
+
+4- Absence d’authentification sur certaines API.
+
+5- Contrôle d’accès uniquement côté frontend.
+
+6- SQL Injection — entrées utilisateur directement utilisées dans des requêtes SQL.
+
+7- XSS 
+contenu utilisateur affiché sans échappement.
+
+8-  Mots de passe mal protégés 
+stockage en clair ou hashage faible.
+
+9- JWT mal configurés 
+ mauvaise validation ou gestion des tokens.
+
+10- Sessions mal gérées 
+ tokens qui restent valides trop longtemps.
+
+11.  Mass Assignment 
+l'utilisateur peut modifier des champs qu'il ne devrait pas pouvoir modifier, comme role.
+
+12. Upload de fichiers non sécurisé.
+
+13. Absence de rate limiting 
+Brute force ou spam facilité.
+
+14.  CORS mal configuré.
+
+15. Secrets dans le code ou le dépôt Git.
+
+16.  Informations sensibles dans les messages d'erreur.
+
+17. Dépendances vulnérables ou obsolètes.
+
+18. Validation insuffisante des données côté serveur.
+
+19.  Fonctions sensibles accessibles sans vérification d'autorisation.
+
+20.  Code généré par l'IA utilisé sans revue de sécurité ni tests.
+

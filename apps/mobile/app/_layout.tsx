@@ -1,18 +1,13 @@
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Component, ErrorInfo, ReactNode, useState } from "react";
+import { Component, ErrorInfo, ReactNode } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
-import { authService } from "../src/services/auth.service";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,14 +20,6 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  if (Platform.OS === "android") {
-    return (
-      <SafeAreaProvider>
-        <AndroidLoginScreen />
-      </SafeAreaProvider>
-    );
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
@@ -78,101 +65,6 @@ export default function RootLayout() {
         </StartupErrorBoundary>
       </SafeAreaProvider>
     </QueryClientProvider>
-  );
-}
-
-function AndroidLoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [connectedName, setConnectedName] = useState<string | null>(null);
-
-  async function handleLogin() {
-    if (!email.trim() || !password) {
-      Alert.alert("Informations manquantes", "Saisis ton e-mail et ton mot de passe.");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const { user } = await authService.login({
-        email: email.trim(),
-        password,
-      });
-      setConnectedName(user.firstName || user.email || "Membre");
-    } catch (error) {
-      Alert.alert(
-        "Connexion impossible",
-        error instanceof Error
-          ? error.message
-          : "Une erreur est survenue. Réessaie dans un instant."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  if (connectedName) {
-    return (
-      <View style={styles.androidContainer}>
-        <View style={styles.androidCard}>
-          <Text style={styles.androidLogo}>🏠</Text>
-          <Text style={styles.androidTitle}>Bienvenue, {connectedName}</Text>
-          <Text style={styles.androidSubtitle}>
-            Ta session est enregistrée. L’application est prête.
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.androidContainer}>
-      <View style={styles.androidCard}>
-        <Text style={styles.androidLogo}>🏠</Text>
-        <Text style={styles.androidTitle}>Maison des Tontines</Text>
-        <Text style={styles.androidSubtitle}>Connecte-toi à ton compte</Text>
-
-        <Text style={styles.androidLabel}>Adresse e-mail</Text>
-        <TextInput
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
-          onChangeText={setEmail}
-          placeholder="vous@exemple.com"
-          placeholderTextColor="#8f8f9d"
-          style={styles.androidInput}
-          value={email}
-        />
-
-        <Text style={styles.androidLabel}>Mot de passe</Text>
-        <TextInput
-          autoComplete="password"
-          onChangeText={setPassword}
-          placeholder="Votre mot de passe"
-          placeholderTextColor="#8f8f9d"
-          secureTextEntry
-          style={styles.androidInput}
-          value={password}
-        />
-
-        <Pressable
-          disabled={isSubmitting}
-          onPress={handleLogin}
-          style={[
-            styles.androidButton,
-            isSubmitting && styles.androidButtonDisabled,
-          ]}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#1a1a2e" />
-          ) : (
-            <Text style={styles.androidButtonText}>Se connecter</Text>
-          )}
-        </Pressable>
-      </View>
-    </View>
   );
 }
 

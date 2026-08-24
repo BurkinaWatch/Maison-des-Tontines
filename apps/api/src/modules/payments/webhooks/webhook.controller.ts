@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { getPrisma } from "../../../config/database.js";
 import { logger } from "../../../config/logger.js";
+import { getEnv } from "../../../config/env.js";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 export class WebhookController {
   async handleWaveWebhook(req: any, res: Response, next: NextFunction) {
@@ -12,12 +14,22 @@ export class WebhookController {
         where: { name: "wave", type: "WAVE" },
       });
 
-      if (!provider || !provider.webhookSecretRef) {
+      const webhookSecret = getEnv().WAVE_WEBHOOK_SECRET;
+      if (!provider || !provider.webhookSecretRef || !webhookSecret) {
         return res.status(500).json({ error: "Wave provider not configured" });
       }
 
-      // Verify webhook signature using crypto-js or similar
-      // For now, accept the webhook (in production, verify with provider.webhookSecretRef)
+      if (!signature) {
+        return res.status(401).json({ error: "Invalid webhook signature" });
+      }
+      const expected = createHmac("sha256", webhookSecret)
+        .update(JSON.stringify(payload))
+        .digest("hex");
+      const received = Buffer.from(signature, "utf8");
+      const expectedBuffer = Buffer.from(expected, "utf8");
+      if (received.length !== expectedBuffer.length || !timingSafeEqual(received, expectedBuffer)) {
+        return res.status(401).json({ error: "Invalid webhook signature" });
+      }
       logger.info("Wave webhook received", { event: payload.event, providerRef: payload.id });
 
       if (payload.event === "payment.completed") {

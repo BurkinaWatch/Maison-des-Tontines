@@ -13,7 +13,7 @@ const InviteMemberDto = z.object({
 
 router.use(authMiddleware);
 
-router.post("/:tontineId/members/invite", validate(InviteMemberDto), controller.inviteMember);
+router.post("/:tontineId/members/invite", requireTontineRole("tontineId", "ORGANIZER", "ADMIN"), validate(InviteMemberDto), controller.inviteMember);
 router.delete("/:tontineId/members/:memberId", requireTontineRole("tontineId", "ORGANIZER", "ADMIN"), controller.removeMember);
 
 export default router;

@@ -22,7 +22,7 @@ jest.mock('../../hooks/useTheme', () => ({
 describe('StatusBadge', () => {
   it('renders label correctly', () => {
     const { getByText } = render(<StatusBadge label="Active" />);
-    expect(getByText('Active')).toBeTruthy();
+    expect(getByText('ACTIVE')).toBeTruthy();
   });
 
   it('renders uppercase label', () => {

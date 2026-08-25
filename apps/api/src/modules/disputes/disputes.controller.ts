@@ -91,7 +91,9 @@ export class DisputesController {
     try {
       const { tontineId, status } = req.query;
 
-      const where: any = {};
+      const where: any = req.user?.role === "ADMIN" || req.user?.role === "SUPERVISOR"
+        ? {}
+        : { tontine: { members: { some: { userId: req.userId, status: "ACTIVE" } } } };
       if (tontineId) where.tontineId = tontineId;
       if (status) where.status = status;
 

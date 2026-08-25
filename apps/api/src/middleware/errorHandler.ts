@@ -19,7 +19,9 @@ export function errorHandler(
   const statusCode = err instanceof ZodError ? 400 : (err as any).statusCode || 500;
   const message = err instanceof ZodError
     ? "Invalid request data"
-    : err.message || "Internal server error";
+    : statusCode >= 500
+      ? "Internal server error"
+      : err.message || "Request failed";
 
   res.status(statusCode).json({
     error: statusCode >= 500 ? "Internal server error" : err.name || "Error",

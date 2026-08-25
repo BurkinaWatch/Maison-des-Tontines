@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -17,7 +18,7 @@ import { useAuthStore } from "../../src/store/authStore";
 
 export default function EditProfileScreen() {
   const router = useRouter();
-  const { user, updateProfile } = useAuthStore();
+  const { user, isLoading, updateProfile } = useAuthStore();
   const [name, setName] = useState(user ? `${user.firstName} ${user.lastName}`.trim() : "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [error, setError] = useState("");
@@ -37,6 +38,35 @@ export default function EditProfileScreen() {
   );
   const initialEmail = user?.email ?? "";
   const hasChanges = name.trim() !== initialName || email.trim().toLowerCase() !== initialEmail.toLowerCase();
+
+  if (!user) {
+    return (
+      <SafeAreaWrapper>
+        <View style={styles.emptyScreen}>
+          <AppHeader title="Edit Profile" showBack />
+          <View style={styles.emptyCard}>
+            {isLoading ? (
+              <>
+                <ActivityIndicator color={colors.accent} />
+                <Text style={styles.emptyText}>Loading your profile…</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.emptyTitle}>Your session has expired</Text>
+                <Text style={styles.emptyText}>
+                  Sign in again to edit and save your profile details.
+                </Text>
+                <GlassButton
+                  title="Go to sign in"
+                  onPress={() => router.replace("/(auth)/login")}
+                />
+              </>
+            )}
+          </View>
+        </View>
+      </SafeAreaWrapper>
+    );
+  }
 
   const save = async () => {
     const cleanName = name.trim();
@@ -119,7 +149,7 @@ export default function EditProfileScreen() {
               title="Save changes"
               onPress={save}
               loading={saving}
-              disabled={!user || !hasChanges}
+              disabled={!hasChanges}
             />
           </View>
         </ScrollView>
@@ -130,6 +160,18 @@ export default function EditProfileScreen() {
 
 const styles = StyleSheet.create({
   keyboard: { flex: 1 },
+  emptyScreen: { flex: 1, backgroundColor: colors.background },
+  emptyCard: {
+    margin: spacing.md,
+    padding: spacing.xl,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+  },
+  emptyTitle: { ...typography.heading3, color: colors.textPrimary, textAlign: "center", marginBottom: spacing.sm },
+  emptyText: { ...typography.body, color: colors.textSecondary, textAlign: "center", marginBottom: spacing.lg },
   container: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: spacing.xxxl },
   card: { margin: spacing.md, padding: spacing.md, backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border },

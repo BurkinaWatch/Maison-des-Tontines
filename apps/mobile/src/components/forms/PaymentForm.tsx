@@ -8,7 +8,7 @@ interface PaymentFormProps {
   contributionId: string;
   amount: number;
   currency: string;
-  onSubmit: (method: PaymentMethod) => Promise<void>;
+  onSubmit: (method: PaymentMethod, phoneNumber: string) => Promise<void>;
   onCancel?: () => void;
   isLoading?: boolean;
 }
@@ -37,7 +37,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 
     setIsSubmitting(true);
     try {
-      await onSubmit(selectedMethod);
+      await onSubmit(selectedMethod, phoneNumber);
     } catch (error) {
       console.error("Payment error:", error);
     } finally {

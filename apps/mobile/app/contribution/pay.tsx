@@ -45,7 +45,7 @@ export default function PayContributionScreen() {
     void loadCycle();
   }, [params.tontineId, params.cycleId]);
 
-  const handlePayment = async (method: PaymentMethod) => {
+  const handlePayment = async (method: PaymentMethod, phoneNumber: string) => {
     if (!params.tontineId || !cycle || method !== "mobile_money") {
       Alert.alert("Mobile Money required", "Select Mobile Money to continue.");
       return;
@@ -58,7 +58,7 @@ export default function PayContributionScreen() {
         tontineId: params.tontineId,
         cycleId: cycle.id,
         method: "MOBILE_MONEY",
-        phoneNumber: "",
+        phoneNumber,
         amount: cycle.amount,
       });
       setReference(result.payment.internalReference);

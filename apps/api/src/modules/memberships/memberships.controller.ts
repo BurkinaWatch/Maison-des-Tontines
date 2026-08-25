@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import bcrypt from "bcrypt";
 import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
 import { tontineEngineModule } from "../tontines/tontine-engine/module.js";

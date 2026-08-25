@@ -15,6 +15,7 @@ import { AppHeader } from "../../../src/components/layout/AppHeader";
 import { GlassCard, MemberAvatar, StatusBadge, EmptyState, GlassButton } from "../../../src/components/ui";
 import { colors, spacing, typography } from "../../../src/theme";
 import { useTontineStore } from "../../../src/store/tontineStore";
+import { useAuthStore } from "../../../src/store/authStore";
 import { TontineMember } from "../../../src/types/tontine";
 import { useI18n } from "../../../src/i18n";
 
@@ -22,11 +23,14 @@ export default function MembersScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const { members, fetchMembers, isLoading, inviteMember, removeMember, updateMemberRole } = useTontineStore();
+  const user = useAuthStore((state) => state.user);
   const { t } = useI18n();
   const [target, setTarget] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
-  const canManage = members.some((member) => member.role === "ORGANIZER" || member.role === "ADMIN");
+  const canManage = members.some((member) =>
+    member.userId === user?.id && (member.role === "ORGANIZER" || member.role === "ADMIN")
+  );
 
   useEffect(() => {
     if (params.id) {

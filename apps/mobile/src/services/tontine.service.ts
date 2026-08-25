@@ -3,23 +3,26 @@ import { Tontine, CreateTontineRequest, Cycle, TontineMember } from "../types/to
 
 export const tontineService = {
   async getTontines(): Promise<Tontine[]> {
-    const response = await api.get<{ data: Tontine[] }>("/tontines");
-    return response.data;
+    const response = await api.get<{ tontines: Tontine[] }>("/tontines");
+    return response.tontines ?? [];
   },
 
   async getTontine(id: string): Promise<Tontine> {
-    const response = await api.get<{ data: Tontine }>(`/tontines/${id}`);
-    return response.data;
+    const response = await api.get<{ tontine: Tontine }>(`/tontines/${id}`);
+    return response.tontine;
   },
 
   async createTontine(data: CreateTontineRequest): Promise<Tontine> {
-    const response = await api.post<{ data: Tontine }>("/tontines", data);
-    return response.data;
+    const response = await api.post<{ tontine: Tontine }>("/tontines", data);
+    return response.tontine;
   },
 
   async updateTontine(id: string, data: Partial<Tontine>): Promise<Tontine> {
-    const response = await api.put<{ data: Tontine }>(`/tontines/${id}`, data);
-    return response.data;
+    const response = await api.request<{ tontine: Tontine }>(`/tontines/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return response.tontine;
   },
 
   async deleteTontine(id: string): Promise<void> {
@@ -27,17 +30,17 @@ export const tontineService = {
   },
 
   async getCycles(tontineId: string): Promise<Cycle[]> {
-    const response = await api.get<{ data: Cycle[] }>(
+    const response = await api.get<{ cycles: Cycle[] }>(
       `/tontines/${tontineId}/cycles`
     );
-    return response.data;
+    return response.cycles ?? [];
   },
 
   async getMembers(tontineId: string): Promise<TontineMember[]> {
-    const response = await api.get<{ data: TontineMember[] }>(
+    const response = await api.get<{ members: TontineMember[] }>(
       `/tontines/${tontineId}/members`
     );
-    return response.data;
+    return response.members ?? [];
   },
 
   async addMember(tontineId: string, member: Omit<TontineMember, "id" | "tontineId">): Promise<TontineMember> {

@@ -13,6 +13,7 @@ export default function PreferencesScreen() {
   const [preferences, setPreferences] = useState<ProfilePreferences>(defaultProfilePreferences);
   const [query, setQuery] = useState("");
   const [saving, setSaving] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<"language" | "currency">("language");
   useEffect(() => { void loadProfilePreferences().then(setPreferences); }, []);
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -22,6 +23,11 @@ export default function PreferencesScreen() {
   const currencies = useMemo(() => CURRENCIES.filter((item) =>
     !normalizedQuery || `${item.code} ${item.name}`.toLowerCase().includes(normalizedQuery)
   ), [normalizedQuery]);
+  useEffect(() => {
+    if (!normalizedQuery) return;
+    if (languages.length > 0) setExpandedSection("language");
+    else if (currencies.length > 0) setExpandedSection("currency");
+  }, [normalizedQuery, languages.length, currencies.length]);
 
   const save = async () => {
     setSaving(true);
@@ -40,21 +46,52 @@ export default function PreferencesScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <AppHeader title="Language & Currency" showBack />
         <View style={styles.card}>
-          <Text style={styles.heading}>Language ({LANGUAGES.length})</Text>
-          <GlassInput label="Search languages" value={query} onChangeText={setQuery} placeholder="Search by name or code" autoCapitalize="none" />
-          {languages.map((item, index) => (
-            <Option key={item.code} label={item.label} detail={item.nativeLabel && item.nativeLabel !== item.label ? item.nativeLabel : item.code.toUpperCase()} selected={preferences.language === item.code} onPress={() => setPreferences((p) => ({ ...p, language: item.code }))} last={index === languages.length - 1} />
-          ))}
-          {languages.length === 0 && <Text style={styles.noResults}>No language found.</Text>}
-          <Text style={styles.heading}>Currency ({CURRENCIES.length})</Text>
-          {currencies.map((item, index) => (
-            <Option key={item.code} label={`${item.code} — ${item.name}`} detail={item.symbol} selected={preferences.currency === item.code} onPress={() => setPreferences((p) => ({ ...p, currency: item.code }))} last={index === currencies.length - 1} />
-          ))}
-          {currencies.length === 0 && <Text style={styles.noResults}>No currency found.</Text>}
+          <AccordionHeader
+            title={`Language (${LANGUAGES.length})`}
+            summary={LANGUAGES.find((item) => item.code === preferences.language)?.label ?? preferences.language}
+            expanded={expandedSection === "language"}
+            onPress={() => setExpandedSection((section) => section === "language" ? "currency" : "language")}
+          />
+          {expandedSection === "language" && (
+            <>
+              <GlassInput label="Search languages" value={query} onChangeText={setQuery} placeholder="Search by name or code" autoCapitalize="none" />
+              {languages.map((item, index) => (
+                <Option key={item.code} label={item.label} detail={item.nativeLabel && item.nativeLabel !== item.label ? item.nativeLabel : item.code.toUpperCase()} selected={preferences.language === item.code} onPress={() => setPreferences((p) => ({ ...p, language: item.code }))} last={index === languages.length - 1} />
+              ))}
+              {languages.length === 0 && <Text style={styles.noResults}>No language found.</Text>}
+            </>
+          )}
+          <AccordionHeader
+            title={`Currency (${CURRENCIES.length})`}
+            summary={CURRENCIES.find((item) => item.code === preferences.currency)?.code ?? preferences.currency}
+            expanded={expandedSection === "currency"}
+            onPress={() => setExpandedSection((section) => section === "currency" ? "language" : "currency")}
+          />
+          {expandedSection === "currency" && (
+            <>
+              <GlassInput label="Search currencies" value={query} onChangeText={setQuery} placeholder="Search by name or code" autoCapitalize="none" />
+              {currencies.map((item, index) => (
+                <Option key={item.code} label={`${item.code} — ${item.name}`} detail={item.symbol} selected={preferences.currency === item.code} onPress={() => setPreferences((p) => ({ ...p, currency: item.code }))} last={index === currencies.length - 1} />
+              ))}
+              {currencies.length === 0 && <Text style={styles.noResults}>No currency found.</Text>}
+            </>
+          )}
         </View>
         <GlassButton title="Save preferences" onPress={save} loading={saving} style={styles.button} />
       </ScrollView>
     </SafeAreaWrapper>
+  );
+}
+
+function AccordionHeader({ title, summary, expanded, onPress }: { title: string; summary: string; expanded: boolean; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={styles.accordionHeader}>
+      <View style={styles.accordionCopy}>
+        <Text style={styles.heading}>{title}</Text>
+        {!expanded && <Text style={styles.accordionSummary}>{summary}</Text>}
+      </View>
+      <Text style={styles.chevron}>{expanded ? "⌃" : "⌄"}</Text>
+    </Pressable>
   );
 }
 
@@ -71,7 +108,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: spacing.xxxl },
   card: { margin: spacing.md, padding: spacing.md, backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border },
+  accordionHeader: { minHeight: 58, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: colors.border },
+  accordionCopy: { flex: 1 },
   heading: { ...typography.bodySmall, color: colors.textSecondary, fontWeight: "600", marginTop: spacing.sm, marginBottom: spacing.xs },
+  accordionSummary: { ...typography.body, color: colors.textPrimary, marginBottom: spacing.sm },
+  chevron: { color: colors.accent, fontSize: 24, paddingHorizontal: spacing.sm },
   option: { minHeight: 54, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.sm },
   optionCopy: { flex: 1 },
   divider: { borderBottomWidth: 1, borderBottomColor: colors.border },

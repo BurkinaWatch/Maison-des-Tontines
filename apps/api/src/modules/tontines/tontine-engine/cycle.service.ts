@@ -36,11 +36,13 @@ export class CycleService {
       throw new Error("Tontine not found");
     }
 
-    const totalCycles = memberCount;
+    const existingCount = await prisma.tontineCycle.count({ where: { tontineId } });
+    const totalCycles = Math.max(memberCount, existingCount);
     const cycles = [];
 
-    for (let i = 1; i <= totalCycles; i++) {
-      const cycleStartDate = new Date(startDate);
+    for (let i = existingCount + 1; i <= totalCycles; i++) {
+      const cycleStartDate = this.addFrequency(startDate, frequency, i - 1);
+      const nextStartDate = this.addFrequency(startDate, frequency, i);
       const cycleName = `Cycle ${i} - ${tontine.name}`;
 
       cycles.push({
@@ -48,16 +50,51 @@ export class CycleService {
         sequence: i,
         name: cycleName,
         startDate: cycleStartDate,
-        status: CycleStatus.UPCOMING,
+        endDate: new Date(nextStartDate.getTime() - 1),
+        status: i === 1 ? CycleStatus.OPEN : CycleStatus.UPCOMING,
       });
     }
 
-    await prisma.tontineCycle.createMany({
-      data: cycles,
-    });
+    if (cycles.length > 0) await prisma.tontineCycle.createMany({ data: cycles });
 
-    logger.info("Cycles created", { tontineId, count: totalCycles });
+    logger.info("Cycles created", { tontineId, count: cycles.length });
     return cycles;
+  }
+
+  private addFrequency(date: Date, frequency: string, count: number): Date {
+    const result = new Date(date);
+    if (frequency === "daily") result.setDate(result.getDate() + count);
+    else if (frequency === "weekly") result.setDate(result.getDate() + count * 7);
+    else if (frequency === "biweekly") result.setDate(result.getDate() + count * 14);
+    else if (frequency === "quarterly") result.setMonth(result.getMonth() + count * 3);
+    else if (frequency === "yearly") result.setFullYear(result.getFullYear() + count);
+    else result.setMonth(result.getMonth() + count);
+    return result;
+  }
+
+  async processDueCycles(now = new Date()) {
+    const prisma = getPrisma();
+    const dueCycles = await prisma.tontineCycle.findMany({
+      where: {
+        endDate: { lte: now },
+        status: { in: [CycleStatus.OPEN, CycleStatus.PARTIALLY_FUNDED, CycleStatus.FUNDED, CycleStatus.PAYOUT_PENDING] },
+      },
+      select: { id: true, tontineId: true, status: true },
+    });
+    for (const cycle of dueCycles) {
+      if (cycle.status === CycleStatus.OPEN || cycle.status === CycleStatus.PARTIALLY_FUNDED) {
+        await prisma.contribution.updateMany({
+          where: { cycleId: cycle.id, status: "PENDING" },
+          data: { status: "MISSED" },
+        });
+        await prisma.contribution.updateMany({
+          where: { cycleId: cycle.id, status: "PROCESSING" },
+          data: { status: "LATE" },
+        });
+        await this.advanceCycle(cycle.tontineId, cycle.id);
+      }
+    }
+    return dueCycles.length;
   }
 
   async advanceCycle(tontineId: string, cycleId: string) {
@@ -76,7 +113,10 @@ export class CycleService {
     }
 
     if (cycle.status === CycleStatus.COMPLETED) {
-      throw new Error("Cycle already completed");
+      return cycle;
+    }
+    if (cycle.status === CycleStatus.FUNDED || cycle.status === CycleStatus.PAYOUT_PENDING) {
+      return cycle;
     }
 
     const activeMembers = cycle.tontine.members;

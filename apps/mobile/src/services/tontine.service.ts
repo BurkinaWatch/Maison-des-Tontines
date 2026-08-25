@@ -33,7 +33,16 @@ export const tontineService = {
     const response = await api.get<{ cycles: Cycle[] }>(
       `/tontines/${tontineId}/cycles`
     );
-    return response.cycles ?? [];
+    return (response.cycles ?? []).map((cycle: any) => ({
+      ...cycle,
+      cycleNumber: cycle.cycleNumber ?? cycle.sequence,
+      startDate: cycle.startDate,
+      endDate: cycle.endDate ?? cycle.startDate,
+      dueDate: cycle.dueDate ?? cycle.endDate ?? cycle.startDate,
+      status: String(cycle.status).toLowerCase() === "open" ? "current" : String(cycle.status).toLowerCase() as Cycle["status"],
+      potAmount: Number(cycle.potAmount ?? cycle.tontine?.contributionAmount ?? 0),
+      payoutRecipientId: cycle.beneficiaryMemberId,
+    }));
   },
 
   async getMembers(tontineId: string): Promise<TontineMember[]> {

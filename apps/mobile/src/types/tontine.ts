@@ -75,4 +75,5 @@ export interface Cycle {
   potAmount: number;
   payoutRecipientId?: string;
   completedAt?: string;
+  contributions?: { status: string; amount: number; memberId: string }[];
 }

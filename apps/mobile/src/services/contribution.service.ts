@@ -3,8 +3,26 @@ import { Contribution, Payout, ContributionStatus } from "../types/contribution"
 
 export const contributionService = {
   async getContributions(tontineId?: string): Promise<Contribution[]> {
-    const response = await api.get<{ contributions: Contribution[] }>("/contributions/me/contributions");
-    return response.contributions ?? [];
+    const response = await api.get<{ contributions: Array<{
+      id: string; cycleId: string; memberId: string; amount: number; status: string;
+      method?: string; providerRef?: string | null; confirmedAt?: string | null;
+      declaredAt: string; cycle?: { id: string; name: string; tontine?: { id: string; name: string; currency?: string } };
+    }> }>("/contributions/me/contributions");
+    return (response.contributions ?? []).filter((item) => !tontineId || item.cycle?.tontine?.id === tontineId).map((item) => ({
+      id: item.id,
+      tontineId: item.cycle?.tontine?.id ?? "",
+      tontineName: item.cycle?.tontine?.name ?? "Tontine",
+      cycleId: item.cycleId,
+      userId: item.memberId,
+      amount: item.amount,
+      currency: (item.cycle?.tontine?.currency ?? "XOF") as Currency,
+      status: item.status.toLowerCase() as ContributionStatus,
+      method: item.method?.toLowerCase().replace("mobile_money", "mobile_money") as PaymentMethod | undefined,
+      reference: item.providerRef ?? undefined,
+      paidAt: item.confirmedAt ?? undefined,
+      dueDate: item.declaredAt,
+      createdAt: item.declaredAt,
+    }));
   },
 
   async getUpcoming(): Promise<Contribution[]> {

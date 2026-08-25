@@ -7,15 +7,15 @@ export interface ProfilePreferences {
   pushNotifications: boolean;
   contributionReminders: boolean;
   payoutAlerts: boolean;
-  language: "English" | "Français";
-  currency: "XOF" | "EUR";
+  language: string;
+  currency: string;
 }
 
 export const defaultProfilePreferences: ProfilePreferences = {
   pushNotifications: true,
   contributionReminders: true,
   payoutAlerts: true,
-  language: "English",
+  language: "en",
   currency: "XOF",
 };
 
@@ -25,7 +25,12 @@ export async function loadProfilePreferences(): Promise<ProfilePreferences> {
       Platform.OS === "web"
         ? window.localStorage.getItem(KEY)
         : await SecureStore.getItemAsync(KEY);
-    return { ...defaultProfilePreferences, ...(raw ? JSON.parse(raw) : {}) };
+    const stored = raw ? JSON.parse(raw) : {};
+    return {
+      ...defaultProfilePreferences,
+      ...stored,
+      language: stored.language === "English" ? "en" : stored.language === "Français" ? "fr" : (stored.language ?? defaultProfilePreferences.language),
+    };
   } catch {
     return defaultProfilePreferences;
   }

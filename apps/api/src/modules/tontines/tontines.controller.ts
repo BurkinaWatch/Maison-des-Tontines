@@ -50,7 +50,7 @@ export class TontinesController {
       const userId = req.userId!;
       const { status, type, page = 1, limit = 20 } = req.query;
 
-      const where: any = {};
+      const where: any = { members: { some: { userId, status: "ACTIVE" } } };
       if (status) where.status = status;
       if (type) where.type = type;
 
@@ -115,6 +115,8 @@ export class TontinesController {
     try {
       const { id } = req.params;
       const data = req.body;
+      const membership = await getPrisma().tontineMember.findFirst({ where: { tontineId: id, userId: req.userId, status: "ACTIVE" } });
+      if (!membership || !["ORGANIZER", "ADMIN"].includes(membership.role)) return res.status(403).json({ error: "Forbidden" });
 
       const tontine = await getPrisma().tontine.update({
         where: { id },
@@ -148,6 +150,8 @@ export class TontinesController {
   async deleteTontine(req: any, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
+      const membership = await getPrisma().tontineMember.findFirst({ where: { tontineId: id, userId: req.userId, status: "ACTIVE" } });
+      if (!membership || membership.role !== "ORGANIZER") return res.status(403).json({ error: "Forbidden" });
       await getPrisma().tontine.delete({ where: { id } });
       logger.info("Tontine deleted", { tontineId: id });
       res.status(204).send();
@@ -159,6 +163,8 @@ export class TontinesController {
   async getTontineMembers(req: any, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
+      const membership = await getPrisma().tontineMember.findFirst({ where: { tontineId: id, userId: req.userId, status: "ACTIVE" } });
+      if (!membership) return res.status(403).json({ error: "Forbidden" });
 
       const members = await getPrisma().tontineMember.findMany({
         where: { tontineId: id, status: { in: ["ACTIVE", "INVITED"] } },
@@ -178,6 +184,8 @@ export class TontinesController {
   async getTontineRules(req: any, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
+      const membership = await getPrisma().tontineMember.findFirst({ where: { tontineId: id, userId: req.userId, status: "ACTIVE" } });
+      if (!membership) return res.status(403).json({ error: "Forbidden" });
 
       const rules = await getPrisma().tontineRule.findMany({
         where: { tontineId: id },

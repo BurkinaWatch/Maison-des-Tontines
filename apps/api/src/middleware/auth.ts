@@ -77,7 +77,7 @@ export function requireRole(...allowedRoles: string[]) {
 }
 
 export function requireTontineRole(
-  tontineId: string,
+  tontineIdParam: string,
   ...allowedRoles: string[]
 ) {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -86,6 +86,10 @@ export function requireTontineRole(
     }
 
     const prisma = getPrisma();
+    const tontineId = req.params[tontineIdParam];
+    if (!tontineId) {
+      return res.status(400).json({ error: "Missing tontine identifier" });
+    }
 
     try {
       const membership = await prisma.tontineMember.findFirst({
@@ -107,7 +111,7 @@ export function requireTontineRole(
         });
       }
 
-      req.params = { ...req.params, membershipId: membership.id };
+      req.membership = membership;
       next();
     } catch (error) {
       logger.error("Tontine role check failed", { error: (error as Error).message });

@@ -167,6 +167,19 @@ export class PaymentsController {
           method,
         },
       });
+      const beneficiary = await getPrisma().tontineMember.findUnique({
+        where: { id: memberId },
+        select: { userId: true },
+      });
+      if (beneficiary) {
+        void notifyUser({
+          userId: beneficiary.userId,
+          type: "PAYOUT",
+          title: "Payout initiated",
+          body: "Your tontine payout is being processed.",
+          data: { payoutId: payout.id, category: "payouts" },
+        }).catch((error) => logger.warn("Payout notification failed", { error: (error as Error).message }));
+      }
 
       if (method === "WAVE") {
         const provider = this.providers.get("WAVE");

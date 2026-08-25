@@ -96,6 +96,19 @@ export default function CyclesScreen() {
                     </Text>
                   )}
                 </View>
+                  {cycle.contributions && (
+                    <View style={styles.contributionSummary}>
+                      <Text style={styles.summaryText}>
+                        {cycle.contributions.filter((item) => item.status === "PAID").length} {t("paid")}
+                      </Text>
+                      <Text style={styles.summaryText}>
+                        {cycle.contributions.filter((item) => item.status === "LATE").length} {t("late")}
+                      </Text>
+                      <Text style={styles.summaryText}>
+                        {cycle.contributions.filter((item) => item.status === "MISSED").length} {t("missed")}
+                      </Text>
+                    </View>
+                  )}
               </GlassCard>
             ))
           ) : (
@@ -178,5 +191,14 @@ const styles = StyleSheet.create({
   recipient: {
     ...typography.caption,
     color: colors.textTertiary,
+  },
+  contributionSummary: {
+    flexDirection: "row",
+    gap: spacing.md,
+    paddingTop: spacing.sm,
+  },
+  summaryText: {
+    ...typography.caption,
+    color: colors.textSecondary,
   },
 });

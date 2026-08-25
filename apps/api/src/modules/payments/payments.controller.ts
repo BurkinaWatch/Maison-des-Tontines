@@ -211,6 +211,9 @@ export class PaymentsController {
       const normalizedStatus = status.status.toUpperCase();
       const success = ["SUCCESS", "SUCCEEDED", "COMPLETED", "PAID"].includes(normalizedStatus);
       const terminalFailure = ["FAILED", "CANCELLED", "EXPIRED"].includes(normalizedStatus);
+      if ((success || terminalFailure) && Number(status.amount) !== Number(transaction.amount)) {
+        return res.status(409).json({ error: "Payment amount mismatch" });
+      }
       if (success || terminalFailure) {
         await getPrisma().$transaction(async (tx) => {
           const current = await tx.paymentTransaction.findUnique({ where: { id: transaction.id } });
@@ -222,6 +225,16 @@ export class PaymentsController {
               where: { id: transaction.contributionId },
               data: success ? { status: "PAID", confirmedAt: new Date() } : { status: nextStatus },
             });
+            if (success && transaction.cycleId) {
+              const total = await tx.contribution.aggregate({
+                where: { cycleId: transaction.cycleId, status: { in: ["PAID", "LATE"] } },
+                _sum: { amount: true },
+              });
+              await tx.tontineCycle.update({
+                where: { id: transaction.cycleId },
+                data: { potReceived: total._sum.amount ?? 0 },
+              });
+            }
           }
         });
       }

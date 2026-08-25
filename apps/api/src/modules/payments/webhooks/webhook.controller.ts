@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { getPrisma } from "../../../config/database.js";
 import { logger } from "../../../config/logger.js";
+import { getEnv } from "../../../config/env.js";
 import { LiquidCashProvider } from "../providers/liquidcash.provider.js";
 import { WaveProvider } from "../providers/wave.provider.js";
 
@@ -14,7 +15,7 @@ export class WebhookController {
         where: { name: "wave", type: "WAVE" },
       });
 
-      if (!provider || !provider.webhookSecretRef) {
+      if (!provider || (!provider.webhookSecretRef && !getEnv().WAVE_WEBHOOK_SECRET)) {
         return res.status(500).json({ error: "Wave provider not configured" });
       }
 

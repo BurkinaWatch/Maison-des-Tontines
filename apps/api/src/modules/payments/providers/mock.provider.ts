@@ -5,6 +5,7 @@ import type {
   PaymentStatusResponse,
   WebhookVerificationResult,
 } from "../../../types/payment.types.js";
+import { getPrisma } from "../../../config/database.js";
 
 export class MockProvider implements PaymentProviderInterface {
   name = "mock";

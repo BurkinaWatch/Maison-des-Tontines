@@ -12,8 +12,10 @@ import { SafeAreaWrapper } from "../../src/components/layout";
 import { AppHeader } from "../../src/components/layout/AppHeader";
 import { GlassCard, GlassButton, PotDisplay, StatusBadge, MemberAvatar } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
+import { useI18n } from "../../src/i18n";
 
 export default function PayoutDetailScreen() {
+  const { t } = useI18n();
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const [isRequesting, setIsRequesting] = useState(false);
@@ -27,11 +29,11 @@ export default function PayoutDetailScreen() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      Alert.alert("Success", "Early payout request submitted", [
+      Alert.alert(t("Success"), t("Early payout request submitted"), [
         { text: "OK" },
       ]);
     } catch {
-      Alert.alert("Error", "Failed to request early payout");
+      Alert.alert(t("Error"), t("Failed to request early payout"));
     } finally {
       setIsRequesting(false);
     }
@@ -44,14 +46,14 @@ export default function PayoutDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <AppHeader
-          title="Payout Details"
+          title={t("Payout Details")}
           showBack
           showProfile
         />
 
         <View style={styles.content}>
           <GlassCard style={styles.payoutCard}>
-            <Text style={styles.payoutLabel}>Payout Amount</Text>
+            <Text style={styles.payoutLabel}>{t("Payout Amount")}</Text>
             <Text style={styles.payoutAmount}>
               {payoutAmount.toLocaleString()} XOF
             </Text>
@@ -66,7 +68,7 @@ export default function PayoutDetailScreen() {
           />
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Recipient</Text>
+            <Text style={styles.sectionTitle}>{t("Recipient")}</Text>
             <GlassCard>
               <View style={styles.recipientRow}>
                 <MemberAvatar name="Aminata Diallo" size="medium" />
@@ -79,22 +81,22 @@ export default function PayoutDetailScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Breakdown</Text>
+            <Text style={styles.sectionTitle}>{t("Breakdown")}</Text>
             <GlassCard>
               <View style={styles.breakdownRow}>
-                <Text style={styles.breakdownLabel}>Gross Amount</Text>
+                <Text style={styles.breakdownLabel}>{t("Gross Amount")}</Text>
                 <Text style={styles.breakdownValue}>
                   {payoutAmount.toLocaleString()} XOF
                 </Text>
               </View>
               <View style={styles.breakdownRow}>
-                <Text style={styles.breakdownLabel}>Early Payout Penalty</Text>
+                <Text style={styles.breakdownLabel}>{t("Early Payout Penalty")}</Text>
                 <Text style={[styles.breakdownValue, styles.negative]}>
                   -{penaltyAmount.toLocaleString()} XOF
                 </Text>
               </View>
               <View style={[styles.breakdownRow, styles.totalRow]}>
-                <Text style={styles.totalLabel}>Net Amount</Text>
+                <Text style={styles.totalLabel}>{t("Net Amount")}</Text>
                 <Text style={styles.totalValue}>
                   {netAmount.toLocaleString()} XOF
                 </Text>
@@ -103,7 +105,7 @@ export default function PayoutDetailScreen() {
           </View>
 
           <GlassButton
-            title="Request Early Payout"
+            title={t("Request Early Payout")}
             onPress={handleRequestEarlyPayout}
             loading={isRequesting}
             style={styles.actionButton}

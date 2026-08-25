@@ -12,9 +12,11 @@ import { useRouter } from "expo-router";
 import { GlassCard, GlassButton } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useAuthStore } from "../../src/store/authStore";
+import { useI18n } from "../../src/i18n";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const login = useAuthStore((state) => state.login);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +25,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
-      setError("Please enter your email address and password");
+      setError(t("Please enter your email address and password"));
       return;
     }
 
@@ -34,7 +36,7 @@ export default function LoginScreen() {
       await login(email.trim(), password);
       router.replace("/(tabs)");
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Login failed. Please try again.");
+      setError(error instanceof Error ? error.message : t("Login failed. Please try again."));
     } finally {
       setIsLoading(false);
     }
@@ -49,12 +51,12 @@ export default function LoginScreen() {
         <View style={styles.header}>
           <Text style={styles.logo}>🏠</Text>
           <Text style={styles.title}>Maison des Tontines</Text>
-          <Text style={styles.subtitle}>Welcome back</Text>
+          <Text style={styles.subtitle}>{t("Welcome back")}</Text>
         </View>
 
         <GlassCard style={styles.card}>
           <View>
-            <Text style={styles.label}>Email address</Text>
+            <Text style={styles.label}>{t("Email address")}</Text>
             <TextInput
               style={styles.input}
               placeholder="vous@exemple.com"
@@ -65,10 +67,10 @@ export default function LoginScreen() {
               autoCapitalize="none"
               autoComplete="email"
             />
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t("Password")}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Your password"
+              placeholder={t("Your password")}
               placeholderTextColor={colors.textTertiary}
               value={password}
               onChangeText={setPassword}
@@ -79,7 +81,7 @@ export default function LoginScreen() {
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <GlassButton
-              title="Sign in"
+              title={t("Sign in")}
               onPress={handleLogin}
               loading={isLoading}
               style={styles.button}
@@ -89,9 +91,9 @@ export default function LoginScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Don't have an account?{" "}
+            {t("Don't have an account?")}{" "}
             <Pressable onPress={() => router.push("/(auth)/register")}>
-              <Text style={styles.link}>Sign up</Text>
+              <Text style={styles.link}>{t("Sign up")}</Text>
             </Pressable>
           </Text>
         </View>

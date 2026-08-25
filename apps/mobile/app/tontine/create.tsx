@@ -6,10 +6,12 @@ import { CreateTontineForm } from "../../src/components/forms/CreateTontineForm"
 import { colors, spacing } from "../../src/theme";
 import { useTontines } from "../../src/hooks/useTontines";
 import { useRouter } from "expo-router";
+import { useI18n } from "../../src/i18n";
 
 export default function CreateTontineScreen() {
   const router = useRouter();
   const { createTontine } = useTontines();
+  const { t } = useI18n();
 
   const handleSubmit = async (data: any) => {
     try {
@@ -22,7 +24,7 @@ export default function CreateTontineScreen() {
 
   return (
     <SafeAreaWrapper>
-      <AppHeader title="Create Tontine" showBack showProfile />
+      <AppHeader title={t("Create Tontine")} showBack showProfile />
       <View style={styles.container}>
         <CreateTontineForm onSubmit={handleSubmit} />
       </View>

@@ -22,6 +22,7 @@ import { colors, spacing, typography } from "../../src/theme";
 import { useTontineStore } from "../../src/store/tontineStore";
 import { formatCurrency, formatDate } from "../../src/utils/formatters";
 import { Tontine, Cycle } from "../../src/types/tontine";
+import { useI18n } from "../../src/i18n";
 
 export default function TontineDetailScreen() {
   const router = useRouter();
@@ -29,6 +30,7 @@ export default function TontineDetailScreen() {
   const { selectedTontine, fetchTontine, fetchCycles, cycles, isLoading } =
     useTontineStore();
   const [tontine, setTontine] = useState<Tontine | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (params.id) {
@@ -50,12 +52,12 @@ export default function TontineDetailScreen() {
   if (!tontine && !isLoading) {
     return (
       <SafeAreaWrapper>
-        <AppHeader title="Tontine" showBack showProfile />
+        <AppHeader title={t("Tontine")} showBack showProfile />
         <View style={styles.emptyContainer}>
           <EmptyState
             icon="🤝"
-            title="Tontine not found"
-            description="The tontine you're looking for doesn't exist"
+            title={t("Tontine not found")}
+            description={t("The tontine you're looking for doesn't exist")}
           />
         </View>
       </SafeAreaWrapper>
@@ -72,7 +74,7 @@ export default function TontineDetailScreen() {
         }
       >
         <AppHeader
-          title={tontine?.name || "Tontine"}
+          title={tontine?.name || t("Tontine")}
           subtitle={tontine?.type || ""}
           showBack
           showProfile
@@ -95,7 +97,7 @@ export default function TontineDetailScreen() {
           />
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Progress</Text>
+            <Text style={styles.sectionTitle}>{t("Progress")}</Text>
             <GlassCard>
               <CycleVisualization
                 totalCycles={totalCycles}
@@ -107,53 +109,53 @@ export default function TontineDetailScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <Text style={styles.sectionTitle}>{t("Quick Actions")}</Text>
             <View style={styles.actionsGrid}>
               <Pressable
                 style={styles.actionCard}
                 onPress={() => router.push(`/contribution/pay?tontineId=${params.id}`)}
               >
                 <Text style={styles.actionEmoji}>💳</Text>
-                <Text style={styles.actionLabel}>Pay</Text>
+                <Text style={styles.actionLabel}>{t("Pay")}</Text>
               </Pressable>
               <Pressable
                 style={styles.actionCard}
                 onPress={() => router.push(`/tontine/${params.id}/members`)}
               >
                 <Text style={styles.actionEmoji}>👥</Text>
-                <Text style={styles.actionLabel}>Members</Text>
+                <Text style={styles.actionLabel}>{t("Members")}</Text>
               </Pressable>
               <Pressable
                 style={styles.actionCard}
                 onPress={() => router.push(`/tontine/${params.id}/cycles`)}
               >
                 <Text style={styles.actionEmoji}>📅</Text>
-                <Text style={styles.actionLabel}>Cycles</Text>
+                <Text style={styles.actionLabel}>{t("Cycles")}</Text>
               </Pressable>
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Information</Text>
+            <Text style={styles.sectionTitle}>{t("Information")}</Text>
             <GlassCard>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Status</Text>
+                <Text style={styles.infoLabel}>{t("Status")}</Text>
                 {tontine && <StatusBadge status={tontine.status} />}
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Type</Text>
+                <Text style={styles.infoLabel}>{t("Type")}</Text>
                 <Text style={styles.infoValue}>
                   {tontine ? tontine.type.charAt(0).toUpperCase() + tontine.type.slice(1) : ""}
                 </Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Frequency</Text>
+                <Text style={styles.infoLabel}>{t("Frequency")}</Text>
                 <Text style={styles.infoValue}>
                   {tontine ? tontine.frequency.charAt(0).toUpperCase() + tontine.frequency.slice(1) : ""}
                 </Text>
               </View>
               <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Started</Text>
+                <Text style={styles.infoLabel}>{t("Started")}</Text>
                 <Text style={styles.infoValue}>
                   {formatDate(tontine?.startDate || "")}
                 </Text>

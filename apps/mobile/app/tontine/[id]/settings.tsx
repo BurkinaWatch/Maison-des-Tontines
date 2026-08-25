@@ -13,8 +13,10 @@ import { SafeAreaWrapper } from "../../../src/components/layout";
 import { AppHeader } from "../../../src/components/layout/AppHeader";
 import { GlassCard, GlassButton, GlassInput } from "../../../src/components/ui";
 import { colors, spacing, typography } from "../../../src/theme";
+import { useI18n } from "../../../src/i18n";
 
 export default function TontineSettingsScreen() {
+  const { t } = useI18n();
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const [allowLatePayment, setAllowLatePayment] = useState(true);
@@ -29,11 +31,11 @@ export default function TontineSettingsScreen() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      Alert.alert("Success", "Settings saved successfully", [
+      Alert.alert(t("Success"), t("Settings saved successfully"), [
         { text: "OK", onPress: () => router.back() },
       ]);
     } catch {
-      Alert.alert("Error", "Failed to save settings");
+      Alert.alert(t("Error"), t("Failed to save settings"));
     } finally {
       setIsSaving(false);
     }
@@ -41,12 +43,12 @@ export default function TontineSettingsScreen() {
 
   const handleDeleteTontine = () => {
     Alert.alert(
-      "Delete Tontine",
-      "This action cannot be undone. Are you sure?",
+      t("Delete Tontine"),
+      t("This action cannot be undone. Are you sure?"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("Cancel"), style: "cancel" },
         {
-          text: "Delete",
+          text: t("Delete"),
           style: "destructive",
           onPress: () => {
             router.back();
@@ -63,22 +65,20 @@ export default function TontineSettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <AppHeader
-          title="Settings"
-          subtitle="Manage tontine rules"
+          title={t("Settings")}
+          subtitle={t("Manage tontine rules")}
           showBack
           showProfile
         />
 
         <View style={styles.content}>
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Contribution Rules</Text>
+            <Text style={styles.sectionTitle}>{t("Contribution Rules")}</Text>
             <GlassCard>
               <View style={styles.settingRow}>
                 <View style={styles.settingInfo}>
-                  <Text style={styles.settingLabel}>Allow Late Payment</Text>
-                  <Text style={styles.settingDescription}>
-                    Members can pay after the due date
-                  </Text>
+                  <Text style={styles.settingLabel}>{t("Allow Late Payment")}</Text>
+                  <Text style={styles.settingDescription}>{t("Members can pay after the due date")}</Text>
                 </View>
                 <Switch
                   value={allowLatePayment}
@@ -89,7 +89,7 @@ export default function TontineSettingsScreen() {
               </View>
               {allowLatePayment && (
                 <GlassInput
-                  label="Late Penalty (%)"
+                  label={t("Late Penalty (%)")}
                   value={latePenaltyPercent}
                   onChangeText={setLatePenaltyPercent}
                   keyboardType="numeric"
@@ -99,13 +99,13 @@ export default function TontineSettingsScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Voting Rules</Text>
+            <Text style={styles.sectionTitle}>{t("Voting Rules")}</Text>
             <GlassCard>
               <View style={styles.settingRow}>
                 <View style={styles.settingInfo}>
-                  <Text style={styles.settingLabel}>Require Vote for Absent</Text>
+                  <Text style={styles.settingLabel}>{t("Require Vote for Absent")}</Text>
                   <Text style={styles.settingDescription}>
-                    Members must vote when absent
+                    {t("Members must vote when absent")}
                   </Text>
                 </View>
                 <Switch
@@ -119,13 +119,13 @@ export default function TontineSettingsScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Payout Rules</Text>
+            <Text style={styles.sectionTitle}>{t("Payout Rules")}</Text>
             <GlassCard>
               <View style={styles.settingRow}>
                 <View style={styles.settingInfo}>
-                  <Text style={styles.settingLabel}>Allow Early Payout</Text>
+                  <Text style={styles.settingLabel}>{t("Allow Early Payout")}</Text>
                   <Text style={styles.settingDescription}>
-                    Members can request payout early
+                    {t("Members can request payout early")}
                   </Text>
                 </View>
                 <Switch
@@ -137,7 +137,7 @@ export default function TontineSettingsScreen() {
               </View>
               {allowEarlyPayout && (
                 <GlassInput
-                  label="Early Payout Penalty (%)"
+                  label={t("Early Payout Penalty (%)")}
                   value={earlyPayoutPenalty}
                   onChangeText={setEarlyPayoutPenalty}
                   keyboardType="numeric"
@@ -147,14 +147,14 @@ export default function TontineSettingsScreen() {
           </View>
 
           <GlassButton
-            title="Save Changes"
+            title={t("Save Changes")}
             onPress={handleSave}
             loading={isSaving}
             style={styles.saveButton}
           />
 
           <Pressable onPress={handleDeleteTontine} style={styles.deleteButton}>
-            <Text style={styles.deleteText}>Delete Tontine</Text>
+            <Text style={styles.deleteText}>{t("Delete Tontine")}</Text>
           </Pressable>
         </View>
       </ScrollView>

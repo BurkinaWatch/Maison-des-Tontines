@@ -12,9 +12,11 @@ import { useRouter } from "expo-router";
 import { GlassCard, GlassInput, GlassButton } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useAuthStore } from "../../src/store/authStore";
+import { useI18n } from "../../src/i18n";
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const register = useAuthStore((state) => state.register);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
@@ -27,17 +29,17 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!phoneNumber.trim() || !email.trim() || !firstName.trim() || !lastName.trim() || !password) {
-      setError("Please fill in all fields");
+      setError(t("Please fill in all fields"));
       return;
     }
 
     if (password.length < 8) {
-      setError("Your password must be at least 8 characters");
+      setError(t("Your password must be at least 8 characters"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("Passwords do not match"));
       return;
     }
 
@@ -54,7 +56,7 @@ export default function RegisterScreen() {
       );
       router.replace("/(tabs)");
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Registration failed. Please try again.");
+      setError(error instanceof Error ? error.message : t("Registration failed. Please try again."));
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +70,7 @@ export default function RegisterScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.logo}>🏠</Text>
-          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.title}>{t("Create Account")}</Text>
           <Text style={styles.subtitle}>
             Join Maison des Tontines
           </Text>
@@ -77,20 +79,20 @@ export default function RegisterScreen() {
         <GlassCard style={styles.card}>
           <View>
             <GlassInput
-              label="First Name"
+              label={t("First Name")}
               value={firstName}
               onChangeText={setFirstName}
               placeholder="Jean"
               autoCapitalize="words"
             />
             <GlassInput
-              label="Last Name"
+              label={t("Last Name")}
               value={lastName}
               onChangeText={setLastName}
               placeholder="Dupont"
               autoCapitalize="words"
             />
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={styles.label}>{t("Phone Number")}</Text>
             <TextInput
               style={styles.input}
               placeholder="+225 01 00 00 00"
@@ -100,7 +102,7 @@ export default function RegisterScreen() {
               keyboardType="phone-pad"
               autoComplete="tel"
             />
-            <Text style={styles.label}>Email address</Text>
+            <Text style={styles.label}>{t("Email address")}</Text>
             <TextInput
               style={styles.input}
               placeholder="vous@exemple.com"
@@ -111,10 +113,10 @@ export default function RegisterScreen() {
               autoCapitalize="none"
               autoComplete="email"
             />
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.label}>{t("Password")}</Text>
             <TextInput
               style={styles.input}
-              placeholder="At least 8 characters"
+              placeholder={t("At least 8 characters")}
               placeholderTextColor={colors.textTertiary}
               value={password}
               onChangeText={setPassword}
@@ -122,10 +124,10 @@ export default function RegisterScreen() {
               autoCapitalize="none"
               autoComplete="new-password"
             />
-            <Text style={styles.label}>Confirm password</Text>
+            <Text style={styles.label}>{t("Confirm password")}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Repeat your password"
+              placeholder={t("Repeat your password")}
               placeholderTextColor={colors.textTertiary}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -136,7 +138,7 @@ export default function RegisterScreen() {
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <GlassButton
-              title="Create account"
+              title={t("Create account")}
               onPress={handleRegister}
               loading={isLoading}
               style={styles.button}
@@ -146,9 +148,9 @@ export default function RegisterScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>
-            Already have an account?{" "}
+            {t("Already have an account?")}{" "}
             <Pressable onPress={() => router.back()}>
-              <Text style={styles.link}>Sign in</Text>
+              <Text style={styles.link}>{t("Sign in")}</Text>
             </Pressable>
           </Text>
         </View>

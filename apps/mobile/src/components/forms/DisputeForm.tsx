@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { GlassCard, GlassInput, GlassButton } from "../ui";
 import { colors, spacing, typography } from "../../theme";
+import { useI18n } from "../../i18n";
 
 interface DisputeFormProps {
   tontineId: string;
@@ -20,17 +21,18 @@ export const DisputeForm: React.FC<DisputeFormProps> = ({
   onCancel,
   isLoading = false,
 }) => {
+  const { t } = useI18n();
   const [reason, setReason] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const reasons = [
-    "Payment not recorded",
-    "Wrong amount charged",
-    "Member not present",
-    "Payout not received",
-    "Technical issue",
-    "Other",
+    t("Payment not recorded"),
+    t("Wrong amount charged"),
+    t("Member not present"),
+    t("Payout not received"),
+    t("Technical issue"),
+    t("Other"),
   ];
 
   const handleSubmit = async () => {
@@ -52,13 +54,13 @@ export const DisputeForm: React.FC<DisputeFormProps> = ({
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.title}>Raise a Dispute</Text>
+      <Text style={styles.title}>{t("Raise a Dispute")}</Text>
       <Text style={styles.subtitle}>
-        Report an issue with your tontine contribution or payout
+        {t("Report an issue with your tontine contribution or payout")}
       </Text>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Reason</Text>
+        <Text style={styles.label}>{t("Reason")}</Text>
         <View style={styles.reasonsContainer}>
           {reasons.map((r) => (
             <Pressable
@@ -84,34 +86,33 @@ export const DisputeForm: React.FC<DisputeFormProps> = ({
 
       <View style={styles.section}>
         <GlassInput
-          label="Description"
+          label={t("Description")}
           value={description}
           onChangeText={setDescription}
-          placeholder="Provide details about the issue..."
+          placeholder={t("Provide details about the issue...")}
           multiline
           numberOfLines={6}
         />
       </View>
 
       <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>ℹ️ Dispute Process</Text>
+        <Text style={styles.infoTitle}>ℹ️ {t("Dispute Process")}</Text>
         <Text style={styles.infoText}>
-          Disputes are reviewed by the tontine admin and members. You will be notified
-          of the resolution within 7 days.
+          {t("Disputes are reviewed by the tontine admin and members. You will be notified of the resolution within 7 days.")}
         </Text>
       </View>
 
       <View style={styles.buttonRow}>
         {onCancel && (
           <GlassButton
-            title="Cancel"
+            title={t("Cancel")}
             onPress={onCancel}
             variant="secondary"
             style={styles.button}
           />
         )}
         <GlassButton
-          title="Submit Dispute"
+          title={t("Submit Dispute")}
           onPress={handleSubmit}
           loading={isSubmitting || isLoading}
           disabled={!reason}

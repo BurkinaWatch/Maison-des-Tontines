@@ -15,11 +15,13 @@ import { GlassCard, MemberAvatar, StatusBadge, EmptyState } from "../../../src/c
 import { colors, spacing, typography } from "../../../src/theme";
 import { useTontineStore } from "../../../src/store/tontineStore";
 import { TontineMember } from "../../../src/types/tontine";
+import { useI18n } from "../../../src/i18n";
 
 export default function MembersScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const { members, fetchMembers, isLoading } = useTontineStore();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (params.id) {
@@ -29,11 +31,11 @@ export default function MembersScreen() {
 
   const handleRemoveMember = (member: TontineMember) => {
     Alert.alert(
-      "Remove Member",
-      `Are you sure you want to remove ${member.name}?`,
+      t("Remove Member"),
+      `${t("Are you sure you want to remove this member?")} ${member.name}?`,
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Remove", style: "destructive" },
+        { text: t("Cancel"), style: "cancel" },
+        { text: t("Remove"), style: "destructive" },
       ]
     );
   };
@@ -48,8 +50,8 @@ export default function MembersScreen() {
         }
       >
         <AppHeader
-          title="Members"
-          subtitle={`${members.length} members`}
+          title={t("Members")}
+          subtitle={`${members.length} ${t("members")}`}
           showBack
           showProfile
         />
@@ -78,7 +80,7 @@ export default function MembersScreen() {
                     onPress={() => handleRemoveMember(member)}
                     style={styles.removeButton}
                   >
-                    <Text style={styles.removeText}>Remove</Text>
+                    <Text style={styles.removeText}>{t("Remove")}</Text>
                   </Pressable>
                 </View>
               </GlassCard>
@@ -86,8 +88,8 @@ export default function MembersScreen() {
           ) : (
             <EmptyState
               icon="👥"
-              title="No members yet"
-              description="Members will appear here once they join the tontine"
+              title={t("No members yet")}
+              description={t("Members will appear here once they join the tontine")}
             />
           )}
         </View>

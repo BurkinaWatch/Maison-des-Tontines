@@ -13,8 +13,10 @@ import { AppHeader } from "../../src/components/layout/AppHeader";
 import { GlassCard, GlassButton, StatusBadge, MemberAvatar } from "../../src/components/ui";
 import { DisputeForm } from "../../src/components/forms/DisputeForm";
 import { colors, spacing, typography } from "../../src/theme";
+import { useI18n } from "../../src/i18n";
 
 export default function DisputeDetailScreen() {
+  const { t } = useI18n();
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const [isLoading, setIsLoading] = useState(false);
@@ -24,11 +26,11 @@ export default function DisputeDetailScreen() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      Alert.alert("Success", "Dispute submitted successfully", [
+      Alert.alert(t("Success"), t("Dispute submitted successfully"), [
         { text: "OK", onPress: () => router.back() },
       ]);
     } catch {
-      Alert.alert("Error", "Failed to submit dispute");
+      Alert.alert(t("Error"), t("Failed to submit dispute"));
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +42,7 @@ export default function DisputeDetailScreen() {
         style={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <AppHeader title="Dispute" showBack showProfile />
+        <AppHeader title={t("Dispute")} showBack showProfile />
 
         <View style={styles.content}>
           <GlassCard style={styles.disputeCard}>
@@ -54,12 +56,12 @@ export default function DisputeDetailScreen() {
             </Text>
             <View style={styles.disputeMeta}>
               <View style={styles.disputeMetaItem}>
-                <Text style={styles.disputeMetaLabel}>Raised by</Text>
+                <Text style={styles.disputeMetaLabel}>{t("Raised by")}</Text>
                 <MemberAvatar name="Marie Kouassi" size="small" />
               </View>
               <View style={styles.disputeMetaItem}>
-                <Text style={styles.disputeMetaLabel}>Date</Text>
-                <Text style={styles.disputeMetaValue}>Today</Text>
+                <Text style={styles.disputeMetaLabel}>{t("Date")}</Text>
+                <Text style={styles.disputeMetaValue}>{t("Today")}</Text>
               </View>
             </View>
           </GlassCard>

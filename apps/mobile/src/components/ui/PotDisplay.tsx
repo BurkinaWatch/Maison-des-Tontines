@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TextStyle } from "react-native";
 import { colors, spacing, typography } from "../../theme";
+import { useI18n } from "../../i18n";
 
 interface PotDisplayProps {
   totalPot: number;
@@ -15,6 +16,7 @@ export const PotDisplay: React.FC<PotDisplayProps> = ({
   currency = "FCFA",
   size = "medium",
 }) => {
+  const { t } = useI18n();
   const progress = totalPot > 0 ? (collected / totalPot) * 100 : 0;
 
   const sizeStyles: Record<"small" | "medium" | "large", { amount: TextStyle; label: TextStyle }> = {
@@ -35,7 +37,7 @@ export const PotDisplay: React.FC<PotDisplayProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[styles.label, sizeStyles[size].label]}>Total Pot</Text>
+        <Text style={[styles.label, sizeStyles[size].label]}>{t("Total Pot")}</Text>
         <Text style={[styles.amount, sizeStyles[size].amount]}>
           {totalPot.toLocaleString()} {currency}
         </Text>
@@ -49,18 +51,18 @@ export const PotDisplay: React.FC<PotDisplayProps> = ({
             ]}
           />
         </View>
-        <Text style={styles.progressText}>{Math.round(progress)}% collected</Text>
+        <Text style={styles.progressText}>{Math.round(progress)}% {t("collected")}</Text>
       </View>
       <View style={styles.footer}>
         <View style={styles.stat}>
-          <Text style={styles.statLabel}>Collected</Text>
+          <Text style={styles.statLabel}>{t("Collected")}</Text>
           <Text style={styles.statValue}>
             {collected.toLocaleString()} {currency}
           </Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.stat}>
-          <Text style={styles.statLabel}>Remaining</Text>
+          <Text style={styles.statLabel}>{t("Remaining")}</Text>
           <Text style={styles.statValue}>
             {(totalPot - collected).toLocaleString()} {currency}
           </Text>

@@ -14,12 +14,14 @@ import { colors, spacing, typography } from "../../../src/theme";
 import { useTontineStore } from "../../../src/store/tontineStore";
 import { formatCurrency, formatDate } from "../../../src/utils/formatters";
 import { Cycle } from "../../../src/types/tontine";
+import { useI18n } from "../../../src/i18n";
 
 export default function CyclesScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const { cycles, fetchCycles, isLoading } = useTontineStore();
   const [tontineName, setTontineName] = useState("");
+  const { t } = useI18n();
 
   useEffect(() => {
     if (params.id) {
@@ -55,8 +57,8 @@ export default function CyclesScreen() {
         }
       >
         <AppHeader
-          title="Cycles"
-          subtitle={`${cycles.length} total`}
+          title={t("Cycles")}
+          subtitle={`${cycles.length} ${t("total")}`}
           showBack
           showProfile
         />
@@ -74,7 +76,7 @@ export default function CyclesScreen() {
                       {formatDate(cycle.startDate)} - {formatDate(cycle.endDate)}
                     </Text>
                     <Text style={styles.cycleDue}>
-                      Due: {formatDate(cycle.dueDate)}
+                      {t("Due")}: {formatDate(cycle.dueDate)}
                     </Text>
                   </View>
                   <View
@@ -86,11 +88,11 @@ export default function CyclesScreen() {
                 </View>
                 <View style={styles.cycleFooter}>
                   <Text style={styles.potAmount}>
-                    Pot: {formatCurrency(cycle.potAmount, "XOF")}
+                    {t("Pot")}: {formatCurrency(cycle.potAmount, "XOF")}
                   </Text>
                   {cycle.payoutRecipientId && (
                     <Text style={styles.recipient}>
-                      Recipient: {cycle.payoutRecipientId}
+                      {t("Recipient")}: {cycle.payoutRecipientId}
                     </Text>
                   )}
                 </View>
@@ -99,8 +101,8 @@ export default function CyclesScreen() {
           ) : (
             <EmptyState
               icon="📅"
-              title="No cycles yet"
-              description="Cycles will appear here once the tontine starts"
+              title={t("No cycles yet")}
+              description={t("Cycles will appear here once the tontine starts")}
             />
           )}
         </View>

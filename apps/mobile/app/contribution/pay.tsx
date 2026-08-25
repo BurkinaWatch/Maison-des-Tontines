@@ -13,9 +13,11 @@ import { colors, spacing } from "../../src/theme";
 import { api } from "../../src/services/api";
 import { contributionService } from "../../src/services/contribution.service";
 import type { PaymentMethod } from "../../src/types/contribution";
+import { useI18n } from "../../src/i18n";
 
 export default function PayContributionScreen() {
   const router = useRouter();
+  const { t } = useI18n();
   const params = useLocalSearchParams<{ tontineId?: string; cycleId?: string }>();
   const [isLoading, setIsLoading] = useState(false);
   const [cycle, setCycle] = useState<{ id: string; name: string; amount: number; currency: string } | null>(null);
@@ -47,7 +49,7 @@ export default function PayContributionScreen() {
 
   const handlePayment = async (method: PaymentMethod, phoneNumber: string) => {
     if (!params.tontineId || !cycle || method !== "mobile_money") {
-      Alert.alert("Mobile Money required", "Select Mobile Money to continue.");
+      Alert.alert(t("Mobile Money required"), t("Select Mobile Money to continue."));
       return;
     }
     setIsLoading(true);
@@ -78,7 +80,7 @@ export default function PayContributionScreen() {
       setPaymentState("pending");
     } catch (error) {
       setPaymentState("failed");
-      Alert.alert("Payment unavailable", error instanceof Error ? error.message : "Please try again.");
+      Alert.alert(t("Payment unavailable"), error instanceof Error ? error.message : t("Please try again."));
     } finally {
       setIsLoading(false);
     }
@@ -86,19 +88,19 @@ export default function PayContributionScreen() {
 
   return (
     <SafeAreaWrapper>
-      <AppHeader title="Pay your contribution" showBack showProfile />
+      <AppHeader title={t("Pay your contribution")} showBack showProfile />
       <View style={styles.container}>
         {paymentState === "success" ? (
           <View style={styles.stateCard}>
-            <Text style={styles.stateTitle}>✅ Contribution paid</Text>
+            <Text style={styles.stateTitle}>✅ {t("Contribution paid")}</Text>
             <Text style={styles.stateText}>{cycle?.amount.toLocaleString()} {cycle?.currency}</Text>
             <Text style={styles.stateText}>Reference: {reference}</Text>
             <Text style={styles.stateText}>Cycle: {cycle?.name}</Text>
           </View>
         ) : paymentState === "pending" || paymentState === "checking" ? (
           <View style={styles.stateCard}>
-            <Text style={styles.stateTitle}>{paymentState === "checking" ? "Verifying payment…" : "Payment pending…"}</Text>
-            <Text style={styles.stateText}>Do not close the app. The contribution will only be marked paid after server confirmation.</Text>
+            <Text style={styles.stateTitle}>{paymentState === "checking" ? t("Verifying payment…") : t("Payment pending…")}</Text>
+            <Text style={styles.stateText}>{t("Do not close the app. The contribution will only be marked paid after server confirmation.")}</Text>
           </View>
         ) : (
           <PaymentForm
@@ -109,7 +111,7 @@ export default function PayContributionScreen() {
             isLoading={isLoading || !cycle}
           />
         )}
-        {paymentState === "failed" && <Text style={styles.errorText}>❌ Payment did not go through. You can try again.</Text>}
+        {paymentState === "failed" && <Text style={styles.errorText}>❌ {t("Payment did not go through. You can try again.")}</Text>}
       </View>
     </SafeAreaWrapper>
   );

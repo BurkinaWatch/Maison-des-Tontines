@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useAuthStore } from "../src/store/authStore";
 import { I18nProvider } from "../src/i18n";
 import { notificationService } from "../src/services/notification.service";
+import { loadProfilePreferences } from "../src/utils/localPreferences";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +25,13 @@ function AuthBootstrap() {
   }, [initialize]);
 
   useEffect(() => {
-    if (isAuthenticated) void notificationService.registerDeviceToken().catch(() => undefined);
+    if (isAuthenticated) {
+      void loadProfilePreferences().then((preferences) => {
+        if (preferences.pushNotifications) {
+          return notificationService.registerDeviceToken();
+        }
+      }).catch(() => undefined);
+    }
   }, [isAuthenticated]);
 
   return null;

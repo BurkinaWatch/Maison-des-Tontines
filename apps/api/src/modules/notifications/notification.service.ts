@@ -10,6 +10,17 @@ export async function notifyUser(input: {
   body: string;
   data?: Record<string, unknown>;
 }) {
+  const existing = await getPrisma().notification.findFirst({
+    where: {
+      userId: input.userId,
+      type: input.type,
+      title: input.title,
+      body: input.body,
+      createdAt: { gte: new Date(Date.now() - 60 * 60 * 1000) },
+    },
+  });
+  if (existing) return existing;
+
   const notification = await getPrisma().notification.create({
     data: {
       userId: input.userId,

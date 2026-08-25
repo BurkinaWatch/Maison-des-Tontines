@@ -208,6 +208,10 @@ export class CycleService {
       },
     });
 
+    await prisma.tontineCycle.updateMany({
+      where: { tontineId, sequence: cycle.sequence + 1, status: CycleStatus.UPCOMING },
+      data: { status: CycleStatus.OPEN },
+    });
     await this.checkTontineCompletion(tontineId);
 
     logger.info("Cycle completed", { cycleId, tontineId });

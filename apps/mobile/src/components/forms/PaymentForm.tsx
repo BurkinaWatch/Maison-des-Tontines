@@ -29,9 +29,6 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 
   const paymentMethods: { value: PaymentMethod; label: string; emoji: string; description: string }[] = [
     { value: "mobile_money", label: t("Mobile Money"), emoji: "📱", description: t("Pay via MoMo, Orange Money") },
-    { value: "bank_transfer", label: t("Bank Transfer"), emoji: "🏦", description: t("Direct bank transfer") },
-    { value: "cash", label: t("Cash"), emoji: "💵", description: t("Mark as paid manually") },
-    { value: "card", label: t("Card"), emoji: "💳", description: t("Debit or credit card") },
   ];
 
   const handleSubmit = async () => {

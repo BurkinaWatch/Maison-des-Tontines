@@ -14,6 +14,7 @@ import { api } from "../../src/services/api";
 import { contributionService } from "../../src/services/contribution.service";
 import type { PaymentMethod } from "../../src/types/contribution";
 import { useI18n } from "../../src/i18n";
+import { GlassButton } from "../../src/components/ui";
 
 export default function PayContributionScreen() {
   const router = useRouter();
@@ -102,7 +103,7 @@ export default function PayContributionScreen() {
             <Text style={styles.stateTitle}>{paymentState === "checking" ? t("Verifying payment…") : t("Payment pending…")}</Text>
             <Text style={styles.stateText}>{t("Do not close the app. The contribution will only be marked paid after server confirmation.")}</Text>
           </View>
-        ) : (
+        ) : cycle ? (
           <PaymentForm
             contributionId={cycle?.id || ""}
             amount={cycle?.amount || 0}
@@ -110,6 +111,12 @@ export default function PayContributionScreen() {
             onSubmit={handlePayment}
             isLoading={isLoading || !cycle}
           />
+        ) : (
+          <View style={styles.stateCard}>
+            <Text style={styles.stateTitle}>{t("No contribution selected")}</Text>
+            <Text style={styles.stateText}>{t("Open a pending contribution to start a payment.")}</Text>
+            <GlassButton title={t("View contributions")} onPress={() => router.replace("/(tabs)/contributions")} />
+          </View>
         )}
         {paymentState === "failed" && <Text style={styles.errorText}>❌ {t("Payment did not go through. You can try again.")}</Text>}
       </View>

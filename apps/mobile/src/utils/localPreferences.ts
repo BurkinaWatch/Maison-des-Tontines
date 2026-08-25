@@ -7,12 +7,16 @@ export interface ProfilePreferences {
   pushNotifications: boolean;
   contributionReminders: boolean;
   payoutAlerts: boolean;
+  language: "English" | "Français";
+  currency: "XOF" | "EUR";
 }
 
 export const defaultProfilePreferences: ProfilePreferences = {
   pushNotifications: true,
   contributionReminders: true,
   payoutAlerts: true,
+  language: "English",
+  currency: "XOF",
 };
 
 export async function loadProfilePreferences(): Promise<ProfilePreferences> {

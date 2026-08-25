@@ -56,6 +56,9 @@ export default function RootLayout() {
           <Stack.Screen name="profile/password" options={{ headerShown: false }} />
           <Stack.Screen name="profile/notifications" options={{ headerShown: false }} />
           <Stack.Screen name="profile/payment-methods" options={{ headerShown: false }} />
+          <Stack.Screen name="profile/preferences" options={{ headerShown: false }} />
+          <Stack.Screen name="profile/help" options={{ headerShown: false }} />
+          <Stack.Screen name="profile/legal" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" options={{ title: "Not Found" }} />
         </Stack>
       </SafeAreaProvider>

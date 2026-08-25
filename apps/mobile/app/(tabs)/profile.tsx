@@ -34,20 +34,17 @@ export default function ProfileScreen() {
     {
       icon: "🌍",
       label: "Language & Currency",
-      action: () => Alert.alert("Language & Currency", "Language: English\nCurrency: XOF\n\nMore options will be available soon."),
+      action: () => goTo("/profile/preferences"),
     },
     {
       icon: "❓",
       label: "Help & Support",
-      action: () => Alert.alert("Help & Support", "For assistance, contact support@maisondestontines.com."),
+      action: () => goTo("/profile/help"),
     },
     {
       icon: "📄",
       label: "Terms & Privacy",
-      action: () => Alert.alert(
-        "Terms & Privacy",
-        "Your personal data is used only to operate your tontine account. Never share your password or verification codes."
-      ),
+      action: () => goTo("/profile/legal"),
     },
   ];
 

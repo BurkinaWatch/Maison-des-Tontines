@@ -17,6 +17,7 @@ import { useAuthStore } from "../../src/store/authStore";
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
   const router = useRouter();
+  const goTo = (path: string) => router.push(path as never);
 
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -26,10 +27,10 @@ export default function ProfileScreen() {
   };
 
   const menuItems = [
-    { icon: "👤", label: "Edit Profile", action: () => router.push("/profile/edit") },
-    { icon: "🔒", label: "Change Password", action: () => router.push("/profile/password") },
-    { icon: "🔔", label: "Notification Settings", action: () => router.push("/profile/notifications") },
-    { icon: "💳", label: "Payment Methods", action: () => router.push("/profile/payment-methods") },
+    { icon: "👤", label: "Edit Profile", action: () => goTo("/profile/edit") },
+    { icon: "🔒", label: "Change Password", action: () => goTo("/profile/password") },
+    { icon: "🔔", label: "Notification Settings", action: () => goTo("/profile/notifications") },
+    { icon: "💳", label: "Payment Methods", action: () => goTo("/profile/payment-methods") },
     {
       icon: "🌍",
       label: "Language & Currency",

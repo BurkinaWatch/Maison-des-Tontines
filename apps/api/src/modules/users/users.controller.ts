@@ -151,6 +151,10 @@ export class UsersController {
         where: { id: userId },
         data: { passwordHash: newPasswordHash },
       });
+      await getPrisma().refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
 
       logger.info("Password changed", { userId });
       res.json({ message: "Password changed successfully" });

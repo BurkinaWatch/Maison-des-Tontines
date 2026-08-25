@@ -9,6 +9,7 @@ import { requestLogger } from "./config/logger.js";
 import { apiRateLimiter } from "./middleware/rateLimit.js";
 import routes from "./routes.js";
 import { getEnv } from "./config/env.js";
+import { auditMiddleware } from "./modules/audit/audit.middleware.js";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 app.use(requestLogger);
 app.use(apiRateLimiter);
+app.use(auditMiddleware);
 
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });

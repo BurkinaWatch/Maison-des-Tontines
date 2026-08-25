@@ -20,7 +20,7 @@ export class AuditService {
           action,
           resource,
           resourceId: resourceId || null,
-          metadata: metadata || {},
+          metadata: typeof metadata === "string" ? metadata : JSON.stringify(metadata || {}),
           ipAddress: ipAddress || "unknown",
         },
       });

@@ -32,11 +32,29 @@ model User {
   aiConversations    AIConversation[]
   confirmedContributions Contribution[] @relation("ConfirmedByUser")
   paymentTransactions PaymentTransaction[] @relation("PaymentUser")
+  paymentMethods    UserPaymentMethod[]
 
   @@index([phone])
   @@index([email])
   @@index([role])
   @@index([status])
+}
+
+model UserPaymentMethod {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String
+  label       String
+  provider    String?
+  cardBrand   String?
+  last4       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
 }
 
 model Tontine {

@@ -3,8 +3,78 @@ import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
 import bcrypt from "bcrypt";
 import { ChangePasswordDto, UpdateProfileDto } from "./dto/update-profile.dto.js";
+import { CreatePaymentMethodDto } from "./dto/payment-method.dto.js";
 
 export class UsersController {
+  private serializePaymentMethod(method: {
+    id: string;
+    type: string;
+    label: string;
+    provider: string | null;
+    cardBrand: string | null;
+    last4: string;
+    createdAt: Date;
+  }) {
+    return {
+      id: method.id,
+      type: method.type,
+      label: method.label,
+      provider: method.provider,
+      cardBrand: method.cardBrand,
+      maskedValue: `•••• ${method.last4}`,
+      createdAt: method.createdAt,
+    };
+  }
+
+  async getPaymentMethods(req: any, res: Response, next: NextFunction) {
+    try {
+      const methods = await getPrisma().userPaymentMethod.findMany({
+        where: { userId: req.userId! },
+        orderBy: { createdAt: "desc" },
+      });
+      res.json({ paymentMethods: methods.map((method) => this.serializePaymentMethod(method)) });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createPaymentMethod(req: any, res: Response, next: NextFunction) {
+    try {
+      const data = CreatePaymentMethodDto.parse(req.body);
+      const isMobileMoney = data.type === "MOBILE_MONEY";
+      const sensitiveValue = isMobileMoney ? data.phone : data.cardNumber;
+      const last4 = sensitiveValue.slice(-4);
+      const method = await getPrisma().userPaymentMethod.create({
+        data: {
+          userId: req.userId!,
+          type: data.type,
+          label: data.label,
+          provider: isMobileMoney ? data.provider : null,
+          cardBrand: isMobileMoney ? null : data.cardBrand,
+          last4,
+        },
+      });
+      logger.info("Payment method added", { userId: req.userId!, type: data.type });
+      res.status(201).json({ paymentMethod: this.serializePaymentMethod(method) });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deletePaymentMethod(req: any, res: Response, next: NextFunction) {
+    try {
+      const result = await getPrisma().userPaymentMethod.deleteMany({
+        where: { id: req.params.paymentMethodId, userId: req.userId! },
+      });
+      if (result.count === 0) {
+        return res.status(404).json({ error: "Payment method not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getProfile(req: any, res: Response, next: NextFunction) {
     try {
       const userId = req.userId!;

@@ -10,7 +10,20 @@ export const CreateTontineDto = z.object({
   startDate: z.string().datetime().or(z.coerce.date()),
   endDate: z.string().datetime().or(z.coerce.date()).optional().nullable(),
   maxMembers: z.number().int().positive().optional().nullable(),
-  rules: z.record(z.string(), z.string()).optional(),
+  rules: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
+}).superRefine((data, ctx) => {
+  const requiredByType: Record<string, string[]> = {
+    ROTATIVE: ["payoutOrder"],
+    SAVINGS: ["savingsTarget", "savingsTargetDate"],
+    GOAL: ["investmentProject", "investmentTarget", "investmentRisk"],
+    HYBRID: ["socialAidType", "socialBeneficiary", "socialUrgency"],
+  };
+  for (const key of requiredByType[data.type] ?? []) {
+    const value = data.rules?.[key];
+    if (value === undefined || value === "") {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rules", key], message: `${key} is required for this tontine type` });
+    }
+  }
 });
 
 export const UpdateTontineDto = z.object({
@@ -18,7 +31,7 @@ export const UpdateTontineDto = z.object({
   description: z.string().optional().nullable(),
   status: z.enum(["DRAFT", "INVITING", "ACTIVE", "PAUSED", "COMPLETED", "CANCELLED", "DISPUTED"]).optional(),
   maxMembers: z.number().int().positive().optional().nullable(),
-  rules: z.record(z.string(), z.string()).optional(),
+  rules: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
 });
 
 export type CreateTontineInput = z.infer<typeof CreateTontineDto>;

@@ -9,10 +9,10 @@ const controller = new TontinesController();
 
 router.use(authMiddleware);
 
-router.post("/", controller.createTontine);
+router.post("/", validate(CreateTontineDto), controller.createTontine);
 router.get("/", controller.getTontines);
 router.get("/:id", controller.getTontine);
-router.patch("/:id", controller.updateTontine);
+router.patch("/:id", validate(UpdateTontineDto), controller.updateTontine);
 router.delete("/:id", controller.deleteTontine);
 router.get("/:id/members", controller.getTontineMembers);
 router.get("/:id/rules", controller.getTontineRules);

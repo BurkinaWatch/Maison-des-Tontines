@@ -7,6 +7,7 @@ import {
   Pressable,
   Alert,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { SafeAreaWrapper } from "../../src/components/layout";
 import { AppHeader } from "../../src/components/layout/AppHeader";
 import { GlassCard, GlassButton, StatusBadge } from "../../src/components/ui";
@@ -15,6 +16,7 @@ import { useAuthStore } from "../../src/store/authStore";
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
+  const router = useRouter();
 
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
@@ -24,13 +26,28 @@ export default function ProfileScreen() {
   };
 
   const menuItems = [
-    { icon: "👤", label: "Edit Profile", action: () => {} },
-    { icon: "🔒", label: "Change Password", action: () => {} },
-    { icon: "🔔", label: "Notification Settings", action: () => {} },
-    { icon: "💳", label: "Payment Methods", action: () => {} },
-    { icon: "🌍", label: "Language & Currency", action: () => {} },
-    { icon: "❓", label: "Help & Support", action: () => {} },
-    { icon: "📄", label: "Terms & Privacy", action: () => {} },
+    { icon: "👤", label: "Edit Profile", action: () => router.push("/profile/edit") },
+    { icon: "🔒", label: "Change Password", action: () => router.push("/profile/password") },
+    { icon: "🔔", label: "Notification Settings", action: () => router.push("/profile/notifications") },
+    { icon: "💳", label: "Payment Methods", action: () => router.push("/profile/payment-methods") },
+    {
+      icon: "🌍",
+      label: "Language & Currency",
+      action: () => Alert.alert("Language & Currency", "Language: English\nCurrency: XOF\n\nMore options will be available soon."),
+    },
+    {
+      icon: "❓",
+      label: "Help & Support",
+      action: () => Alert.alert("Help & Support", "For assistance, contact support@maisondestontines.com."),
+    },
+    {
+      icon: "📄",
+      label: "Terms & Privacy",
+      action: () => Alert.alert(
+        "Terms & Privacy",
+        "Your personal data is used only to operate your tontine account. Never share your password or verification codes."
+      ),
+    },
   ];
 
   return (

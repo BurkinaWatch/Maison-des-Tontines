@@ -69,6 +69,21 @@ export const authService = {
     return toMobileUser(response.user);
   },
 
+  async updateProfile(data: { name?: string; email?: string | null }): Promise<User> {
+    const response = await api.request<{ user: ApiAuthResponse["user"] }>("/users/me", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return toMobileUser(response.user);
+  },
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await api.request("/users/me/password", {
+      method: "PATCH",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  },
+
   async refreshToken(): Promise<string> {
     const refreshToken = await api.getRefreshToken();
     if (!refreshToken) {

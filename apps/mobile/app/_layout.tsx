@@ -52,6 +52,10 @@ export default function RootLayout() {
             options={{ headerShown: false }}
           />
           <Stack.Screen name="payout/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="profile/edit" options={{ headerShown: false }} />
+          <Stack.Screen name="profile/password" options={{ headerShown: false }} />
+          <Stack.Screen name="profile/notifications" options={{ headerShown: false }} />
+          <Stack.Screen name="profile/payment-methods" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" options={{ title: "Not Found" }} />
         </Stack>
       </SafeAreaProvider>

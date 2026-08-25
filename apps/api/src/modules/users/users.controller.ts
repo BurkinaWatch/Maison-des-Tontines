@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
 import bcrypt from "bcrypt";
+import { ChangePasswordDto, UpdateProfileDto } from "./dto/update-profile.dto.js";
 
 export class UsersController {
   async getProfile(req: any, res: Response, next: NextFunction) {
@@ -30,7 +31,7 @@ export class UsersController {
   async updateProfile(req: any, res: Response, next: NextFunction) {
     try {
       const userId = req.userId!;
-      const data = req.body;
+      const data = UpdateProfileDto.parse(req.body);
 
       const user = await getPrisma().user.update({
         where: { id: userId },
@@ -56,7 +57,7 @@ export class UsersController {
   async changePassword(req: any, res: Response, next: NextFunction) {
     try {
       const userId = req.userId!;
-      const { currentPassword, newPassword } = req.body;
+      const { currentPassword, newPassword } = ChangePasswordDto.parse(req.body);
 
       const user = await getPrisma().user.findUnique({
         where: { id: userId },
@@ -64,13 +65,6 @@ export class UsersController {
 
       if (!user) {
         return res.status(404).json({ error: "User not found" });
-      }
-
-      if (!currentPassword || !newPassword || newPassword.length < 8) {
-        return res.status(400).json({
-          error: "Invalid password",
-          message: "Provide your current password and a new password of at least 8 characters.",
-        });
       }
 
       const passwordMatches = await bcrypt.compare(currentPassword, user.passwordHash);

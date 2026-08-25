@@ -1,4 +1,7 @@
 import { api } from "./api";
+import { Platform } from "react-native";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 
 export interface Notification {
   id: string;
@@ -21,6 +24,16 @@ function parseNotificationData(value: string | null | undefined): Record<string,
 }
 
 export const notificationService = {
+  async registerDeviceToken(): Promise<void> {
+    if (Platform.OS === "web") return;
+    const permissions = await Notifications.getPermissionsAsync();
+    const granted = permissions.granted || (await Notifications.requestPermissionsAsync()).granted;
+    if (!granted) return;
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    const token = (await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined)).data;
+    await api.post("/notifications/device-token", { token, platform: Platform.OS });
+  },
+
   async getNotifications(): Promise<Notification[]> {
     const response = await api.get<{
       notifications: Array<{
@@ -45,11 +58,11 @@ export const notificationService = {
   },
 
   async markAsRead(notificationId: string): Promise<void> {
-    await api.post(`/notifications/${notificationId}/read`, {});
+    await api.post(`/notifications/${notificationId}/read`);
   },
 
   async markAllAsRead(): Promise<void> {
-    await api.post("/notifications/read-all", {});
+    await api.post("/notifications/read-all");
   },
 
   async deleteNotification(notificationId: string): Promise<void> {

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useAuthStore } from "../src/store/authStore";
 import { I18nProvider } from "../src/i18n";
+import { notificationService } from "../src/services/notification.service";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,11 +17,15 @@ const queryClient = new QueryClient({
 });
 
 function AuthBootstrap() {
-  const initialize = useAuthStore((state) => state.initialize);
+  const { initialize, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     void initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    if (isAuthenticated) void notificationService.registerDeviceToken().catch(() => undefined);
+  }, [isAuthenticated]);
 
   return null;
 }

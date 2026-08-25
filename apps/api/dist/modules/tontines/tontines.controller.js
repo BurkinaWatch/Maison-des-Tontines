@@ -17,7 +17,7 @@ export class TontinesController {
                         ? Object.entries(data.rules).map(([key, value]) => ({
                             key,
                             value: String(value),
-                            type: typeof value === "number" ? "NUMBER" : "STRING",
+                            type: typeof value === "number" ? "NUMBER" : typeof value === "boolean" ? "BOOLEAN" : "STRING",
                         }))
                         : [],
                 },

@@ -1,7 +1,69 @@
 import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
 import bcrypt from "bcrypt";
+import { ChangePasswordDto, UpdateProfileDto } from "./dto/update-profile.dto.js";
+import { CreatePaymentMethodDto } from "./dto/payment-method.dto.js";
 export class UsersController {
+    serializePaymentMethod(method) {
+        return {
+            id: method.id,
+            type: method.type,
+            label: method.label,
+            provider: method.provider,
+            cardBrand: method.cardBrand,
+            maskedValue: `•••• ${method.last4}`,
+            createdAt: method.createdAt,
+        };
+    }
+    async getPaymentMethods(req, res, next) {
+        try {
+            const methods = await getPrisma().userPaymentMethod.findMany({
+                where: { userId: req.userId },
+                orderBy: { createdAt: "desc" },
+            });
+            res.json({ paymentMethods: methods.map((method) => this.serializePaymentMethod(method)) });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async createPaymentMethod(req, res, next) {
+        try {
+            const data = CreatePaymentMethodDto.parse(req.body);
+            const isMobileMoney = data.type === "MOBILE_MONEY";
+            const sensitiveValue = isMobileMoney ? data.phone : data.cardNumber;
+            const last4 = sensitiveValue.slice(-4);
+            const method = await getPrisma().userPaymentMethod.create({
+                data: {
+                    userId: req.userId,
+                    type: data.type,
+                    label: data.label,
+                    provider: isMobileMoney ? data.provider : null,
+                    cardBrand: isMobileMoney ? null : data.cardBrand,
+                    last4,
+                },
+            });
+            logger.info("Payment method added", { userId: req.userId, type: data.type });
+            res.status(201).json({ paymentMethod: this.serializePaymentMethod(method) });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async deletePaymentMethod(req, res, next) {
+        try {
+            const result = await getPrisma().userPaymentMethod.deleteMany({
+                where: { id: req.params.paymentMethodId, userId: req.userId },
+            });
+            if (result.count === 0) {
+                return res.status(404).json({ error: "Payment method not found" });
+            }
+            res.status(204).send();
+        }
+        catch (error) {
+            next(error);
+        }
+    }
     async getProfile(req, res, next) {
         try {
             const userId = req.userId;
@@ -28,7 +90,7 @@ export class UsersController {
     async updateProfile(req, res, next) {
         try {
             const userId = req.userId;
-            const data = req.body;
+            const data = UpdateProfileDto.parse(req.body);
             const user = await getPrisma().user.update({
                 where: { id: userId },
                 data,
@@ -52,18 +114,12 @@ export class UsersController {
     async changePassword(req, res, next) {
         try {
             const userId = req.userId;
-            const { currentPassword, newPassword } = req.body;
+            const { currentPassword, newPassword } = ChangePasswordDto.parse(req.body);
             const user = await getPrisma().user.findUnique({
                 where: { id: userId },
             });
             if (!user) {
                 return res.status(404).json({ error: "User not found" });
-            }
-            if (!currentPassword || !newPassword || newPassword.length < 8) {
-                return res.status(400).json({
-                    error: "Invalid password",
-                    message: "Provide your current password and a new password of at least 8 characters.",
-                });
             }
             const passwordMatches = await bcrypt.compare(currentPassword, user.passwordHash);
             if (!passwordMatches) {

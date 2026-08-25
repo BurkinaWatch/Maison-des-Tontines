@@ -72,7 +72,7 @@ export class MockProvider {
         return {
             status: transaction.status,
             amount: Number(transaction.amount),
-            transactionId: transaction.providerRef,
+            transactionId: transaction.providerRef ?? providerRef,
         };
     }
     async verifyWebhook(payload, signature) {

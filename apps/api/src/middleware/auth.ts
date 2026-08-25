@@ -13,6 +13,7 @@ export interface AuthPayload {
 export interface AuthenticatedRequest extends Request {
   user?: AuthPayload;
   userId?: string;
+  membership?: { id: string; tontineId: string; userId: string; role: string; status: string };
 }
 
 export function authMiddleware(

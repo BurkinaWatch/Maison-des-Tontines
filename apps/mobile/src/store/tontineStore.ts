@@ -114,9 +114,7 @@ export const useTontineStore = create<TontineStore>((set, get) => ({
     try {
       const cycles = await tontineService.getCycles(tontineId);
       set({ cycles });
-    } catch (error) {
-      throw error;
-    }
+    } catch { set({ cycles: [] }); }
   },
 
   inviteMember: async (tontineId, target) => {

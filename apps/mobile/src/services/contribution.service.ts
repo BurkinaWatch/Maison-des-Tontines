@@ -3,26 +3,18 @@ import { Contribution, Payout, ContributionStatus } from "../types/contribution"
 
 export const contributionService = {
   async getContributions(tontineId?: string): Promise<Contribution[]> {
-    const endpoint = tontineId
-      ? `/contributions?tontineId=${tontineId}`
-      : "/contributions";
-    const response = await api.get<{ data: Contribution[] }>(endpoint);
-    return response.data;
+    const response = await api.get<{ contributions: Contribution[] }>("/contributions/me/contributions");
+    return response.contributions ?? [];
   },
 
   async getUpcoming(): Promise<Contribution[]> {
-    const response = await api.get<{ data: Contribution[] }>(
-      "/contributions/upcoming"
-    );
-    return response.data;
+    const contributions = await this.getContributions();
+    return contributions.filter((item) => item.status === "pending");
   },
 
   async getHistory(tontineId?: string): Promise<Contribution[]> {
-    const endpoint = tontineId
-      ? `/contributions/history?tontineId=${tontineId}`
-      : "/contributions/history";
-    const response = await api.get<{ data: Contribution[] }>(endpoint);
-    return response.data;
+    const contributions = await this.getContributions();
+    return tontineId ? contributions.filter((item) => item.tontineId === tontineId) : contributions;
   },
 
   async markAsPaid(contributionId: string): Promise<Contribution> {

@@ -31,6 +31,7 @@ model User {
   sessions           Session[]
   aiConversations    AIConversation[]
   confirmedContributions Contribution[] @relation("ConfirmedByUser")
+  paymentTransactions PaymentTransaction[] @relation("PaymentUser")
 
   @@index([phone])
   @@index([email])
@@ -63,6 +64,7 @@ model Tontine {
   aiConversations   AIConversation[]
   aiInsights        AIInsight[]
   payouts           Payout[]
+  paymentTransactions PaymentTransaction[] @relation("PaymentTontine")
 
   @@index([createdById])
   @@index([status])
@@ -125,6 +127,7 @@ model TontineCycle {
   beneficiary     TontineMember?    @relation("CycleBeneficiary", fields: [beneficiaryMemberId], references: [id])
   contributions   Contribution[]
   payouts         Payout[]
+  paymentTransactions PaymentTransaction[] @relation("PaymentCycle")
 
   @@index([tontineId])
   @@index([tontineId, sequence])
@@ -151,6 +154,7 @@ model Contribution {
   member        TontineMember      @relation(fields: [memberId], references: [id], onDelete: Cascade)
   confirmedBy   User?              @relation("ConfirmedByUser", fields: [confirmedById], references: [id])
   disputes      Dispute[]          @relation("ContributionDisputes")
+  paymentTransactions PaymentTransaction[]
 
   @@index([cycleId])
   @@index([memberId])
@@ -201,8 +205,13 @@ model PaymentProvider {
 
 model PaymentTransaction {
   id           String   @id @default(cuid())
+  internalReference String? @unique
+  userId       String?
+  tontineId    String?
+  cycleId      String?
+  contributionId String?
   providerId   String
-  providerRef  String   
+  providerRef  String?   
   amount       Float  
   currency     String   @default("XOF") 
   status       String   
@@ -212,9 +221,16 @@ model PaymentTransaction {
   updatedAt    DateTime @default(now()) @updatedAt 
 
   provider PaymentProvider @relation(fields: [providerId], references: [id])
+  user User? @relation("PaymentUser", fields: [userId], references: [id])
+  tontine Tontine? @relation("PaymentTontine", fields: [tontineId], references: [id])
+  cycle TontineCycle? @relation("PaymentCycle", fields: [cycleId], references: [id])
+  contribution Contribution? @relation(fields: [contributionId], references: [id])
 
   @@index([providerId])
   @@index([providerRef])
+  @@index([userId])
+  @@index([tontineId, cycleId])
+  @@index([contributionId])
   @@index([status])
   @@index([createdAt])
 }

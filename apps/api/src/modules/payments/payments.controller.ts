@@ -6,6 +6,7 @@ import { WaveProvider } from "./providers/wave.provider.js";
 import { LiquidCashProvider } from "./providers/liquidcash.provider.js";
 import { getEnv } from "../../config/env.js";
 import { randomBytes } from "crypto";
+import { notifyUser } from "../notifications/notification.service.js";
 
 export class PaymentsController {
   private providers = new Map<string, any>([
@@ -237,6 +238,15 @@ export class PaymentsController {
             }
           }
         });
+        if (transaction.userId) {
+          void notifyUser({
+            userId: transaction.userId,
+            type: "PAYMENT",
+            title: success ? "Payment confirmed" : "Payment update",
+            body: success ? "Your contribution has been confirmed." : `Your payment is ${normalizedStatus.toLowerCase()}.`,
+            data: { transactionId: transaction.id, category: "payments" },
+          }).catch((error) => logger.warn("Payment notification failed", { error: (error as Error).message }));
+        }
       }
       res.json({
         status: normalizedStatus,

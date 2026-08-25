@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
+import { notifyUser } from "../notifications/notification.service.js";
 
 export class DisputesController {
   async openDispute(req: any, res: Response, next: NextFunction) {
@@ -32,6 +33,14 @@ export class DisputesController {
       });
 
       logger.info("Dispute opened", { disputeId: dispute.id, tontineId, userId });
+      const recipients = await getPrisma().tontineMember.findMany({
+        where: { tontineId, status: "ACTIVE", userId: { not: userId } },
+        select: { userId: true },
+      });
+      void Promise.all(recipients.map((recipient) =>
+        notifyUser({ userId: recipient.userId, type: "DISPUTE", title: "New dispute", body: description, data: { disputeId: dispute.id, category: "disputes" } })
+          .catch((error) => logger.warn("Dispute notification failed", { error: (error as Error).message })),
+      ));
       res.status(201).json({ dispute });
     } catch (error) {
       next(error);

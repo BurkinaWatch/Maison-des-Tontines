@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
 import { tontineEngineModule } from "../tontines/tontine-engine/module.js";
+import { notifyUser } from "../notifications/notification.service.js";
 
 export class MembershipsController {
   async inviteMember(req: any, res: Response, next: NextFunction) {
@@ -65,6 +66,13 @@ export class MembershipsController {
       });
 
       logger.info("Member invited", { tontineId, userId: user.id });
+      void notifyUser({
+        userId: user.id,
+        type: "INVITATION",
+        title: "Tontine invitation",
+        body: `You have been invited to join ${tontine.name}.`,
+        data: { tontineId, membershipId: membership.id, category: "invitations" },
+      }).catch((error) => logger.warn("Invitation notification failed", { error: (error as Error).message }));
       res.status(201).json({ membership });
     } catch (error) {
       next(error);

@@ -61,12 +61,19 @@ export function optionalAuth(req: AuthenticatedRequest, res: Response, next: Nex
 }
 
 export function requireRole(...allowedRoles: string[]) {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    const currentUser = await getPrisma().user.findUnique({
+      where: { id: req.userId! },
+      select: { role: true, status: true },
+    });
+    if (!currentUser || currentUser.status !== "ACTIVE") {
+      return res.status(403).json({ error: "Forbidden", message: "Account is inactive" });
+    }
+    if (!allowedRoles.includes(currentUser.role)) {
       return res.status(403).json({
         error: "Forbidden",
         message: `Access denied. Required roles: ${allowedRoles.join(", ")}`,

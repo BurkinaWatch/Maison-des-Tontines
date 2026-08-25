@@ -3,7 +3,7 @@ import { z } from "zod";
 export const InitiatePaymentDto = z.object({
   tontineId: z.string(),
   cycleId: z.string(),
-  amount: z.number().positive(),
+  amount: z.number().positive().optional(),
   phoneNumber: z.string().regex(/^\+?[1-9]\d{6,14}$/, "Invalid phone number format"),
   method: z.enum(["MOBILE_MONEY", "CASH", "BANK_TRANSFER"]).default("MOBILE_MONEY"),
 });

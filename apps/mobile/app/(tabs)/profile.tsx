@@ -33,6 +33,7 @@ export default function ProfileScreen() {
       { icon: "🔒", label: t("Change Password"), action: () => goTo("/profile/password") },
       { icon: "🔔", label: t("Notification Settings"), action: () => goTo("/profile/notifications") },
       { icon: "💳", label: t("Payment Methods"), action: () => goTo("/profile/payment-methods") },
+      { icon: "✉️", label: t("Tontine invitations"), action: () => goTo("/memberships/invitations") },
     {
       icon: "🌍",
        label: t("Language & Currency"),

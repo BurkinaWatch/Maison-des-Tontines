@@ -73,6 +73,30 @@ export class PaymentsController {
         return res.status(400).json({ error: "Payment provider not available" });
       }
 
+      const providerRecord = await getPrisma().paymentProvider.upsert({
+        where: { name: provider.name },
+        update: { isActive: true, type: providerType },
+        create: { name: provider.name, type: providerType, config: JSON.stringify({}), isActive: true },
+      });
+      if (existing?.status === "PROCESSING") {
+        const previous = await getPrisma().paymentTransaction.findFirst({
+          where: { contributionId: existing.id, userId, status: { in: ["PENDING", "PROCESSING"] } },
+          orderBy: { createdAt: "desc" },
+        });
+        if (previous) {
+          return res.json({
+            payment: {
+              providerRef: previous.providerRef,
+              internalReference: previous.internalReference,
+              contributionId: existing.id,
+              status: previous.status,
+              amount: previous.amount,
+              currency: previous.currency,
+            },
+          });
+        }
+      }
+
       const reference = `MDT-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
       const contribution = existing ?? await getPrisma().contribution.create({
         data: {
@@ -96,18 +120,22 @@ export class PaymentsController {
           where: { id: contribution.id },
           data: { status: "PROCESSING", method: method ?? "MOBILE_MONEY", providerRef: result.providerRef },
         });
-        const transaction = await getPrisma().paymentTransaction.findFirst({
-          where: { providerRef: result.providerRef },
+        await getPrisma().paymentTransaction.create({
+          data: {
+            providerId: providerRecord.id,
+            providerRef: result.providerRef,
+            internalReference: reference,
+            userId,
+            tontineId,
+            cycleId,
+            contributionId: contribution.id,
+            amount: officialAmount,
+            currency: cycle.tontine.currency,
+            status: "PROCESSING",
+            direction: "IN",
+            metadata: JSON.stringify({ phoneNumber, method: method ?? "MOBILE_MONEY" }),
+          },
         });
-        if (transaction) {
-          await getPrisma().paymentTransaction.update({
-            where: { id: transaction.id },
-            data: {
-              internalReference: reference, userId, tontineId, cycleId,
-              contributionId: contribution.id, status: "PROCESSING",
-            },
-          });
-        }
       }
 
       res.status(200).json({
@@ -180,8 +208,25 @@ export class PaymentsController {
       }
 
       const status = await provider.checkPaymentStatus(transaction.providerRef ?? providerRef);
+      const normalizedStatus = status.status.toUpperCase();
+      const success = ["SUCCESS", "SUCCEEDED", "COMPLETED", "PAID"].includes(normalizedStatus);
+      const terminalFailure = ["FAILED", "CANCELLED", "EXPIRED"].includes(normalizedStatus);
+      if (success || terminalFailure) {
+        await getPrisma().$transaction(async (tx) => {
+          const current = await tx.paymentTransaction.findUnique({ where: { id: transaction.id } });
+          if (!current || ["SUCCESS", "FAILED", "CANCELLED", "EXPIRED"].includes(current.status)) return;
+          const nextStatus = success ? "SUCCESS" : normalizedStatus;
+          await tx.paymentTransaction.update({ where: { id: transaction.id }, data: { status: nextStatus } });
+          if (transaction.contributionId) {
+            await tx.contribution.update({
+              where: { id: transaction.contributionId },
+              data: success ? { status: "PAID", confirmedAt: new Date() } : { status: nextStatus },
+            });
+          }
+        });
+      }
       res.json({
-        status: status.status,
+        status: normalizedStatus,
         amount: transaction.amount,
         currency: transaction.currency,
         internalReference: transaction.internalReference,

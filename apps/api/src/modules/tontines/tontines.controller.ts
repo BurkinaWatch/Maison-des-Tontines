@@ -161,9 +161,10 @@ export class TontinesController {
       const { id } = req.params;
 
       const members = await getPrisma().tontineMember.findMany({
-        where: { tontineId: id, status: "ACTIVE" },
+        where: { tontineId: id, status: { in: ["ACTIVE", "INVITED"] } },
         include: {
           user: { select: { id: true, phone: true, email: true, name: true } },
+          contributions: { select: { status: true, amount: true, cycleId: true } },
         },
         orderBy: { payoutOrder: "asc" },
       });

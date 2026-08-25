@@ -1,11 +1,12 @@
 import { create } from "zustand/index.js";
 import { tontineService } from "../services/tontine.service";
-import { Tontine, TontineMember, Cycle } from "../types/tontine";
+import { Tontine, TontineMember, Cycle, MembershipInvitation } from "../types/tontine";
 
 interface TontineStore {
   tontines: Tontine[];
   selectedTontine: Tontine | null;
   members: TontineMember[];
+  invitations: MembershipInvitation[];
   cycles: Cycle[];
   isLoading: boolean,
   fetchTontines: () => Promise<void>;
@@ -16,12 +17,18 @@ interface TontineStore {
   deleteTontine: (id: string) => Promise<void>;
   fetchMembers: (tontineId: string) => Promise<void>;
   fetchCycles: (tontineId: string) => Promise<void>;
+  inviteMember: (tontineId: string, target: { phone?: string; email?: string }) => Promise<void>;
+  removeMember: (tontineId: string, memberId: string) => Promise<void>;
+  updateMemberRole: (tontineId: string, memberId: string, role: string) => Promise<void>;
+  fetchInvitations: () => Promise<void>;
+  respondToInvitation: (membershipId: string, decision: "ACCEPT" | "DECLINE") => Promise<void>;
 }
 
 export const useTontineStore = create<TontineStore>((set, get) => ({
   tontines: [],
   selectedTontine: null,
   members: [],
+  invitations: [],
   cycles: [],
   isLoading: false,
 
@@ -110,5 +117,29 @@ export const useTontineStore = create<TontineStore>((set, get) => ({
     } catch (error) {
       throw error;
     }
+  },
+
+  inviteMember: async (tontineId, target) => {
+    await tontineService.inviteMember(tontineId, target);
+  },
+
+  removeMember: async (tontineId, memberId) => {
+    await tontineService.removeMember(tontineId, memberId);
+    set((state) => ({ members: state.members.filter((member) => member.id !== memberId) }));
+  },
+
+  updateMemberRole: async (tontineId, memberId, role) => {
+    const member = await tontineService.updateMemberRole(tontineId, memberId, role);
+    set((state) => ({ members: state.members.map((item) => item.id === memberId ? { ...item, ...member } : item) }));
+  },
+
+  fetchInvitations: async () => {
+    const invitations = await tontineService.getMyInvitations();
+    set({ invitations });
+  },
+
+  respondToInvitation: async (membershipId, decision) => {
+    await tontineService.respondToInvitation(membershipId, decision);
+    set((state) => ({ invitations: state.invitations.filter((item) => item.id !== membershipId) }));
   },
 }));

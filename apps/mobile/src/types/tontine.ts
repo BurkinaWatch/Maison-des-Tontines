@@ -38,8 +38,20 @@ export interface TontineMember {
   phoneNumber: string;
   avatarUrl?: string;
   position: number;
-  payoutOrder: number[];
+  payoutOrder: number | number[];
   joinedAt: string;
+  role?: "MEMBER" | "TREASURER" | "ADMIN" | "ORGANIZER";
+  status?: "ACTIVE" | "INVITED" | "DECLINED" | "INACTIVE";
+  email?: string;
+  contributions?: { status: string; amount: number; cycleId: string }[];
+}
+
+export interface MembershipInvitation {
+  id: string;
+  tontineId: string;
+  status: "INVITED";
+  joinedAt: string;
+  tontine: { id: string; name: string; currency: string; contributionAmount: number };
 }
 
 export interface TontineRules {

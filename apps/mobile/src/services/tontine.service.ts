@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { Tontine, CreateTontineRequest, Cycle, TontineMember } from "../types/tontine";
+import { Tontine, CreateTontineRequest, Cycle, TontineMember, MembershipInvitation } from "../types/tontine";
 
 export const tontineService = {
   async getTontines(): Promise<Tontine[]> {
@@ -53,5 +53,33 @@ export const tontineService = {
 
   async removeMember(tontineId: string, memberId: string): Promise<void> {
     await api.delete(`/tontines/${tontineId}/members/${memberId}`);
+  },
+
+  async inviteMember(tontineId: string, target: { phone?: string; email?: string }): Promise<TontineMember> {
+    const response = await api.post<{ membership: TontineMember }>(
+      `/memberships/${tontineId}/members/invite`, target
+    );
+    return response.membership;
+  },
+
+  async updateMemberRole(tontineId: string, memberId: string, role: string): Promise<TontineMember> {
+    const response = await api.request<{ membership: TontineMember }>(
+      `/memberships/${tontineId}/members/${memberId}`,
+      { method: "PATCH", body: JSON.stringify({ role }) }
+    );
+    return response.membership;
+  },
+
+  async getMyInvitations(): Promise<MembershipInvitation[]> {
+    const response = await api.get<{ invitations: MembershipInvitation[] }>("/memberships/invitations");
+    return response.invitations ?? [];
+  },
+
+  async respondToInvitation(membershipId: string, decision: "ACCEPT" | "DECLINE"): Promise<TontineMember> {
+    const response = await api.request<{ membership: TontineMember }>(
+      `/memberships/invitations/${membershipId}`,
+      { method: "PATCH", body: JSON.stringify({ decision }) }
+    );
+    return response.membership;
   },
 };

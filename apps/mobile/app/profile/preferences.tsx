@@ -7,9 +7,11 @@ import { GlassButton, GlassInput } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { defaultProfilePreferences, loadProfilePreferences, ProfilePreferences, saveProfilePreferences } from "../../src/utils/localPreferences";
 import { CURRENCIES, LANGUAGES } from "../../src/utils/profileOptions";
+import { useI18n } from "../../src/i18n";
 
 export default function PreferencesScreen() {
   const router = useRouter();
+  const { t, setLanguage } = useI18n();
   const [preferences, setPreferences] = useState<ProfilePreferences>(defaultProfilePreferences);
   const [query, setQuery] = useState("");
   const [saving, setSaving] = useState(false);
@@ -33,9 +35,10 @@ export default function PreferencesScreen() {
     setSaving(true);
     try {
       await saveProfilePreferences(preferences);
-      Alert.alert("Preferences saved", "Your language and currency preferences were updated.", [{ text: "OK", onPress: () => router.back() }]);
+      setLanguage(preferences.language);
+      Alert.alert(t("Preferences saved"), t("Your language and currency preferences were updated."), [{ text: "OK", onPress: () => router.back() }]);
     } catch {
-      Alert.alert("Unable to save", "Please try again.");
+      Alert.alert(t("Unable to save"), t("Please try again."));
     } finally {
       setSaving(false);
     }
@@ -44,40 +47,40 @@ export default function PreferencesScreen() {
   return (
     <SafeAreaWrapper>
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <AppHeader title="Language & Currency" showBack />
+        <AppHeader title={t("Language & Currency")} showBack />
         <View style={styles.card}>
           <AccordionHeader
-            title={`Language (${LANGUAGES.length})`}
+            title={`${t("Language")} (${LANGUAGES.length})`}
             summary={LANGUAGES.find((item) => item.code === preferences.language)?.label ?? preferences.language}
             expanded={expandedSection === "language"}
             onPress={() => setExpandedSection((section) => section === "language" ? "currency" : "language")}
           />
           {expandedSection === "language" && (
             <>
-              <GlassInput label="Search languages" value={query} onChangeText={setQuery} placeholder="Search by name or code" autoCapitalize="none" />
+              <GlassInput label={t("Search languages")} value={query} onChangeText={setQuery} placeholder={t("Search by name or code")} autoCapitalize="none" />
               {languages.map((item, index) => (
                 <Option key={item.code} label={item.label} detail={item.nativeLabel && item.nativeLabel !== item.label ? item.nativeLabel : item.code.toUpperCase()} selected={preferences.language === item.code} onPress={() => setPreferences((p) => ({ ...p, language: item.code }))} last={index === languages.length - 1} />
               ))}
-              {languages.length === 0 && <Text style={styles.noResults}>No language found.</Text>}
+              {languages.length === 0 && <Text style={styles.noResults}>{t("No language found.")}</Text>}
             </>
           )}
           <AccordionHeader
-            title={`Currency (${CURRENCIES.length})`}
+            title={`${t("Currency")} (${CURRENCIES.length})`}
             summary={CURRENCIES.find((item) => item.code === preferences.currency)?.code ?? preferences.currency}
             expanded={expandedSection === "currency"}
             onPress={() => setExpandedSection((section) => section === "currency" ? "language" : "currency")}
           />
           {expandedSection === "currency" && (
             <>
-              <GlassInput label="Search currencies" value={query} onChangeText={setQuery} placeholder="Search by name or code" autoCapitalize="none" />
+              <GlassInput label={t("Search currencies")} value={query} onChangeText={setQuery} placeholder={t("Search by name or code")} autoCapitalize="none" />
               {currencies.map((item, index) => (
                 <Option key={item.code} label={`${item.code} — ${item.name}`} detail={item.symbol} selected={preferences.currency === item.code} onPress={() => setPreferences((p) => ({ ...p, currency: item.code }))} last={index === currencies.length - 1} />
               ))}
-              {currencies.length === 0 && <Text style={styles.noResults}>No currency found.</Text>}
+              {currencies.length === 0 && <Text style={styles.noResults}>{t("No currency found.")}</Text>}
             </>
           )}
         </View>
-        <GlassButton title="Save preferences" onPress={save} loading={saving} style={styles.button} />
+        <GlassButton title={t("Save preferences")} onPress={save} loading={saving} style={styles.button} />
       </ScrollView>
     </SafeAreaWrapper>
   );

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import { colors, spacing, typography } from "../../theme";
+import { useI18n } from "../../i18n";
 
 interface HeaderProps {
   title?: string;
@@ -22,6 +23,7 @@ export const AppHeader: React.FC<HeaderProps> = ({
 }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useI18n();
 
   const isAuthScreen = pathname.includes("/(auth)");
 
@@ -38,8 +40,8 @@ export const AppHeader: React.FC<HeaderProps> = ({
           </Pressable>
         )}
         <View style={styles.titleContainer}>
-          {title && <Text style={styles.title}>{title}</Text>}
-          {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+           {title && <Text style={styles.title}>{t(title)}</Text>}
+           {subtitle && <Text style={styles.subtitle}>{t(subtitle)}</Text>}
         </View>
         <View style={styles.rightContainer}>
           {rightAction}

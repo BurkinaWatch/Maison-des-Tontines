@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useAuthStore } from "../src/store/authStore";
+import { I18nProvider } from "../src/i18n";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,15 +29,16 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        <AuthBootstrap />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: "#0a0a14" },
-          }}
-        >
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <I18nProvider>
+          <AuthBootstrap />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: "#0a0a14" },
+            }}
+          >
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="tontine/create" options={{ headerShown: false }} />
           <Stack.Screen name="tontine/[id]" options={{ headerShown: false }} />
           <Stack.Screen
@@ -72,8 +74,9 @@ export default function RootLayout() {
           <Stack.Screen name="profile/preferences" options={{ headerShown: false }} />
           <Stack.Screen name="profile/help" options={{ headerShown: false }} />
           <Stack.Screen name="profile/legal" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" options={{ title: "Not Found" }} />
-        </Stack>
+            <Stack.Screen name="+not-found" options={{ title: "Not Found" }} />
+          </Stack>
+        </I18nProvider>
       </SafeAreaProvider>
     </QueryClientProvider>
   );

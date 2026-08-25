@@ -13,37 +13,39 @@ import { AppHeader } from "../../src/components/layout/AppHeader";
 import { GlassCard, GlassButton, StatusBadge } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useAuthStore } from "../../src/store/authStore";
+import { useI18n } from "../../src/i18n";
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
   const router = useRouter();
+  const { t } = useI18n();
   const goTo = (path: string) => router.push(path as never);
 
   const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Logout", style: "destructive", onPress: logout },
+    Alert.alert(t("Logout"), t("Are you sure you want to logout?"), [
+      { text: t("Cancel"), style: "cancel" },
+      { text: t("Logout"), style: "destructive", onPress: logout },
     ]);
   };
 
   const menuItems = [
-    { icon: "👤", label: "Edit Profile", action: () => goTo("/profile/edit") },
-    { icon: "🔒", label: "Change Password", action: () => goTo("/profile/password") },
-    { icon: "🔔", label: "Notification Settings", action: () => goTo("/profile/notifications") },
-    { icon: "💳", label: "Payment Methods", action: () => goTo("/profile/payment-methods") },
+      { icon: "👤", label: t("Edit Profile"), action: () => goTo("/profile/edit") },
+      { icon: "🔒", label: t("Change Password"), action: () => goTo("/profile/password") },
+      { icon: "🔔", label: t("Notification Settings"), action: () => goTo("/profile/notifications") },
+      { icon: "💳", label: t("Payment Methods"), action: () => goTo("/profile/payment-methods") },
     {
       icon: "🌍",
-      label: "Language & Currency",
+       label: t("Language & Currency"),
       action: () => goTo("/profile/preferences"),
     },
     {
       icon: "❓",
-      label: "Help & Support",
+       label: t("Help & Support"),
       action: () => goTo("/profile/help"),
     },
     {
       icon: "📄",
-      label: "Terms & Privacy",
+       label: t("Terms & Privacy"),
       action: () => goTo("/profile/legal"),
     },
   ];
@@ -54,7 +56,7 @@ export default function ProfileScreen() {
         style={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <AppHeader title="Profile" showProfile={false} />
+         <AppHeader title={t("Profile")} showProfile={false} />
 
         <View style={styles.content}>
           <View style={styles.profileHeader}>
@@ -66,10 +68,10 @@ export default function ProfileScreen() {
               </Text>
             </View>
             <Text style={styles.name}>
-              {user ? `${user.firstName} ${user.lastName}` : "Guest"}
+               {user ? `${user.firstName} ${user.lastName}` : t("Guest")}
             </Text>
             <Text style={styles.phone}>
-              {user?.phoneNumber || "Not signed in"}
+               {user?.phoneNumber || t("Not signed in")}
             </Text>
             {user?.role && (
               <StatusBadge
@@ -96,7 +98,7 @@ export default function ProfileScreen() {
           </View>
 
           <GlassButton
-            title="Logout"
+             title={t("Logout")}
             onPress={handleLogout}
             variant="secondary"
             style={styles.logoutButton}

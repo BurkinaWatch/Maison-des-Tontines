@@ -89,7 +89,7 @@ export class WebhookController {
       where: { providerRef },
       include: { contribution: true, cycle: true },
     });
-    if (!transaction || !transaction.contributionId || !transaction.cycleId) {
+    if (!transaction || !transaction.contributionId || !transaction.cycleId || !transaction.contribution) {
       throw new Error("Payment transaction not found");
     }
     if (Number(payload.amount) !== Number(transaction.amount) ||

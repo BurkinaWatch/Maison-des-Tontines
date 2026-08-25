@@ -33,12 +33,31 @@ export const contributionService = {
     return response.data;
   },
 
-  async initiatePayment(contributionId: string, method: string): Promise<{ reference: string }> {
-    const response = await api.post<{ reference: string }>(
-      `/contributions/${contributionId}/initiate-payment`,
-      { method }
-    );
-    return response;
+  async initiatePayment(input: {
+    tontineId: string;
+    cycleId: string;
+    phoneNumber: string;
+    method: "MOBILE_MONEY" | "BANK_TRANSFER" | "CASH";
+    amount?: number;
+  }): Promise<{
+    payment: {
+      internalReference: string;
+      providerRef: string;
+      contributionId: string;
+      status: string;
+      amount: number;
+      currency: string;
+    };
+  }> {
+    return api.post("/payments/contributions", input);
+  },
+
+  async getPaymentStatus(reference: string): Promise<{
+    status: string;
+    internalReference?: string;
+    contributionId?: string;
+  }> {
+    return api.get(`/payments/status/${encodeURIComponent(reference)}`);
   },
 
   async getPayouts(tontineId?: string): Promise<Payout[]> {

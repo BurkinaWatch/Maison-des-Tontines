@@ -13,7 +13,7 @@ export default function PreferencesScreen() {
   const [preferences, setPreferences] = useState<ProfilePreferences>(defaultProfilePreferences);
   const [query, setQuery] = useState("");
   const [saving, setSaving] = useState(false);
-  const [expandedSection, setExpandedSection] = useState<"language" | "currency">("language");
+  const [expandedSection, setExpandedSection] = useState<"language" | "currency" | null>(null);
   useEffect(() => { void loadProfilePreferences().then(setPreferences); }, []);
 
   const normalizedQuery = query.trim().toLowerCase();

@@ -5,3 +5,4 @@
 - [Railway migration environment](railway-migration-environment.md) — Gate PostgreSQL migrations to production so local tools never target the Railway URL.
 - [API test server startup](api-test-server-startup.md) — Avoid starting the HTTP listener when importing the Express app in test environments.
 - [Playwright preview runtime](playwright-preview-runtime.md) — Use Nix Chromium from PATH for preview browser smoke tests.
+- [Root validation command](npm-workspace-validation.md) — Delegate focused root checks through npm workspace scripts when pnpm bootstrapping is unavailable.

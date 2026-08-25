@@ -12,6 +12,7 @@
     "dev": "turbo run dev",
     "start": "NODE_ENV=production pnpm --filter @maison-des-tontines/api prisma:migrate:production && NODE_ENV=production pnpm --filter @maison-des-tontines/api start",
     "lint": "turbo run lint",
+    "typecheck": "npm run typecheck --workspace=maison-des-tontines-mobile",
     "test": "turbo run test",
     "test:e2e:preview": "playwright test",
     "db:generate": "prisma generate",

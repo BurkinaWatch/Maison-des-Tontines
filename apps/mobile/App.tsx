@@ -1,4 +1,5 @@
 import { Component, useState, type ErrorInfo, type ReactNode } from "react";
+import { ExpoRoot } from "expo-router";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,6 +15,7 @@ import {
 } from "react-native";
 
 type Screen = "login" | "register";
+const routerContext = require.context("./app");
 
 class AppErrorBoundary extends Component<
   { children: ReactNode },
@@ -142,12 +144,7 @@ function App() {
 
   if (connectedName) {
     return (
-      <AuthenticatedScreen
-        name={connectedName}
-        isSubmitting={isSubmitting}
-        message={message}
-        onLogout={handleLogout}
-      />
+      <ExpoRoot context={routerContext} location="/(tabs)" />
     );
   }
 

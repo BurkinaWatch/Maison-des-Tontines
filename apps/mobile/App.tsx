@@ -225,40 +225,469 @@ export default function AppWithErrorBoundary() {
 
 function AuthenticatedScreen(props: {
   name: string;
+  user: User;
   isSubmitting: boolean;
   message: string;
   onLogout: () => void;
 }) {
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
-      <View style={styles.authenticatedScreen}>
-        <Text style={styles.authenticatedTitle}>Maison des Tontines</Text>
-        <Text style={styles.authenticatedWelcome}>Bienvenue, {props.name}</Text>
-        <Text style={styles.authenticatedText}>
-          Connexion réussie. Ton espace est prêt.
-        </Text>
-        <View style={styles.authenticatedPanel}>
-          <Text style={styles.authenticatedPanelTitle}>Tableau de bord</Text>
-          <Text style={styles.authenticatedPanelText}>Mes tontines</Text>
-          <Text style={styles.authenticatedPanelText}>Contributions</Text>
-          <Text style={styles.authenticatedPanelText}>Notifications</Text>
+  const [activeTab, setActiveTab] = useState<AuthenticatedTab>("dashboard");
+  const [tontines, setTontines] = useState<Tontine[]>([]);
+  const [upcoming, setUpcoming] = useState<Contribution[]>([]);
+  const [history, setHistory] = useState<Contribution[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [loadMessage, setLoadMessage] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTabData() {
+      setIsLoading(true);
+      setLoadMessage("");
+
+      try {
+        if (activeTab === "dashboard") {
+          const [nextTontines, nextUpcoming] = await Promise.all([
+            tontineService.getTontines(),
+            contributionService.getUpcoming(),
+          ]);
+          if (!cancelled) {
+            setTontines(nextTontines);
+            setUpcoming(nextUpcoming);
+          }
+        } else if (activeTab === "tontines") {
+          const nextTontines = await tontineService.getTontines();
+          if (!cancelled) setTontines(nextTontines);
+        } else if (activeTab === "contributions") {
+          const [nextUpcoming, nextHistory] = await Promise.all([
+            contributionService.getUpcoming(),
+            contributionService.getHistory(),
+          ]);
+          if (!cancelled) {
+            setUpcoming(nextUpcoming);
+            setHistory(nextHistory);
+          }
+        } else if (activeTab === "notifications") {
+          const [nextNotifications, unread] = await Promise.all([
+            notificationService.getNotifications(),
+            notificationService.getUnreadCount(),
+          ]);
+          if (!cancelled) {
+            setNotifications(nextNotifications);
+            setUnreadCount(unread.count);
+          }
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadMessage(errorMessage(error, "Impossible de charger ces données."));
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    if (activeTab !== "profile") {
+      void loadTabData();
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, refreshKey]);
+
+  async function markNotificationAsRead(notificationId: string) {
+    try {
+      await notificationService.markAsRead(notificationId);
+      setNotifications((current) =>
+        current.map((notification) =>
+          notification.id === notificationId
+            ? { ...notification, read: true }
+            : notification
+        )
+      );
+      setUnreadCount((count) => Math.max(0, count - 1));
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "La notification n’a pas pu être mise à jour."));
+    }
+  }
+
+  async function markAllNotificationsAsRead() {
+    try {
+      await notificationService.markAllAsRead();
+      setNotifications((current) =>
+        current.map((notification) => ({ ...notification, read: true }))
+      );
+      setUnreadCount(0);
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "Les notifications n’ont pas pu être mises à jour."));
+    }
+  }
+
+  const initials = `${props.user.firstName[0] || ""}${props.user.lastName[0] || ""}`.toUpperCase() || "?";
+
+  function renderDashboard() {
+    const activeTontines = tontines.filter((tontine) => tontine.status === "active");
+
+    return (
+      <>
+        <View style={styles.nativeWelcomeCard}>
+          <Text style={styles.nativeEyebrow}>VOTRE ESPACE</Text>
+          <Text style={styles.nativeWelcomeTitle}>Bienvenue, {props.name}</Text>
+          <Text style={styles.nativeMutedText}>
+            Suivez vos tontines et vos prochaines contributions.
+          </Text>
         </View>
-        {props.message ? <Text style={styles.error}>{props.message}</Text> : null}
+
+        <SectionTitle
+          title="Tontines actives"
+          action="Voir tout"
+          onPress={() => setActiveTab("tontines")}
+        />
+        {activeTontines.length > 0 ? (
+          activeTontines.slice(0, 3).map((tontine) => (
+            <TontineCard key={tontine.id} tontine={tontine} />
+          ))
+        ) : (
+          <EmptyNativeCard text="Aucune tontine active pour le moment." />
+        )}
+
+        <SectionTitle
+          title="Prochaines contributions"
+          action="Voir tout"
+          onPress={() => setActiveTab("contributions")}
+        />
+        {upcoming.length > 0 ? (
+          upcoming.slice(0, 3).map((contribution) => (
+            <ContributionCard key={contribution.id} contribution={contribution} />
+          ))
+        ) : (
+          <EmptyNativeCard text="Aucune contribution à venir." />
+        )}
+      </>
+    );
+  }
+
+  function renderTontines() {
+    return (
+      <>
+        <View style={styles.nativePageHeading}>
+          <View>
+            <Text style={styles.nativePageTitle}>Mes tontines</Text>
+            <Text style={styles.nativeMutedText}>{tontines.length} au total</Text>
+          </View>
+        </View>
+        {tontines.length > 0 ? (
+          tontines.map((tontine) => <TontineCard key={tontine.id} tontine={tontine} />)
+        ) : (
+          <EmptyNativeCard text="Tu ne participes encore à aucune tontine." />
+        )}
+      </>
+    );
+  }
+
+  function renderContributions() {
+    return (
+      <>
+        <View style={styles.nativePageHeading}>
+          <Text style={styles.nativePageTitle}>Contributions</Text>
+          <Text style={styles.nativeMutedText}>Gérez vos paiements</Text>
+        </View>
+        <Text style={styles.nativeSectionTitle}>À venir</Text>
+        {upcoming.length > 0 ? (
+          upcoming.map((contribution) => (
+            <ContributionCard key={contribution.id} contribution={contribution} />
+          ))
+        ) : (
+          <EmptyNativeCard text="Aucune contribution à venir." />
+        )}
+        <Text style={[styles.nativeSectionTitle, styles.nativeSectionSpacing]}>Historique</Text>
+        {history.length > 0 ? (
+          history.map((contribution) => (
+            <ContributionCard key={contribution.id} contribution={contribution} />
+          ))
+        ) : (
+          <EmptyNativeCard text="Aucun historique de paiement." />
+        )}
+      </>
+    );
+  }
+
+  function renderNotifications() {
+    return (
+      <>
+        <View style={styles.nativePageHeading}>
+          <View>
+            <Text style={styles.nativePageTitle}>Notifications</Text>
+            <Text style={styles.nativeMutedText}>{unreadCount} non lue(s)</Text>
+          </View>
+          {unreadCount > 0 && (
+            <Pressable onPress={() => void markAllNotificationsAsRead}>
+              <Text style={styles.nativeLink}>Tout lire</Text>
+            </Pressable>
+          )}
+        </View>
+        {notifications.length > 0 ? (
+          notifications.map((notification) => (
+            <Pressable
+              key={notification.id}
+              onPress={() => void markNotificationAsRead(notification.id)}
+              style={[styles.nativeNotificationCard, !notification.read && styles.nativeUnreadCard]}
+            >
+              <Text style={styles.nativeNotificationIcon}>
+                {notificationEmoji(notification.type)}
+              </Text>
+              <View style={styles.nativeNotificationBody}>
+                <Text style={styles.nativeCardTitle}>{notification.title}</Text>
+                <Text style={styles.nativeMutedText}>{notification.message}</Text>
+                <Text style={styles.nativeSmallText}>{formatDateLabel(notification.createdAt)}</Text>
+              </View>
+              {!notification.read && <View style={styles.nativeUnreadDot} />}
+            </Pressable>
+          ))
+        ) : (
+          <EmptyNativeCard text="Tu n’as aucune nouvelle notification." icon="🔔" />
+        )}
+      </>
+    );
+  }
+
+  function renderProfile() {
+    return (
+      <>
+        <View style={styles.nativeProfileHeader}>
+          <View style={styles.nativeAvatar}>
+            <Text style={styles.nativeAvatarText}>{initials}</Text>
+          </View>
+          <Text style={styles.nativeProfileName}>
+            {props.user.firstName} {props.user.lastName}
+          </Text>
+          <Text style={styles.nativeMutedText}>{props.user.phoneNumber}</Text>
+          {props.user.email && <Text style={styles.nativeMutedText}>{props.user.email}</Text>}
+          <Text style={styles.nativeRole}>{props.user.role}</Text>
+        </View>
+        <View style={styles.nativeMenu}>
+          {["Modifier le profil", "Changer le mot de passe", "Préférences de notification", "Aide et support"].map(
+            (label) => (
+              <Pressable key={label} style={styles.nativeMenuItem}>
+                <Text style={styles.nativeMenuLabel}>{label}</Text>
+                <Text style={styles.nativeMenuArrow}>›</Text>
+              </Pressable>
+            )
+          )}
+        </View>
         <Pressable
           onPress={props.onLogout}
           disabled={props.isSubmitting}
-          style={styles.logoutButton}
+          style={styles.nativeLogoutButton}
         >
           {props.isSubmitting ? (
             <ActivityIndicator color={colors.accent} />
           ) : (
-            <Text style={styles.logoutText}>Se déconnecter</Text>
+            <Text style={styles.nativeLogoutText}>Se déconnecter</Text>
           )}
         </Pressable>
+      </>
+    );
+  }
+
+  const content =
+    activeTab === "dashboard"
+      ? renderDashboard()
+      : activeTab === "tontines"
+        ? renderTontines()
+        : activeTab === "contributions"
+          ? renderContributions()
+          : activeTab === "notifications"
+            ? renderNotifications()
+            : renderProfile();
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <View style={styles.nativeApp}>
+        <View style={styles.nativeHeader}>
+          <View>
+            <Text style={styles.nativeBrand}>Maison des Tontines</Text>
+            <Text style={styles.nativeHeaderSubtitle}>
+              {activeTab === "dashboard" ? "Tableau de bord" : tabLabel(activeTab)}
+            </Text>
+          </View>
+          <Pressable onPress={() => setActiveTab("profile")} style={styles.nativeHeaderAvatar}>
+            <Text style={styles.nativeHeaderAvatarText}>{initials}</Text>
+          </Pressable>
+        </View>
+        <ScrollView
+          style={styles.nativeContent}
+          contentContainerStyle={styles.nativeContentContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={() => setRefreshKey((key) => key + 1)}
+              tintColor={colors.accent}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {props.message || loadMessage ? (
+            <Text style={styles.nativeError}>{props.message || loadMessage}</Text>
+          ) : null}
+          {isLoading && !tontines.length && !notifications.length && !upcoming.length ? (
+            <View style={styles.nativeLoading}>
+              <ActivityIndicator color={colors.accent} size="large" />
+              <Text style={styles.nativeMutedText}>Chargement…</Text>
+            </View>
+          ) : (
+            content
+          )}
+        </ScrollView>
+        <View style={styles.nativeTabBar}>
+          {([
+            ["dashboard", "⌂", "Accueil"],
+            ["tontines", "🤝", "Tontines"],
+            ["contributions", "€", "Paiements"],
+            ["notifications", "🔔", "Alertes"],
+            ["profile", "●", "Profil"],
+          ] as const).map(([tab, icon, label]) => (
+            <Pressable
+              key={tab}
+              onPress={() => setActiveTab(tab)}
+              style={styles.nativeTab}
+            >
+              <Text style={[styles.nativeTabIcon, activeTab === tab && styles.nativeTabActive]}>
+                {icon}
+              </Text>
+              <Text style={[styles.nativeTabLabel, activeTab === tab && styles.nativeTabActive]}>
+                {label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
     </SafeAreaView>
   );
+}
+
+function SectionTitle(props: { title: string; action: string; onPress: () => void }) {
+  return (
+    <View style={styles.nativeSectionHeader}>
+      <Text style={styles.nativeSectionTitle}>{props.title}</Text>
+      <Pressable onPress={props.onPress}>
+        <Text style={styles.nativeLink}>{props.action}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function TontineCard({ tontine }: { tontine: Tontine }) {
+  return (
+    <View style={styles.nativeCard}>
+      <View style={styles.nativeCardHeader}>
+        <View style={styles.nativeCardHeading}>
+          <Text style={styles.nativeCardTitle}>{tontine.name}</Text>
+          <Text style={styles.nativeMutedText}>
+            {tontine.type} · {tontine.frequency}
+          </Text>
+        </View>
+        <Text style={styles.nativeStatus}>{tontine.status}</Text>
+      </View>
+      {!!tontine.description && (
+        <Text style={styles.nativeMutedText}>{tontine.description}</Text>
+      )}
+      <View style={styles.nativeStats}>
+        <View>
+          <Text style={styles.nativeSmallText}>Montant</Text>
+          <Text style={styles.nativeStatValue}>{formatMoney(tontine.amount, tontine.currency)}</Text>
+        </View>
+        <View>
+          <Text style={styles.nativeSmallText}>Membres</Text>
+          <Text style={styles.nativeStatValue}>{tontine.totalMembers}</Text>
+        </View>
+        <View>
+          <Text style={styles.nativeSmallText}>Cycle</Text>
+          <Text style={styles.nativeStatValue}>
+            {tontine.currentCycle}/{tontine.totalCycles}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function ContributionCard({ contribution }: { contribution: Contribution }) {
+  return (
+    <View style={styles.nativeCard}>
+      <View style={styles.nativeCardHeader}>
+        <View style={styles.nativeCardHeading}>
+          <Text style={styles.nativeCardTitle}>{contribution.tontineName}</Text>
+          <Text style={styles.nativeMutedText}>
+            Échéance : {formatDateLabel(contribution.dueDate)}
+          </Text>
+        </View>
+        <Text style={styles.nativeStatus}>{contribution.status}</Text>
+      </View>
+      <Text style={styles.nativeContributionAmount}>
+        {formatMoney(contribution.amount, contribution.currency)}
+      </Text>
+    </View>
+  );
+}
+
+function EmptyNativeCard({ text, icon = "🤝" }: { text: string; icon?: string }) {
+  return (
+    <View style={styles.nativeEmptyCard}>
+      <Text style={styles.nativeEmptyIcon}>{icon}</Text>
+      <Text style={styles.nativeMutedText}>{text}</Text>
+    </View>
+  );
+}
+
+function formatMoney(amount: number, currency: string) {
+  try {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${amount.toLocaleString("fr-FR")} ${currency}`;
+  }
+}
+
+function formatDateLabel(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function notificationEmoji(type: Notification["type"]) {
+  switch (type) {
+    case "contribution":
+      return "💰";
+    case "payout":
+      return "💸";
+    case "dispute":
+      return "⚠️";
+    case "vote":
+      return "🗳️";
+    default:
+      return "📢";
+  }
+}
+
+function tabLabel(tab: AuthenticatedTab) {
+  return {
+    dashboard: "Tableau de bord",
+    tontines: "Mes tontines",
+    contributions: "Contributions",
+    notifications: "Notifications",
+    profile: "Profil",
+  }[tab];
 }
 
 function Field(props: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; secureTextEntry?: boolean; keyboardType?: "default" | "email-address" | "phone-pad" }) {

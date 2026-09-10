@@ -6,7 +6,7 @@ import { RecordContributionDto } from "./dto/contributions.dto.js";
 const router = Router();
 const controller = new ContributionsController();
 router.use(authMiddleware);
-router.post("/cycles/:cycleId/contributions", validate(RecordContributionDto), controller.recordContribution);
+router.post("/cycles/:cycleId/contributions", requireCycleMembership("cycleId"), validate(RecordContributionDto), controller.recordContribution);
 router.get("/cycles/:cycleId/contributions", requireCycleMembership("cycleId"), controller.getContributions);
 router.get("/me/contributions", controller.getMyContributions);
 export default router;

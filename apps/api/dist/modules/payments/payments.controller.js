@@ -28,6 +28,12 @@ export class PaymentsController {
             if (!member) {
                 return res.status(403).json({ error: "Not a member of this tontine" });
             }
+            const cycle = await getPrisma().tontineCycle.findFirst({
+                where: { id: cycleId, tontineId },
+            });
+            if (!cycle) {
+                return res.status(404).json({ error: "Cycle not found in this tontine" });
+            }
             const tontine = await getPrisma().tontine.findUnique({
                 where: { id: tontineId },
                 include: { rules: true },

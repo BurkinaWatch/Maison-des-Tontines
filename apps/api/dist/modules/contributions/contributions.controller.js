@@ -3,15 +3,25 @@ import { tontineEngineModule } from "../tontines/tontine-engine/module.js";
 export class ContributionsController {
     async recordContribution(req, res, next) {
         try {
-            const { cycleId } = req.body;
+            const { cycleId: requestedCycleId } = req.body;
+            const cycleId = req.params.cycleId;
             const memberId = req.params.membershipId;
             const userId = req.userId;
+            if (requestedCycleId !== cycleId) {
+                return res.status(400).json({ error: "Cycle identifier does not match the request path" });
+            }
             const cycle = await getPrisma().tontineCycle.findUnique({
                 where: { id: cycleId },
                 include: { tontine: true },
             });
             if (!cycle) {
                 return res.status(404).json({ error: "Cycle not found" });
+            }
+            const membership = await getPrisma().tontineMember.findFirst({
+                where: { id: memberId, tontineId: cycle.tontineId, userId, status: "ACTIVE" },
+            });
+            if (!membership) {
+                return res.status(403).json({ error: "Not a member of this tontine" });
             }
             const contribution = await tontineEngineModule.getContributionService().recordContribution(cycle.tontineId, cycleId, memberId, req.body.amount, req.body.method, req.body.providerRef);
             res.status(201).json({ contribution });

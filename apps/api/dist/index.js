@@ -12,6 +12,9 @@ import { getEnv } from "./config/env.js";
 dotenv.config();
 const env = getEnv();
 const app = express();
+// The API is served behind Replit's reverse proxy in preview/production.
+// Trust its forwarded client address so rate limiting uses the real client IP.
+app.set("trust proxy", 1);
 app.use(helmet());
 app.use(compression());
 app.use(cors({

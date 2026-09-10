@@ -147,4 +147,35 @@ export function requireCycleMembership(cycleParam = "cycleId") {
         }
     };
 }
+export function requireCycleInTontine(tontineParam = "tontineId", cycleParam = "cycleId") {
+    return async (req, res, next) => {
+        if (!req.userId)
+            return res.status(401).json({ error: "Unauthorized" });
+        const tontineId = req.params[tontineParam];
+        const cycleId = req.params[cycleParam];
+        if (!tontineId || !cycleId) {
+            return res.status(400).json({ error: "Invalid tontine or cycle identifier" });
+        }
+        try {
+            const cycle = await getPrisma().tontineCycle.findFirst({
+                where: { id: cycleId, tontineId },
+                select: { id: true },
+            });
+            if (!cycle)
+                return res.status(404).json({ error: "Cycle not found in this tontine" });
+            const membership = await getPrisma().tontineMember.findFirst({
+                where: { tontineId, userId: req.userId, status: "ACTIVE" },
+                select: { id: true },
+            });
+            if (!membership) {
+                return res.status(403).json({ error: "Forbidden", message: "Not a member of this tontine" });
+            }
+            next();
+        }
+        catch (error) {
+            logger.error("Tontine cycle access check failed", { error: error.message });
+            return res.status(500).json({ error: "Internal server error" });
+        }
+    };
+}
 //# sourceMappingURL=auth.js.map

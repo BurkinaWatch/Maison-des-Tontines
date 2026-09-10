@@ -76,8 +76,14 @@ export class MembershipsController {
     async removeMember(req, res, next) {
         try {
             const { tontineId, memberId } = req.params;
+            const membership = await getPrisma().tontineMember.findFirst({
+                where: { id: memberId, tontineId },
+            });
+            if (!membership) {
+                return res.status(404).json({ error: "Member not found in this tontine" });
+            }
             await getPrisma().tontineMember.update({
-                where: { id: memberId },
+                where: { id: membership.id },
                 data: { status: "INACTIVE", leftAt: new Date() },
             });
             logger.info("Member removed", { tontineId, memberId });

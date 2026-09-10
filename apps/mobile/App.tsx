@@ -15,7 +15,10 @@ import {
 } from "react-native";
 
 type Screen = "login" | "register";
-const routerContext = require.context("./app");
+type RequireWithContext = NodeRequire & {
+  context: (path: string) => Parameters<typeof ExpoRoot>[0]["context"];
+};
+const routerContext = (require as RequireWithContext).context("./app");
 
 class AppErrorBoundary extends Component<
   { children: ReactNode },

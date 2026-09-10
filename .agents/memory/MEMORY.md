@@ -5,3 +5,4 @@
 - [Railway migration environment](railway-migration-environment.md) — Gate PostgreSQL migrations to production so local tools never target the Railway URL.
 - [EAS monorepo APK builds](eas-monorepo-build.md) — Upload an isolated mobile archive when root npm locks contain Replit-only registry URLs.
 - [Expo Router Android startup isolation](expo-router-api-routes-android.md) — Keep a direct native entry screen ready when router registration fails before rendering.
+- [EAS OTA runtime matching](eas-ota-runtime.md) — Publish OTA updates with the exact runtime version embedded in the installed APK.

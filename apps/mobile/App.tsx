@@ -1,5 +1,4 @@
-import { Component, useState, type ErrorInfo, type ReactNode } from "react";
-import { ExpoRoot } from "expo-router";
+import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,12 +12,21 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { authService } from "./src/services/auth.service";
+import { contributionService } from "./src/services/contribution.service";
+import { notificationService, type Notification } from "./src/services/notification.service";
+import { tontineService } from "./src/services/tontine.service";
+import type { Contribution } from "./src/types/contribution";
+import type { Tontine } from "./src/types/tontine";
+import type { User } from "./src/types/user";
 
 type Screen = "login" | "register";
-type RequireWithContext = NodeRequire & {
-  context: (path: string) => Parameters<typeof ExpoRoot>[0]["context"];
-};
-const routerContext = (require as RequireWithContext).context("./app");
+type AuthenticatedTab =
+  | "dashboard"
+  | "tontines"
+  | "contributions"
+  | "notifications"
+  | "profile";
 
 class AppErrorBoundary extends Component<
   { children: ReactNode },
@@ -73,6 +81,7 @@ function App() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [connectedName, setConnectedName] = useState<string | null>(null);
+  const [connectedUser, setConnectedUser] = useState<User | null>(null);
   const [message, setMessage] = useState("");
   const isRegistering = screen === "register";
 
@@ -84,8 +93,8 @@ function App() {
     setIsSubmitting(true);
     setMessage("Connexion en cours…");
     try {
-      const { authService } = await import("./src/services/auth.service");
       const { user } = await authService.login({ email: email.trim(), password });
+      setConnectedUser(user);
       setConnectedName(user.firstName || user.email || "Membre");
       setMessage("");
     } catch (error) {
@@ -111,7 +120,6 @@ function App() {
     setIsSubmitting(true);
     setMessage("Création du compte en cours…");
     try {
-      const { authService } = await import("./src/services/auth.service");
       const { user } = await authService.register({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -119,6 +127,7 @@ function App() {
         email: email.trim(),
         password,
       });
+      setConnectedUser(user);
       setConnectedName(user.firstName || user.email || "Membre");
       setMessage("");
     } catch (error) {
@@ -131,8 +140,8 @@ function App() {
   async function handleLogout() {
     setIsSubmitting(true);
     try {
-      const { authService } = await import("./src/services/auth.service");
       await authService.logout();
+      setConnectedUser(null);
       setConnectedName(null);
       setPassword("");
       setMessage("");
@@ -145,9 +154,15 @@ function App() {
 
   const submit = isRegistering ? handleRegister : handleLogin;
 
-  if (connectedName) {
+  if (connectedUser) {
     return (
-      <ExpoRoot context={routerContext} location="/(tabs)" />
+      <AuthenticatedScreen
+        name={connectedName || connectedUser.firstName || "Membre"}
+        user={connectedUser}
+        isSubmitting={isSubmitting}
+        message={message}
+        onLogout={handleLogout}
+      />
     );
   }
 

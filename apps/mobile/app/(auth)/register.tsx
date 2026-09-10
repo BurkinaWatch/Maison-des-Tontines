@@ -66,6 +66,13 @@ export default function RegisterScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.content}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.replace("/(auth)/login")}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>← Back to sign in</Text>
+        </Pressable>
         <View style={styles.header}>
           <Text style={styles.logo}>🏠</Text>
           <Text style={styles.title}>Create Account</Text>
@@ -162,12 +169,23 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     padding: spacing.xl,
+    paddingTop: spacing.lg,
   },
   header: {
     alignItems: "center",
     marginBottom: spacing.xl,
+  },
+  backButton: {
+    alignSelf: "flex-start",
+    marginBottom: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  backButtonText: {
+    ...typography.bodySmall,
+    color: colors.accent,
+    fontWeight: "600",
   },
   logo: {
     fontSize: 64,

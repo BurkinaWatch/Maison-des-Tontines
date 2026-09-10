@@ -173,6 +173,19 @@ function App() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <View style={styles.card}>
+            {isRegistering && (
+              <Pressable
+                accessibilityRole="button"
+                disabled={isSubmitting}
+                onPress={() => {
+                  setMessage("");
+                  setScreen("login");
+                }}
+                style={styles.nativeBackButton}
+              >
+                <Text style={styles.nativeBackButtonText}>← Retour à la connexion</Text>
+              </Pressable>
+            )}
             <Text style={styles.logo}>🏠</Text>
             <Text style={styles.title}>
               {connectedName ? `Bienvenue, ${connectedName}` : "Maison des Tontines"}
@@ -730,6 +743,8 @@ const styles = StyleSheet.create({
   accountPrompt: { alignItems: "center", flexDirection: "row", flexWrap: "wrap", justifyContent: "center", marginTop: 18 },
   accountText: { color: colors.muted, fontSize: 14 },
   link: { color: colors.accent, fontSize: 14, fontWeight: "700" },
+  nativeBackButton: { alignSelf: "flex-start", marginBottom: 8, paddingVertical: 4 },
+  nativeBackButtonText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
   dashboard: { marginTop: 6 },
   welcomePanel: { backgroundColor: "rgba(212,165,116,0.12)", borderColor: "rgba(212,165,116,0.35)", borderRadius: 14, borderWidth: 1, padding: 16 },
   eyebrow: { color: colors.accent, fontSize: 11, fontWeight: "700", letterSpacing: 1.2, marginBottom: 6 },

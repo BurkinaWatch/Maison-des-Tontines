@@ -9,3 +9,4 @@
 - [API test server startup](api-test-server-startup.md) — Avoid starting the HTTP listener when importing the Express app in test environments.
 - [Playwright preview runtime](playwright-preview-runtime.md) — Use Nix Chromium from PATH for preview browser smoke tests.
 - [Root validation command](npm-workspace-validation.md) — Delegate focused root checks through npm workspace scripts when pnpm bootstrapping is unavailable.
+- [Vitest Node runtime](vitest-node-runtime.md) — Keep the project runtime on Node 20+ because current Vitest releases require newer Node built-ins.

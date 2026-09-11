@@ -1,4 +1,5 @@
 import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from "react";
+import * as SplashScreen from "expo-splash-screen";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -230,6 +231,12 @@ function App() {
 }
 
 export default function AppWithErrorBoundary() {
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      void SplashScreen.hideAsync();
+    }
+  }, []);
+
   return (
     <AppErrorBoundary>
       <App />

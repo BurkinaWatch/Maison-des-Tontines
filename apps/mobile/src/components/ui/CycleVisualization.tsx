@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Svg, { Circle, G, Path, Defs, LinearGradient, Stop } from "react-native-svg";
 import { colors, spacing, typography } from "../../theme";
+import { useI18n } from "../../i18n";
 
 interface CycleVisualizationProps {
   totalCycles: number;
@@ -18,6 +19,7 @@ export const CycleVisualization: React.FC<CycleVisualizationProps> = ({
   size = 200,
   strokeWidth = 12,
 }) => {
+  const { t } = useI18n();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = totalCycles > 0 ? (completedCycles / totalCycles) * circumference : 0;
@@ -76,7 +78,7 @@ export const CycleVisualization: React.FC<CycleVisualizationProps> = ({
         <Text style={styles.cycleText}>
           {completedCycles}/{totalCycles}
         </Text>
-        <Text style={styles.labelText}>Cycles</Text>
+        <Text style={styles.labelText}>{t("Cycles")}</Text>
       </View>
     </View>
   );

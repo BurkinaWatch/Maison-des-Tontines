@@ -1,6 +1,20 @@
 export type ContributionStatus = "pending" | "paid" | "late" | "missed";
 export type PaymentMethod = "mobile_money" | "bank_transfer" | "cash" | "card";
-export type Currency = "XOF" | "USD" | "EUR" | "GBP" | "NGN" | "GHS" | "XAF";
+export type Currency =
+  | "XOF"
+  | "XAF"
+  | "USD"
+  | "EUR"
+  | "GBP"
+  | "NGN"
+  | "GHS"
+  | "GNF"
+  | "KES"
+  | "UGX"
+  | "TZS"
+  | "RWF"
+  | "BIF"
+  | "MRU";
 export type PayoutStatus = "pending" | "processing" | "completed" | "failed";
 export type DisputeStatus = "open" | "under_review" | "resolved" | "closed";
 

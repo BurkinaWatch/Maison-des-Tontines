@@ -1,5 +1,6 @@
 import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
+import { notifyUser } from "../notifications/notification.service.js";
 export class DisputesController {
     async openDispute(req, res, next) {
         try {
@@ -50,6 +51,12 @@ export class DisputesController {
                 },
             });
             logger.info("Dispute opened", { disputeId: dispute.id, tontineId, userId });
+            const recipients = await getPrisma().tontineMember.findMany({
+                where: { tontineId, status: "ACTIVE", userId: { not: userId } },
+                select: { userId: true },
+            });
+            void Promise.all(recipients.map((recipient) => notifyUser({ userId: recipient.userId, type: "DISPUTE", title: "New dispute", body: description, data: { disputeId: dispute.id, category: "disputes" } })
+                .catch((error) => logger.warn("Dispute notification failed", { error: error.message }))));
             res.status(201).json({ dispute });
         }
         catch (error) {
@@ -105,17 +112,14 @@ export class DisputesController {
     async getDisputes(req, res, next) {
         try {
             const { tontineId, status } = req.query;
-            if (typeof tontineId !== "string") {
+            const where = req.user?.role === "ADMIN" || req.user?.role === "SUPERVISOR"
+                ? {}
+                : { tontine: { members: { some: { userId: req.userId, status: "ACTIVE" } } } };
+            if (tontineId)
+                where.tontineId = tontineId;
+            if (typeof tontineId !== "string" && req.user?.role !== "ADMIN" && req.user?.role !== "SUPERVISOR") {
                 return res.status(400).json({ error: "tontineId is required" });
             }
-            const membership = await getPrisma().tontineMember.findFirst({
-                where: { tontineId, userId: req.userId, status: "ACTIVE" },
-                select: { id: true },
-            });
-            if (!membership) {
-                return res.status(403).json({ error: "Not a member of this tontine" });
-            }
-            const where = { tontineId };
             if (status)
                 where.status = status;
             const disputes = await getPrisma().dispute.findMany({

@@ -3,6 +3,7 @@ import { getPrisma } from "../config/database.js";
 import { logger } from "../config/logger.js";
 import { Queue, Worker } from "bullmq";
 import { getEnv } from "../config/env.js";
+import { tontineEngineModule } from "../modules/tontines/tontine-engine/module.js";
 
 const env = getEnv();
 
@@ -18,7 +19,22 @@ export const reconciliationQueue = new Queue("reconciliation", {
   connection: { host: env.REDIS_HOST, port: env.REDIS_PORT, password: env.REDIS_PASSWORD },
 });
 
+export const cycleQueue = new Queue("cycle-processing", {
+  connection: { host: env.REDIS_HOST, port: env.REDIS_PORT, password: env.REDIS_PASSWORD },
+});
+
 export async function startWorkers() {
+  await cycleQueue.add("process-due-cycles", {}, {
+    repeat: { every: 15 * 60 * 1000 },
+    jobId: "process-due-cycles",
+  });
+  const cycleWorker = new Worker(
+    "cycle-processing",
+    async () => tontineEngineModule.getCycleService().processDueCycles(),
+    { connection: { host: env.REDIS_HOST, port: env.REDIS_PORT, password: env.REDIS_PASSWORD } },
+  );
+  cycleWorker.on("failed", (job, error) => logger.error("Cycle processing failed", { jobId: job?.id, error: error.message }));
+
   const reminderWorker = new Worker(
     "reminders",
     async (job) => {

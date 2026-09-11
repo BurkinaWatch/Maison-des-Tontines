@@ -6,3 +6,6 @@
 - [EAS monorepo APK builds](eas-monorepo-build.md) — Upload an isolated mobile archive when root npm locks contain Replit-only registry URLs.
 - [Expo Router Android startup isolation](expo-router-api-routes-android.md) — Keep a direct native entry screen ready when router registration fails before rendering.
 - [EAS OTA runtime matching](eas-ota-runtime.md) — Publish OTA updates with the exact runtime version embedded in the installed APK.
+- [API test server startup](api-test-server-startup.md) — Avoid starting the HTTP listener when importing the Express app in test environments.
+- [Playwright preview runtime](playwright-preview-runtime.md) — Use Nix Chromium from PATH for preview browser smoke tests.
+- [Root validation command](npm-workspace-validation.md) — Delegate focused root checks through npm workspace scripts when pnpm bootstrapping is unavailable.

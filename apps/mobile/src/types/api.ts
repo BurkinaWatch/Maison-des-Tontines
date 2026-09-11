@@ -29,27 +29,13 @@ export interface RegisterRequest {
 export interface CreateTontineRequest {
   name: string;
   description: string;
-  type: string;
-  amount: number;
+  type: "ROTATIVE" | "SAVINGS" | "GOAL" | "HYBRID";
+  contributionAmount: number;
   currency: string;
   frequency: string;
-  totalMembers: number;
-  totalCycles: number;
+  maxMembers: number;
   startDate: string;
-  rules: {
-    allowLatePayment: boolean;
-    latePenaltyPercent: number;
-    requireVoteForAbsent: boolean;
-    maxMissedContributions: number;
-    payoutDelayDays: number;
-    allowEarlyPayout: boolean;
-    earlyPayoutPenalty: number;
-  };
-  members: {
-    phoneNumber: string;
-    name: string;
-    position: number;
-  }[];
+  rules: Record<string, string | number | boolean>;
 }
 
 export interface ApiError {

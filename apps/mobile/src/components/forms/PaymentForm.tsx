@@ -3,12 +3,13 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { GlassCard, GlassInput, GlassButton } from "../ui";
 import { colors, spacing, typography } from "../../theme";
 import { PaymentMethod } from "../../types/contribution";
+import { useI18n } from "../../i18n";
 
 interface PaymentFormProps {
   contributionId: string;
   amount: number;
   currency: string;
-  onSubmit: (method: PaymentMethod) => Promise<void>;
+  onSubmit: (method: PaymentMethod, phoneNumber: string) => Promise<void>;
   onCancel?: () => void;
   isLoading?: boolean;
 }
@@ -21,15 +22,13 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   onCancel,
   isLoading = false,
 }) => {
+  const { t } = useI18n();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const paymentMethods: { value: PaymentMethod; label: string; emoji: string; description: string }[] = [
-    { value: "mobile_money", label: "Mobile Money", emoji: "📱", description: "Pay via MoMo, Orange Money" },
-    { value: "bank_transfer", label: "Bank Transfer", emoji: "🏦", description: "Direct bank transfer" },
-    { value: "cash", label: "Cash", emoji: "💵", description: "Mark as paid manually" },
-    { value: "card", label: "Card", emoji: "💳", description: "Debit or credit card" },
+    { value: "mobile_money", label: t("Mobile Money"), emoji: "📱", description: t("Pay via MoMo, Orange Money") },
   ];
 
   const handleSubmit = async () => {
@@ -37,7 +36,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 
     setIsSubmitting(true);
     try {
-      await onSubmit(selectedMethod);
+      await onSubmit(selectedMethod, phoneNumber);
     } catch (error) {
       console.error("Payment error:", error);
     } finally {
@@ -47,15 +46,15 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Make Payment</Text>
+      <Text style={styles.title}>{t("Make Payment")}</Text>
       <GlassCard style={styles.amountCard}>
-        <Text style={styles.amountLabel}>Amount Due</Text>
+        <Text style={styles.amountLabel}>{t("Amount Due")}</Text>
         <Text style={styles.amountValue}>
           {amount.toLocaleString()} {currency}
         </Text>
       </GlassCard>
 
-      <Text style={styles.label}>Select Payment Method</Text>
+      <Text style={styles.label}>{t("Select Payment Method")}</Text>
       <View style={styles.methodsContainer}>
         {paymentMethods.map((method) => (
           <Pressable
@@ -94,7 +93,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
 
       {selectedMethod === "mobile_money" && (
         <GlassInput
-          label="Phone Number"
+          label={t("Phone Number")}
           value={phoneNumber}
           onChangeText={setPhoneNumber}
           placeholder="+225 01 00 00 00"
@@ -105,14 +104,14 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
       <View style={styles.buttonRow}>
         {onCancel && (
           <GlassButton
-            title="Cancel"
+            title={t("Cancel")}
             onPress={onCancel}
             variant="secondary"
             style={styles.button}
           />
         )}
         <GlassButton
-          title="Pay Now"
+          title={t("Pay Now")}
           onPress={handleSubmit}
           loading={isSubmitting || isLoading}
           disabled={!selectedMethod}

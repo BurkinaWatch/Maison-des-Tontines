@@ -13,6 +13,7 @@ import notificationsRoutes from "./modules/notifications/notifications.router.js
 import trustRoutes from "./modules/trust/trust.router.js";
 import aiRoutes from "./modules/ai/ai.router.js";
 import auditRoutes from "./modules/audit/audit.router.js";
+import adminRoutes from "./modules/admin/admin.router.js";
 const router = Router();
 router.use("/auth", authRoutes);
 router.use("/users", usersRoutes);
@@ -28,5 +29,6 @@ router.use("/notifications", notificationsRoutes);
 router.use("/trust", trustRoutes);
 router.use("/ai", aiRoutes);
 router.use("/audit", auditRoutes);
+router.use("/admin", adminRoutes);
 export default router;
 //# sourceMappingURL=routes.js.map

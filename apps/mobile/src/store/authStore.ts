@@ -11,6 +11,7 @@ interface AuthStore {
   setToken: (token: string | null) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (phoneNumber: string, email: string, firstName: string, lastName: string, password: string) => Promise<void>;
+  updateProfile: (data: { name?: string; email?: string | null }) => Promise<void>;
   logout: () => Promise<void>;
   initialize: () => Promise<void>;
 }
@@ -60,6 +61,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       set({ isLoading: false });
       throw error;
     }
+  },
+
+  updateProfile: async (data) => {
+    const user = await authService.updateProfile(data);
+    set({ user });
   },
 
   logout: async () => {

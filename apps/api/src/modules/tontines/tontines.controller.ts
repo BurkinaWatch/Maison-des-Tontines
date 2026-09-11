@@ -21,7 +21,7 @@ export class TontinesController {
             ? Object.entries(data.rules).map(([key, value]) => ({
                 key,
                 value: String(value),
-                type: typeof value === "number" ? "NUMBER" : "STRING",
+                type: typeof value === "number" ? "NUMBER" : typeof value === "boolean" ? "BOOLEAN" : "STRING",
               }))
             : [],
         },
@@ -115,6 +115,8 @@ export class TontinesController {
     try {
       const { id } = req.params;
       const data = req.body;
+      const membership = await getPrisma().tontineMember.findFirst({ where: { tontineId: id, userId: req.userId, status: "ACTIVE" } });
+      if (!membership || !["ORGANIZER", "ADMIN"].includes(membership.role)) return res.status(403).json({ error: "Forbidden" });
 
       const tontine = await getPrisma().tontine.update({
         where: { id },
@@ -148,6 +150,8 @@ export class TontinesController {
   async deleteTontine(req: any, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
+      const membership = await getPrisma().tontineMember.findFirst({ where: { tontineId: id, userId: req.userId, status: "ACTIVE" } });
+      if (!membership || membership.role !== "ORGANIZER") return res.status(403).json({ error: "Forbidden" });
       await getPrisma().tontine.delete({ where: { id } });
       logger.info("Tontine deleted", { tontineId: id });
       res.status(204).send();
@@ -159,11 +163,14 @@ export class TontinesController {
   async getTontineMembers(req: any, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
+      const membership = await getPrisma().tontineMember.findFirst({ where: { tontineId: id, userId: req.userId, status: "ACTIVE" } });
+      if (!membership) return res.status(403).json({ error: "Forbidden" });
 
       const members = await getPrisma().tontineMember.findMany({
-        where: { tontineId: id, status: "ACTIVE" },
+        where: { tontineId: id, status: { in: ["ACTIVE", "INVITED"] } },
         include: {
           user: { select: { id: true, phone: true, email: true, name: true } },
+          contributions: { select: { status: true, amount: true, cycleId: true } },
         },
         orderBy: { payoutOrder: "asc" },
       });
@@ -177,6 +184,8 @@ export class TontinesController {
   async getTontineRules(req: any, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
+      const membership = await getPrisma().tontineMember.findFirst({ where: { tontineId: id, userId: req.userId, status: "ACTIVE" } });
+      if (!membership) return res.status(403).json({ error: "Forbidden" });
 
       const rules = await getPrisma().tontineRule.findMany({
         where: { tontineId: id },

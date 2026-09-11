@@ -7,30 +7,48 @@ import {
   Pressable,
   Alert,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { SafeAreaWrapper } from "../../src/components/layout";
 import { AppHeader } from "../../src/components/layout/AppHeader";
 import { GlassCard, GlassButton, StatusBadge } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useAuthStore } from "../../src/store/authStore";
+import { useI18n } from "../../src/i18n";
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
+  const router = useRouter();
+  const { t } = useI18n();
+  const goTo = (path: string) => router.push(path as never);
 
   const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Logout", style: "destructive", onPress: logout },
+    Alert.alert(t("Logout"), t("Are you sure you want to logout?"), [
+      { text: t("Cancel"), style: "cancel" },
+      { text: t("Logout"), style: "destructive", onPress: logout },
     ]);
   };
 
   const menuItems = [
-    { icon: "👤", label: "Edit Profile", action: () => {} },
-    { icon: "🔒", label: "Change Password", action: () => {} },
-    { icon: "🔔", label: "Notification Settings", action: () => {} },
-    { icon: "💳", label: "Payment Methods", action: () => {} },
-    { icon: "🌍", label: "Language & Currency", action: () => {} },
-    { icon: "❓", label: "Help & Support", action: () => {} },
-    { icon: "📄", label: "Terms & Privacy", action: () => {} },
+      { icon: "👤", label: t("Edit Profile"), action: () => goTo("/profile/edit") },
+      { icon: "🔒", label: t("Change Password"), action: () => goTo("/profile/password") },
+      { icon: "🔔", label: t("Notification Settings"), action: () => goTo("/profile/notifications") },
+      { icon: "💳", label: t("Payment Methods"), action: () => goTo("/profile/payment-methods") },
+      { icon: "✉️", label: t("Tontine invitations"), action: () => goTo("/memberships/invitations") },
+    {
+      icon: "🌍",
+       label: t("Language & Currency"),
+      action: () => goTo("/profile/preferences"),
+    },
+    {
+      icon: "❓",
+       label: t("Help & Support"),
+      action: () => goTo("/profile/help"),
+    },
+    {
+      icon: "📄",
+       label: t("Terms & Privacy"),
+      action: () => goTo("/profile/legal"),
+    },
   ];
 
   return (
@@ -39,7 +57,7 @@ export default function ProfileScreen() {
         style={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <AppHeader title="Profile" showProfile={false} />
+         <AppHeader title={t("Profile")} showProfile={false} />
 
         <View style={styles.content}>
           <View style={styles.profileHeader}>
@@ -51,10 +69,10 @@ export default function ProfileScreen() {
               </Text>
             </View>
             <Text style={styles.name}>
-              {user ? `${user.firstName} ${user.lastName}` : "Guest"}
+               {user ? `${user.firstName} ${user.lastName}` : t("Guest")}
             </Text>
             <Text style={styles.phone}>
-              {user?.phoneNumber || "Not signed in"}
+               {user?.phoneNumber || t("Not signed in")}
             </Text>
             {user?.role && (
               <StatusBadge
@@ -81,7 +99,7 @@ export default function ProfileScreen() {
           </View>
 
           <GlassButton
-            title="Logout"
+             title={t("Logout")}
             onPress={handleLogout}
             variant="secondary"
             style={styles.logoutButton}

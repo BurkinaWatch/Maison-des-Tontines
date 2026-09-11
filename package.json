@@ -13,7 +13,9 @@
     "dev": "turbo run dev",
     "start": "NODE_ENV=production pnpm --filter @maison-des-tontines/api prisma:migrate:production && NODE_ENV=production pnpm --filter @maison-des-tontines/api start",
     "lint": "turbo run lint",
+    "typecheck": "npm run typecheck --workspace=maison-des-tontines-mobile",
     "test": "turbo run test",
+    "test:e2e:preview": "playwright test",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
@@ -40,6 +42,7 @@
   },
   "dependencies": {
     "expo-updates": "~29.0.20",
+    "@playwright/test": "^1.62.1",
     "react-native-worklets": "0.5.1"
   }
 }

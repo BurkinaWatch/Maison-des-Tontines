@@ -1,5 +1,6 @@
 import { getPrisma } from "../../config/database.js";
 import { logger } from "../../config/logger.js";
+import { notifyUser } from "../notifications/notification.service.js";
 export class VotingController {
     async createVote(req, res, next) {
         try {
@@ -35,6 +36,8 @@ export class VotingController {
                 },
             });
             logger.info("Vote created", { voteId: vote.id, tontineId, userId });
+            void Promise.all(eligibleVoterIds.filter((id) => id !== userId).map((id) => notifyUser({ userId: id, type: "VOTE", title: "New vote", body: question, data: { voteId: vote.id, category: "votes" } })
+                .catch((error) => logger.warn("Vote notification failed", { error: error.message }))));
             res.status(201).json({ vote });
         }
         catch (error) {

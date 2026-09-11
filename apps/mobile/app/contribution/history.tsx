@@ -11,9 +11,11 @@ import { AppHeader } from "../../src/components/layout/AppHeader";
 import { GlassCard, ContributionRow, EmptyState } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useContributions } from "../../src/hooks/useContributions";
+import { useI18n } from "../../src/i18n";
 
 export default function ContributionHistoryScreen() {
   const { history, isLoading, refetch } = useContributions();
+  const { t } = useI18n();
 
   return (
     <SafeAreaWrapper>
@@ -25,8 +27,8 @@ export default function ContributionHistoryScreen() {
         }
       >
         <AppHeader
-          title="Payment History"
-          subtitle={`${history.length} transactions`}
+          title={t("Payment History")}
+          subtitle={`${history.length} ${t("transactions")}`}
           showBack
           showProfile
         />
@@ -43,8 +45,8 @@ export default function ContributionHistoryScreen() {
           ) : (
             <EmptyState
               icon="📜"
-              title="No history yet"
-              description="Your payment history will appear here"
+              title={t("No history yet")}
+              description={t("Your payment history will appear here")}
             />
           )}
         </View>

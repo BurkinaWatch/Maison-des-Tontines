@@ -12,6 +12,7 @@ export interface AuthPayload {
 export interface AuthenticatedRequest extends Request {
   user?: AuthPayload;
   userId?: string;
+  membership?: { id: string; tontineId: string; userId: string; role: string; status: string };
 }
 
 export function authMiddleware(
@@ -66,11 +67,11 @@ export function requireRole(...allowedRoles: string[]) {
 
     try {
       const currentUser = await getPrisma().user.findUnique({
-        where: { id: req.user.sub },
+        where: { id: req.userId! },
         select: { role: true, status: true },
       });
       if (!currentUser || currentUser.status !== "ACTIVE") {
-        return res.status(403).json({ error: "Forbidden", message: "Account is not active" });
+        return res.status(403).json({ error: "Forbidden", message: "Account is inactive" });
       }
       req.user.role = currentUser.role;
       if (!allowedRoles.includes(currentUser.role)) {
@@ -89,7 +90,7 @@ export function requireRole(...allowedRoles: string[]) {
 }
 
 export function requireTontineRole(
-  tontineId: string,
+  tontineIdParam: string,
   ...allowedRoles: string[]
 ) {
   return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -98,6 +99,10 @@ export function requireTontineRole(
     }
 
     const prisma = getPrisma();
+    const tontineId = req.params[tontineIdParam];
+    if (!tontineId) {
+      return res.status(400).json({ error: "Missing tontine identifier" });
+    }
 
     try {
       const membership = await prisma.tontineMember.findFirst({
@@ -119,7 +124,7 @@ export function requireTontineRole(
         });
       }
 
-      req.params = { ...req.params, membershipId: membership.id };
+      req.membership = membership;
       next();
     } catch (error) {
       logger.error("Tontine role check failed", { error: (error as Error).message });

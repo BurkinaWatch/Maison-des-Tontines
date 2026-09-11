@@ -79,6 +79,22 @@ async function deleteStoredValue(key: string): Promise<void> {
   }
 }
 
+function getErrorMessage(body: unknown, status: number, statusText: string): string {
+  if (typeof body === "object" && body !== null) {
+    const message = (body as { message?: unknown }).message;
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+
+    const error = (body as { error?: unknown }).error;
+    if (typeof error === "string" && error.trim()) {
+      return error;
+    }
+  }
+
+  return `HTTP ${status}: ${statusText || "Request failed"}`;
+}
+
 export const api = {
   baseUrl:
     process.env.EXPO_PUBLIC_API_URL ||
@@ -135,10 +151,15 @@ export const api = {
       (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
     }
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers,
+      });
+    } catch {
+      throw new Error("Unable to reach the service. Please check your connection and try again.");
+    }
 
     const contentType = response.headers.get("content-type") || "";
     const body = contentType.includes("application/json")
@@ -146,9 +167,7 @@ export const api = {
       : null;
 
     if (!response.ok) {
-      throw new Error(
-        body?.message || `HTTP ${response.status}: ${response.statusText}`
-      );
+      throw new Error(getErrorMessage(body, response.status, response.statusText));
     }
 
     if (!body) {

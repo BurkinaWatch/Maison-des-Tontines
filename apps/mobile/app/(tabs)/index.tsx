@@ -131,7 +131,14 @@ export default function DashboardScreen() {
               </Pressable>
               <Pressable
                 style={styles.actionCard}
-                onPress={() => router.push("/contribution/pay")}
+                onPress={() => {
+                  const contribution = upcomingContributions[0];
+                  if (contribution) {
+                    router.push(`/contribution/pay?tontineId=${contribution.tontineId}&cycleId=${contribution.cycleId}`);
+                  } else {
+                    router.push("/(tabs)/contributions");
+                  }
+                }}
               >
                 <Text style={styles.actionEmoji}>💳</Text>
                 <Text style={styles.actionLabel}>Pay Now</Text>

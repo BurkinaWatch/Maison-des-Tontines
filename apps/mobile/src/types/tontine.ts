@@ -1,5 +1,7 @@
 import { Currency } from "./contribution";
-export type { Currency } from "./contribution";
+import { CreateTontineRequest } from "./api";
+
+export type { Currency, CreateTontineRequest };
 
 export type TontineType = "rotating" | "savings" | "investment" | "social";
 export type TontineStatus = "draft" | "active" | "completed" | "suspended";
@@ -35,8 +37,20 @@ export interface TontineMember {
   phoneNumber: string;
   avatarUrl?: string;
   position: number;
-  payoutOrder: number[];
+  payoutOrder: number | number[];
   joinedAt: string;
+  role?: "MEMBER" | "TREASURER" | "ADMIN" | "ORGANIZER";
+  status?: "ACTIVE" | "INVITED" | "DECLINED" | "INACTIVE";
+  email?: string;
+  contributions?: { status: string; amount: number; cycleId: string }[];
+}
+
+export interface MembershipInvitation {
+  id: string;
+  tontineId: string;
+  status: "INVITED";
+  joinedAt: string;
+  tontine: { id: string; name: string; currency: string; contributionAmount: number };
 }
 
 export interface TontineRules {
@@ -49,8 +63,6 @@ export interface TontineRules {
   earlyPayoutPenalty: number;
 }
 
-export type { CreateTontineRequest } from "./api";
-
 export interface Cycle {
   id: string;
   tontineId: string;
@@ -62,4 +74,5 @@ export interface Cycle {
   potAmount: number;
   payoutRecipientId?: string;
   completedAt?: string;
+  contributions?: { status: string; amount: number; memberId: string }[];
 }

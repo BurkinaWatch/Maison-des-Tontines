@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { colors, spacing, typography } from "../../theme";
+import { useI18n } from "../../i18n";
 
 interface StatusBadgeProps {
   status: string;
@@ -8,6 +9,7 @@ interface StatusBadgeProps {
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = "medium" }) => {
+  const { t } = useI18n();
   const normalizedStatus = status.toLowerCase().replace(" ", "_");
   const statusColor = getStatusColor(normalizedStatus);
 
@@ -38,7 +40,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = "medium
           { color: statusColor, fontSize: sizeStyles[size].fontSize },
         ]}
       >
-        {status.toUpperCase()}
+        {t(status.replace(/_/g, " ")).toUpperCase()}
       </Text>
     </View>
   );

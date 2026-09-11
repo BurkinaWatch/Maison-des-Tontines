@@ -1,5 +1,31 @@
 import { getPrisma } from "../../config/database.js";
 export class NotificationsController {
+    async getUnreadCount(req, res, next) {
+        try {
+            const count = await getPrisma().notification.count({ where: { userId: req.userId, status: { not: "READ" } } });
+            res.json({ count });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async registerDeviceToken(req, res, next) {
+        try {
+            const { token, platform } = req.body;
+            if (!token || !["ios", "android", "web"].includes(platform)) {
+                return res.status(400).json({ error: "A valid device token and platform are required" });
+            }
+            const deviceToken = await getPrisma().deviceToken.upsert({
+                where: { token },
+                update: { userId: req.userId, platform, enabled: true },
+                create: { userId: req.userId, token, platform },
+            });
+            res.json({ deviceToken: { id: deviceToken.id, platform: deviceToken.platform, enabled: deviceToken.enabled } });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
     async getNotifications(req, res, next) {
         try {
             const userId = req.userId;

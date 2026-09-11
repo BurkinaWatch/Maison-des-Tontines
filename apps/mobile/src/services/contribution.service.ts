@@ -1,28 +1,38 @@
 import { api } from "./api";
-import { Contribution, Payout, ContributionStatus } from "../types/contribution";
+import { Contribution, Payout, ContributionStatus, Currency, PaymentMethod } from "../types/contribution";
 
 export const contributionService = {
   async getContributions(tontineId?: string): Promise<Contribution[]> {
-    const endpoint = tontineId
-      ? `/contributions?tontineId=${tontineId}`
-      : "/contributions";
-    const response = await api.get<{ data: Contribution[] }>(endpoint);
-    return response.data;
+    const response = await api.get<{ contributions: Array<{
+      id: string; cycleId: string; memberId: string; amount: number; status: string;
+      method?: string; providerRef?: string | null; confirmedAt?: string | null;
+      declaredAt: string; cycle?: { id: string; name: string; tontine?: { id: string; name: string; currency?: string } };
+    }> }>("/contributions/me/contributions");
+    return (response.contributions ?? []).filter((item) => !tontineId || item.cycle?.tontine?.id === tontineId).map((item) => ({
+      id: item.id,
+      tontineId: item.cycle?.tontine?.id ?? "",
+      tontineName: item.cycle?.tontine?.name ?? "Tontine",
+      cycleId: item.cycleId,
+      userId: item.memberId,
+      amount: item.amount,
+      currency: (item.cycle?.tontine?.currency ?? "XOF") as Currency,
+      status: item.status.toLowerCase() as ContributionStatus,
+      method: item.method?.toLowerCase().replace("mobile_money", "mobile_money") as PaymentMethod | undefined,
+      reference: item.providerRef ?? undefined,
+      paidAt: item.confirmedAt ?? undefined,
+      dueDate: item.declaredAt,
+      createdAt: item.declaredAt,
+    }));
   },
 
   async getUpcoming(): Promise<Contribution[]> {
-    const response = await api.get<{ data: Contribution[] }>(
-      "/contributions/upcoming"
-    );
-    return response.data;
+    const contributions = await this.getContributions();
+    return contributions.filter((item) => item.status === "pending");
   },
 
   async getHistory(tontineId?: string): Promise<Contribution[]> {
-    const endpoint = tontineId
-      ? `/contributions/history?tontineId=${tontineId}`
-      : "/contributions/history";
-    const response = await api.get<{ data: Contribution[] }>(endpoint);
-    return response.data;
+    const contributions = await this.getContributions();
+    return tontineId ? contributions.filter((item) => item.tontineId === tontineId) : contributions;
   },
 
   async markAsPaid(contributionId: string): Promise<Contribution> {
@@ -33,12 +43,31 @@ export const contributionService = {
     return response.data;
   },
 
-  async initiatePayment(contributionId: string, method: string): Promise<{ reference: string }> {
-    const response = await api.post<{ reference: string }>(
-      `/contributions/${contributionId}/initiate-payment`,
-      { method }
-    );
-    return response;
+  async initiatePayment(input: {
+    tontineId: string;
+    cycleId: string;
+    phoneNumber: string;
+    method: "MOBILE_MONEY" | "BANK_TRANSFER" | "CASH";
+    amount?: number;
+  }): Promise<{
+    payment: {
+      internalReference: string;
+      providerRef: string;
+      contributionId: string;
+      status: string;
+      amount: number;
+      currency: string;
+    };
+  }> {
+    return api.post("/payments/contributions", input);
+  },
+
+  async getPaymentStatus(reference: string): Promise<{
+    status: string;
+    internalReference?: string;
+    contributionId?: string;
+  }> {
+    return api.get(`/payments/status/${encodeURIComponent(reference)}`);
   },
 
   async getPayouts(tontineId?: string): Promise<Payout[]> {

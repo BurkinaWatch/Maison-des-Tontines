@@ -11,6 +11,8 @@ import { useRouter } from "expo-router";
 import { GlassCard, GlassInput, GlassButton } from "../ui";
 import { colors, spacing, typography, borderRadius } from "../../theme";
 import { TontineType, TontineRules } from "../../types/tontine";
+import { createTontineSchema } from "../../utils/validation";
+import { useI18n } from "../../i18n";
 
 interface CreateTontineFormProps {
   onSubmit: (data: any) => Promise<void>;
@@ -22,6 +24,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
   isLoading = false,
 }) => {
   const router = useRouter();
+  const { t } = useI18n();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
@@ -43,13 +46,29 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
       earlyPayoutPenalty: 10,
     } as TontineRules,
     members: [],
+    categoryDetails: {
+      payoutOrder: "organizer-first",
+      savingsTarget: "",
+      savingsTargetDate: "",
+      allowEarlyWithdrawal: false,
+      investmentProject: "",
+      investmentTarget: "",
+      investmentRisk: "medium",
+      investmentDuration: "",
+      profitSharing: "",
+      socialAidType: "emergency",
+      socialBeneficiary: "",
+      socialUrgency: "normal",
+      socialTarget: "",
+    },
   });
+  const [formError, setFormError] = useState("");
 
   const tontineTypes: { value: TontineType; label: string; emoji: string }[] = [
-    { value: "rotating", label: "Rotating", emoji: "🔄" },
-    { value: "savings", label: "Savings", emoji: "🏦" },
-    { value: "investment", label: "Investment", emoji: "📈" },
-    { value: "social", label: "Social", emoji: "🤝" },
+    { value: "rotating", label: t("Rotating"), emoji: "🔄" },
+    { value: "savings", label: t("Savings"), emoji: "🏦" },
+    { value: "investment", label: t("Investment"), emoji: "📈" },
+    { value: "social", label: t("Social"), emoji: "🤝" },
   ];
 
   const frequencies = ["weekly", "biweekly", "monthly", "quarterly"];
@@ -59,17 +78,113 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
   };
 
   const handleSubmit = async () => {
+    const parsed = createTontineSchema.safeParse({
+      name: formData.name,
+      description: formData.description,
+      type: formData.type,
+      amount: parseFloat(formData.amount),
+      currency: formData.currency,
+      frequency: formData.frequency,
+      totalMembers: parseInt(formData.totalMembers, 10),
+      totalCycles: parseInt(formData.totalCycles, 10),
+      startDate: formData.startDate,
+      rules: formData.rules,
+      members: [{ phoneNumber: "+00000000000", name: "Organizer", position: 1 }, { phoneNumber: "+00000000001", name: "Member", position: 2 }],
+    });
+    if (!parsed.success) {
+      setFormError(parsed.error.issues[0]?.message ?? t("Please complete all required fields."));
+      return;
+    }
+    setFormError("");
     try {
+      const typeMap: Record<TontineType, "ROTATIVE" | "SAVINGS" | "GOAL" | "HYBRID"> = {
+        rotating: "ROTATIVE",
+        savings: "SAVINGS",
+        investment: "GOAL",
+        social: "HYBRID",
+      };
       await onSubmit({
-        ...formData,
-        amount: parseFloat(formData.amount),
-        totalMembers: parseInt(formData.totalMembers),
-        totalCycles: parseInt(formData.totalCycles),
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        type: typeMap[formData.type],
+        contributionAmount: parseFloat(formData.amount),
+        currency: formData.currency,
+        frequency: formData.frequency,
+        maxMembers: parseInt(formData.totalMembers, 10),
+        startDate: new Date(`${formData.startDate}T00:00:00.000Z`).toISOString(),
+        rules: { ...formData.rules, ...formData.categoryDetails, totalCycles: parseInt(formData.totalCycles, 10) },
       });
     } catch (error) {
       console.error("Submit error:", error);
     }
   };
+
+  const renderCategoryFields = () => {
+    const setDetail = (field: string, value: string | boolean) =>
+      setFormData((previous) => ({ ...previous, categoryDetails: { ...previous.categoryDetails, [field]: value } }));
+    if (formData.type === "rotating") {
+      return (
+        <>
+          <Text style={styles.categoryHint}>{t("Members receive the pot in a defined rotation.")}</Text>
+          <Text style={styles.label}>{t("First beneficiary")}</Text>
+          <View style={styles.choiceRow}>
+            {["organizer-first", "draw", "vote"].map((value) => (
+              <Pressable key={value} onPress={() => setDetail("payoutOrder", value)} style={[styles.choice, formData.categoryDetails.payoutOrder === value && styles.choiceActive]}>
+                <Text style={[styles.choiceText, formData.categoryDetails.payoutOrder === value && styles.choiceTextActive]}>{value === "organizer-first" ? t("Organizer") : value === "draw" ? t("Random draw") : t("Member vote")}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </>
+      );
+    }
+    if (formData.type === "savings") {
+      return (
+        <>
+          <Text style={styles.categoryHint}>{t("Set a shared target and the date when it should be reached.")}</Text>
+          <GlassInput label={t("Savings target")} value={String(formData.categoryDetails.savingsTarget)} onChangeText={(value) => setDetail("savingsTarget", value)} keyboardType="numeric" placeholder="e.g. 500000" />
+          <GlassInput label={t("Target date")} value={String(formData.categoryDetails.savingsTargetDate)} onChangeText={(value) => setDetail("savingsTargetDate", value)} placeholder="YYYY-MM-DD" />
+          <Toggle label={t("Allow early withdrawal")} value={Boolean(formData.categoryDetails.allowEarlyWithdrawal)} onChange={(value) => setDetail("allowEarlyWithdrawal", value)} />
+        </>
+      );
+    }
+    if (formData.type === "investment") {
+      return (
+        <>
+          <Text style={styles.categoryHint}>{t("Describe the project and how members share its risk and returns.")}</Text>
+          <GlassInput label={t("Investment project")} value={String(formData.categoryDetails.investmentProject)} onChangeText={(value) => setDetail("investmentProject", value)} placeholder={t("e.g. Community shop")} />
+          <GlassInput label={t("Funding target")} value={String(formData.categoryDetails.investmentTarget)} onChangeText={(value) => setDetail("investmentTarget", value)} keyboardType="numeric" placeholder="e.g. 2000000" />
+          <Text style={styles.label}>{t("Risk level")}</Text>
+          <View style={styles.choiceRow}>{["low", "medium", "high"].map((value) => <Pressable key={value} onPress={() => setDetail("investmentRisk", value)} style={[styles.choice, formData.categoryDetails.investmentRisk === value && styles.choiceActive]}><Text style={[styles.choiceText, formData.categoryDetails.investmentRisk === value && styles.choiceTextActive]}>{value.toUpperCase()}</Text></Pressable>)}</View>
+          <GlassInput label={t("Duration (months)")} value={String(formData.categoryDetails.investmentDuration)} onChangeText={(value) => setDetail("investmentDuration", value)} keyboardType="numeric" />
+          <GlassInput label={t("Profit sharing rule")} value={String(formData.categoryDetails.profitSharing)} onChangeText={(value) => setDetail("profitSharing", value)} placeholder={t("e.g. Pro-rata to contributions")} />
+        </>
+      );
+    }
+    return (
+      <>
+        <Text style={styles.categoryHint}>{t("Define who receives help and how urgent the request is.")}</Text>
+        <GlassInput label={t("Type of aid")} value={String(formData.categoryDetails.socialAidType)} onChangeText={(value) => setDetail("socialAidType", value)} placeholder={t("e.g. Medical, education, emergency")} />
+        <GlassInput label={t("Beneficiary")} value={String(formData.categoryDetails.socialBeneficiary)} onChangeText={(value) => setDetail("socialBeneficiary", value)} placeholder={t("Name of beneficiary")} />
+        <Text style={styles.label}>{t("Urgency")}</Text>
+        <View style={styles.choiceRow}>{["low", "normal", "urgent"].map((value) => <Pressable key={value} onPress={() => setDetail("socialUrgency", value)} style={[styles.choice, formData.categoryDetails.socialUrgency === value && styles.choiceActive]}><Text style={[styles.choiceText, formData.categoryDetails.socialUrgency === value && styles.choiceTextActive]}>{value.toUpperCase()}</Text></Pressable>)}</View>
+        <GlassInput label={t("Aid target")} value={String(formData.categoryDetails.socialTarget)} onChangeText={(value) => setDetail("socialTarget", value)} keyboardType="numeric" />
+      </>
+    );
+  };
+
+  const Toggle = ({ label, value, onChange }: { label: string; value: boolean; onChange: (value: boolean) => void }) => (
+    <View style={styles.ruleItem}>
+      <Text style={styles.ruleLabel}>{label}</Text>
+      <Pressable
+        accessibilityRole="switch"
+        accessibilityState={{ checked: value }}
+        onPress={() => onChange(!value)}
+        style={[styles.toggle, value && styles.toggleActive]}
+      >
+        <View style={[styles.toggleKnob, value && styles.toggleKnobActive]} />
+      </Pressable>
+    </View>
+  );
 
   const renderStepIndicator = () => (
     <View style={styles.stepIndicator}>
@@ -93,26 +208,26 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
       showsVerticalScrollIndicator={false}
     >
       {renderStepIndicator()}
-      <Text style={styles.title}>Create Tontine</Text>
+      <Text style={styles.title}>{t("Create Tontine")}</Text>
 
       {step === 1 && (
         <View style={styles.stepContent}>
-          <Text style={styles.stepTitle}>Basic Information</Text>
+          <Text style={styles.stepTitle}>{t("Basic Information")}</Text>
           <GlassInput
-            label="Tontine Name"
+            label={t("Tontine Name")}
             value={formData.name}
             onChangeText={(text) => updateField("name", text)}
-            placeholder="Enter tontine name"
+            placeholder={t("Enter tontine name")}
           />
           <GlassInput
-            label="Description"
+            label={t("Description")}
             value={formData.description}
             onChangeText={(text) => updateField("description", text)}
-            placeholder="Describe the purpose"
+            placeholder={t("Describe the purpose")}
             multiline
             numberOfLines={4}
           />
-          <Text style={styles.label}>Type</Text>
+          <Text style={styles.label}>{t("Type")}</Text>
           <View style={styles.typeGrid}>
             {tontineTypes.map((type) => (
               <Pressable
@@ -140,21 +255,23 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
 
       {step === 2 && (
         <View style={styles.stepContent}>
-          <Text style={styles.stepTitle}>Financial Configuration</Text>
+          <Text style={styles.stepTitle}>{formData.type.charAt(0).toUpperCase() + formData.type.slice(1)} Configuration</Text>
+          {renderCategoryFields()}
+          <Text style={styles.sectionTitle}>{t("Contribution settings")}</Text>
           <GlassInput
-            label="Amount per Cycle"
+            label={t("Amount per Cycle")}
             value={formData.amount}
             onChangeText={(text) => updateField("amount", text)}
             placeholder="0"
             keyboardType="numeric"
           />
           <GlassInput
-            label="Currency"
+            label={t("Currency")}
             value={formData.currency}
             onChangeText={(text) => updateField("currency", text)}
             placeholder="XOF"
           />
-          <Text style={styles.label}>Frequency</Text>
+          <Text style={styles.label}>{t("Frequency")}</Text>
           <View style={styles.frequencyContainer}>
             {frequencies.map((freq) => (
               <Pressable
@@ -171,7 +288,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
                     formData.frequency === freq && styles.frequencyActiveText,
                   ]}
                 >
-                  {freq.charAt(0).toUpperCase() + freq.slice(1)}
+                  {t(freq)}
                 </Text>
               </Pressable>
             ))}
@@ -181,21 +298,21 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
 
       {step === 3 && (
         <View style={styles.stepContent}>
-          <Text style={styles.stepTitle}>Members & Cycles</Text>
+          <Text style={styles.stepTitle}>{t("Members & Cycles")}</Text>
           <GlassInput
-            label="Total Members"
+            label={t("Total Members")}
             value={formData.totalMembers}
             onChangeText={(text) => updateField("totalMembers", text)}
             keyboardType="numeric"
           />
           <GlassInput
-            label="Total Cycles"
+            label={t("Total Cycles")}
             value={formData.totalCycles}
             onChangeText={(text) => updateField("totalCycles", text)}
             keyboardType="numeric"
           />
           <GlassInput
-            label="Start Date"
+            label={t("Start Date")}
             value={formData.startDate}
             onChangeText={(text) => updateField("startDate", text)}
             placeholder="YYYY-MM-DD"
@@ -205,10 +322,10 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
 
       {step === 4 && (
         <View style={styles.stepContent}>
-          <Text style={styles.stepTitle}>Rules Configuration</Text>
+          <Text style={styles.stepTitle}>{t("Rules Configuration")}</Text>
           <View style={styles.rulesContainer}>
             <View style={styles.ruleItem}>
-              <Text style={styles.ruleLabel}>Allow Late Payment</Text>
+              <Text style={styles.ruleLabel}>{t("Allow Late Payment")}</Text>
               <Pressable
                 onPress={() =>
                   updateField("rules", {
@@ -230,7 +347,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
               </Pressable>
             </View>
             <View style={styles.ruleItem}>
-              <Text style={styles.ruleLabel}>Require Vote for Absent</Text>
+              <Text style={styles.ruleLabel}>{t("Require Vote for Absent")}</Text>
               <Pressable
                 onPress={() =>
                   updateField("rules", {
@@ -252,7 +369,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
               </Pressable>
             </View>
             <View style={styles.ruleItem}>
-              <Text style={styles.ruleLabel}>Allow Early Payout</Text>
+              <Text style={styles.ruleLabel}>{t("Allow Early Payout")}</Text>
               <Pressable
                 onPress={() =>
                   updateField("rules", {
@@ -279,34 +396,34 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
 
       {step === 5 && (
         <View style={styles.stepContent}>
-          <Text style={styles.stepTitle}>Review & Confirm</Text>
+          <Text style={styles.stepTitle}>{t("Review & Confirm")}</Text>
           <GlassCard>
             <View style={styles.reviewRow}>
-              <Text style={styles.reviewLabel}>Name</Text>
+              <Text style={styles.reviewLabel}>{t("Name")}</Text>
               <Text style={styles.reviewValue}>{formData.name || "—"}</Text>
             </View>
             <View style={styles.reviewRow}>
-              <Text style={styles.reviewLabel}>Type</Text>
+              <Text style={styles.reviewLabel}>{t("Type")}</Text>
               <Text style={styles.reviewValue}>
                 {formData.type.charAt(0).toUpperCase() + formData.type.slice(1)}
               </Text>
             </View>
             <View style={styles.reviewRow}>
-              <Text style={styles.reviewLabel}>Amount</Text>
+              <Text style={styles.reviewLabel}>{t("Amount")}</Text>
               <Text style={styles.reviewValue}>
                 {formData.amount ? `${parseFloat(formData.amount).toLocaleString()} ${formData.currency}` : "—"}
               </Text>
             </View>
             <View style={styles.reviewRow}>
-              <Text style={styles.reviewLabel}>Frequency</Text>
+              <Text style={styles.reviewLabel}>{t("Frequency")}</Text>
               <Text style={styles.reviewValue}>
                 {formData.frequency.charAt(0).toUpperCase() + formData.frequency.slice(1)}
               </Text>
             </View>
             <View style={styles.reviewRow}>
-              <Text style={styles.reviewLabel}>Members</Text>
+              <Text style={styles.reviewLabel}>{t("Members")}</Text>
               <Text style={styles.reviewValue}>
-                {formData.totalMembers} ({formData.totalCycles} cycles)
+                {formData.totalMembers} ({formData.totalCycles} {t("cycles")})
               </Text>
             </View>
           </GlassCard>
@@ -316,7 +433,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
       <View style={styles.buttonRow}>
         {step > 1 && (
           <GlassButton
-            title="Back"
+            title={t("Back")}
             onPress={() => setStep(step - 1)}
             variant="secondary"
             style={styles.button}
@@ -324,19 +441,20 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
         )}
         {step < 5 ? (
           <GlassButton
-            title="Next"
+            title={t("Next")}
             onPress={() => setStep(step + 1)}
             style={styles.button}
           />
         ) : (
           <GlassButton
-            title="Create Tontine"
+            title={t("Create Tontine")}
             onPress={handleSubmit}
             loading={isLoading}
             style={styles.button}
           />
         )}
       </View>
+      {formError ? <Text style={styles.formError}>{formError}</Text> : null}
     </ScrollView>
   );
 };
@@ -380,6 +498,49 @@ const styles = StyleSheet.create({
     ...typography.heading2,
     color: colors.textPrimary,
     marginBottom: spacing.md,
+  },
+  sectionTitle: {
+    ...typography.heading3,
+    color: colors.textPrimary,
+    marginTop: spacing.md,
+    marginBottom: spacing.md,
+  },
+  categoryHint: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  choiceRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  choice: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  choiceActive: {
+    borderColor: colors.accent,
+    backgroundColor: `${colors.accent}15`,
+  },
+  choiceText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+  choiceTextActive: {
+    color: colors.accent,
+    fontWeight: "600",
+  },
+  formError: {
+    ...typography.bodySmall,
+    color: colors.error,
+    textAlign: "center",
+    marginTop: spacing.md,
   },
   label: {
     ...typography.bodySmall,

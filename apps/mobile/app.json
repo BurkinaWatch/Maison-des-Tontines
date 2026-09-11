@@ -4,6 +4,9 @@
     "slug": "maison-des-tontines",
     "version": "1.0.4",
     "orientation": "portrait",
+    "web": {
+      "output": "server"
+    },
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "maison-tontines",
@@ -26,12 +29,15 @@
       "package": "com.maisondestontines.app",
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE"
+        "VIBRATE",
+        "RECEIVE_NOTIFICATIONS"
       ]
     },
     "plugins": [
       "expo-updates",
+      "expo-router",
       "expo-secure-store",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {
@@ -42,7 +48,11 @@
       ],
       "expo-font"
     ],
+    "experiments": {
+      "typedRoutes": true
+    },
     "extra": {
+      "router": {},
       "eas": {
         "projectId": "9dbeffb3-4c3a-464d-b61a-92ade2d31d55"
       }

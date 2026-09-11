@@ -9,6 +9,7 @@ import { requestLogger } from "./config/logger.js";
 import { apiRateLimiter } from "./middleware/rateLimit.js";
 import routes from "./routes.js";
 import { getEnv } from "./config/env.js";
+import { auditMiddleware } from "./modules/audit/audit.middleware.js";
 dotenv.config();
 const env = getEnv();
 const app = express();
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 app.use(requestLogger);
 app.use(apiRateLimiter);
+app.use(auditMiddleware);
 app.get("/health", (req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
@@ -67,7 +69,7 @@ process.on("SIGTERM", async () => {
     await prisma.$disconnect();
     process.exit(0);
 });
-if (!process.env.VITEST) {
+if (!process.env.VITEST && process.env.NODE_ENV !== "test") {
     start();
 }
 export { app };

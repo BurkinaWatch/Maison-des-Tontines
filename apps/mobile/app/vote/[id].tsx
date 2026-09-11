@@ -12,8 +12,10 @@ import { SafeAreaWrapper } from "../../src/components/layout";
 import { AppHeader } from "../../src/components/layout/AppHeader";
 import { GlassCard, GlassButton, GlassInput, StatusBadge, MemberAvatar } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
+import { useI18n } from "../../src/i18n";
 
 export default function VoteScreen() {
+  const { t } = useI18n();
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const [selectedVote, setSelectedVote] = useState<"approve" | "reject" | "abstain" | null>(null);
@@ -22,7 +24,7 @@ export default function VoteScreen() {
 
   const handleVote = async () => {
     if (!selectedVote) {
-      Alert.alert("Error", "Please select a vote");
+      Alert.alert(t("Error"), t("Please select a vote"));
       return;
     }
 
@@ -30,20 +32,20 @@ export default function VoteScreen() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      Alert.alert("Success", "Your vote has been recorded", [
+      Alert.alert(t("Success"), t("Your vote has been recorded"), [
         { text: "OK", onPress: () => router.back() },
       ]);
     } catch {
-      Alert.alert("Error", "Failed to submit vote");
+      Alert.alert(t("Error"), t("Failed to submit vote"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const voteOptions = [
-    { value: "approve" as const, label: "Approve", emoji: "✅", color: colors.success },
-    { value: "reject" as const, label: "Reject", emoji: "❌", color: colors.error },
-    { value: "abstain" as const, label: "Abstain", emoji: "⚪", color: colors.textTertiary },
+    { value: "approve" as const, label: t("Approve"), emoji: "✅", color: colors.success },
+    { value: "reject" as const, label: t("Reject"), emoji: "❌", color: colors.error },
+    { value: "abstain" as const, label: t("Abstain"), emoji: "⚪", color: colors.textTertiary },
   ];
 
   return (
@@ -52,7 +54,7 @@ export default function VoteScreen() {
         style={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <AppHeader title="Cast Vote" showBack showProfile />
+        <AppHeader title={t("Cast Vote")} showBack showProfile />
 
         <View style={styles.content}>
           <GlassCard style={styles.disputeCard}>
@@ -66,18 +68,18 @@ export default function VoteScreen() {
             </Text>
             <View style={styles.disputeMeta}>
               <View style={styles.disputeMetaItem}>
-                <Text style={styles.disputeMetaLabel}>Raised by</Text>
+                <Text style={styles.disputeMetaLabel}>{t("Raised by")}</Text>
                 <MemberAvatar name="Jean Dupont" size="small" />
               </View>
               <View style={styles.disputeMetaItem}>
-                <Text style={styles.disputeMetaLabel}>Date</Text>
-                <Text style={styles.disputeMetaValue}>Today</Text>
+                <Text style={styles.disputeMetaLabel}>{t("Date")}</Text>
+                <Text style={styles.disputeMetaValue}>{t("Today")}</Text>
               </View>
             </View>
           </GlassCard>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your Vote</Text>
+            <Text style={styles.sectionTitle}>{t("Your Vote")}</Text>
             <View style={styles.voteOptions}>
               {voteOptions.map((option) => (
                 <Pressable
@@ -107,17 +109,17 @@ export default function VoteScreen() {
 
           <View style={styles.section}>
             <GlassInput
-              label="Comment (Optional)"
+              label={t("Comment (Optional)")}
               value={comment}
               onChangeText={setComment}
-              placeholder="Add a comment to your vote..."
+              placeholder={t("Add a comment to your vote...")}
               multiline
               numberOfLines={4}
             />
           </View>
 
           <GlassButton
-            title="Submit Vote"
+            title={t("Submit Vote")}
             onPress={handleVote}
             loading={isSubmitting}
             disabled={!selectedVote}

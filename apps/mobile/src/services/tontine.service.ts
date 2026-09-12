@@ -4,7 +4,7 @@ import { Tontine, CreateTontineRequest, Cycle, TontineMember, MembershipInvitati
 export const tontineService = {
   async getTontines(): Promise<Tontine[]> {
     const response = await api.get<{ tontines: Tontine[] }>("/tontines");
-    return response.tontines ?? [];
+    return Array.isArray(response.tontines) ? response.tontines : [];
   },
 
   async getTontine(id: string): Promise<Tontine> {

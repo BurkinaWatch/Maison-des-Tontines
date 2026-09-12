@@ -9,10 +9,14 @@ let nativeRefreshToken: string | null = null;
 
 function getDefaultApiUrl(): string {
   if (typeof window !== "undefined" && window.location.hostname) {
-    // Replit exposes the API workflow on external port 3000 while Expo
-    // preview runs on external port 80. Calling the preview origin directly
-    // returns Expo's HTML shell instead of an API response.
-    return `${window.location.protocol}//${window.location.hostname}:3000`;
+    const hostname = window.location.hostname;
+    const isLocalPreview = hostname === "localhost" || hostname === "127.0.0.1";
+
+    // The API development server defaults to port 4000. Replit's preview
+    // only runs Expo, so non-local browser sessions must use the public API.
+    if (isLocalPreview) {
+      return `${window.location.protocol}//${hostname}:4000`;
+    }
   }
 
   return "https://api.maisondestontines.com";

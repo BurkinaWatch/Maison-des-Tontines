@@ -76,6 +76,45 @@ class AppErrorBoundary extends Component<
   }
 }
 
+class AuthenticatedErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("Authenticated screen render error", error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.error) {
+      return <AuthenticatedErrorFallback message={this.state.error.message} />;
+    }
+
+    return this.props.children;
+  }
+}
+
+function AuthenticatedErrorFallback({ message }: { message: string }) {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <View style={styles.errorScreen}>
+        <Text style={styles.logo}>⚠️</Text>
+        <Text style={styles.errorTitle}>L’espace membre n’a pas pu s’afficher</Text>
+        <Text style={styles.errorText}>
+          La connexion a réussi, mais l’écran suivant a rencontré un problème.
+        </Text>
+        <Text style={styles.errorDetails}>{message || "Erreur inconnue"}</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
 function errorMessage(error: unknown, fallback: string) {
   if (error instanceof Error) {
     return error.name === "AbortError"
@@ -173,13 +212,15 @@ function App() {
 
   if (connectedUser) {
     return (
-      <AuthenticatedScreen
-        name={connectedName || connectedUser.firstName || "Membre"}
-        user={connectedUser}
-        isSubmitting={isSubmitting}
-        message={message}
-        onLogout={handleLogout}
-      />
+      <AuthenticatedErrorBoundary>
+        <AuthenticatedScreen
+          name={connectedName || connectedUser.firstName || "Membre"}
+          user={connectedUser}
+          isSubmitting={isSubmitting}
+          message={message}
+          onLogout={handleLogout}
+        />
+      </AuthenticatedErrorBoundary>
     );
   }
 
@@ -372,7 +413,9 @@ function AuthenticatedScreen(props: {
     }
   }
 
-  const initials = `${props.user.firstName[0] || ""}${props.user.lastName[0] || ""}`.toUpperCase() || "?";
+  const firstName = typeof props.user.firstName === "string" ? props.user.firstName : "";
+  const lastName = typeof props.user.lastName === "string" ? props.user.lastName : "";
+  const initials = `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
 
   function renderDashboard() {
     const activeTontines = tontines.filter((tontine) => tontine.status === "active");

@@ -8,7 +8,8 @@ export const contributionService = {
       method?: string; providerRef?: string | null; confirmedAt?: string | null;
       declaredAt: string; cycle?: { id: string; name: string; tontine?: { id: string; name: string; currency?: string } };
     }> }>("/contributions/me/contributions");
-    return (response.contributions ?? []).filter((item) => !tontineId || item.cycle?.tontine?.id === tontineId).map((item) => ({
+    const contributions = Array.isArray(response.contributions) ? response.contributions : [];
+    return contributions.filter((item) => !tontineId || item.cycle?.tontine?.id === tontineId).map((item) => ({
       id: item.id,
       tontineId: item.cycle?.tontine?.id ?? "",
       tontineName: item.cycle?.tontine?.name ?? "Tontine",
@@ -16,7 +17,7 @@ export const contributionService = {
       userId: item.memberId,
       amount: item.amount,
       currency: (item.cycle?.tontine?.currency ?? "XOF") as Currency,
-      status: item.status.toLowerCase() as ContributionStatus,
+      status: String(item.status || "pending").toLowerCase() as ContributionStatus,
       method: item.method?.toLowerCase().replace("mobile_money", "mobile_money") as PaymentMethod | undefined,
       reference: item.providerRef ?? undefined,
       paidAt: item.confirmedAt ?? undefined,

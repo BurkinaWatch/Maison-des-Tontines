@@ -41,13 +41,14 @@ export const notificationService = {
         data: string; status: string; readAt?: string | null; createdAt: string;
       }>;
     }>("/notifications");
-    return (response.notifications ?? []).map((item) => ({
+    const notifications = Array.isArray(response.notifications) ? response.notifications : [];
+    return notifications.map((item) => ({
       id: item.id,
       type: item.type,
       title: item.title,
       message: item.body,
       data: parseNotificationData(item.data),
-      read: item.status === "READ" || Boolean(item.readAt),
+       read: String(item.status).toUpperCase() === "READ" || Boolean(item.readAt),
       createdAt: item.createdAt,
     }));
   },

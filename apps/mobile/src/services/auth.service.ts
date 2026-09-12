@@ -15,15 +15,18 @@ interface ApiAuthResponse {
 }
 
 function toMobileUser(user: ApiAuthResponse["user"]): User {
-  const [firstName = "", ...lastNameParts] = user.name.trim().split(/\s+/);
+  const safeUser = user && typeof user === "object" ? user : ({} as ApiAuthResponse["user"]);
+  const name = typeof safeUser.name === "string" ? safeUser.name.trim() : "";
+  const [firstName = "", ...lastNameParts] = name ? name.split(/\s+/) : [];
+  const role = String(safeUser.role || "").toLowerCase();
 
   return {
-    id: user.id,
-    phoneNumber: user.phone,
+    id: typeof safeUser.id === "string" ? safeUser.id : "",
+    phoneNumber: typeof safeUser.phone === "string" ? safeUser.phone : "",
     firstName,
     lastName: lastNameParts.join(" "),
-    email: user.email ?? undefined,
-    role: user.role.toLowerCase() as User["role"],
+    email: typeof safeUser.email === "string" ? safeUser.email : undefined,
+    role: role === "admin" || role === "treasurer" ? role : "member",
     verified: true,
     createdAt: new Date().toISOString(),
   };

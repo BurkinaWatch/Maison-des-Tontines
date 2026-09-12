@@ -1,5 +1,4 @@
 import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from "react";
-import * as SplashScreen from "expo-splash-screen";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,10 +13,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { authService } from "./src/services/auth.service";
-import { contributionService } from "./src/services/contribution.service";
-import { notificationService, type Notification } from "./src/services/notification.service";
-import { tontineService } from "./src/services/tontine.service";
+import type { Notification } from "./src/services/notification.service";
 import type { Contribution } from "./src/types/contribution";
 import type { Tontine } from "./src/types/tontine";
 import type { User } from "./src/types/user";
@@ -29,6 +25,22 @@ type AuthenticatedTab =
   | "contributions"
   | "notifications"
   | "profile";
+
+const loadAuthService = () =>
+  import("./src/services/auth.service").then(({ authService }) => authService);
+
+const loadContributionService = () =>
+  import("./src/services/contribution.service").then(
+    ({ contributionService }) => contributionService
+  );
+
+const loadNotificationService = () =>
+  import("./src/services/notification.service").then(
+    ({ notificationService }) => notificationService
+  );
+
+const loadTontineService = () =>
+  import("./src/services/tontine.service").then(({ tontineService }) => tontineService);
 
 class AppErrorBoundary extends Component<
   { children: ReactNode },
@@ -95,6 +107,7 @@ function App() {
     setIsSubmitting(true);
     setMessage("Connexion en cours…");
     try {
+      const authService = await loadAuthService();
       const { user } = await authService.login({ email: email.trim(), password });
       setConnectedUser(user);
       setConnectedName(user.firstName || user.email || "Membre");
@@ -122,6 +135,7 @@ function App() {
     setIsSubmitting(true);
     setMessage("Création du compte en cours…");
     try {
+      const authService = await loadAuthService();
       const { user } = await authService.register({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -142,6 +156,7 @@ function App() {
   async function handleLogout() {
     setIsSubmitting(true);
     try {
+      const authService = await loadAuthService();
       await authService.logout();
       setConnectedUser(null);
       setConnectedName(null);
@@ -233,7 +248,9 @@ function App() {
 export default function AppWithErrorBoundary() {
   useEffect(() => {
     if (Platform.OS !== "web") {
-      void SplashScreen.hideAsync();
+      void import("expo-splash-screen")
+        .then(({ hideAsync }) => hideAsync())
+        .catch(() => undefined);
     }
   }, []);
 
@@ -270,6 +287,10 @@ function AuthenticatedScreen(props: {
 
       try {
         if (activeTab === "dashboard") {
+          const [tontineService, contributionService] = await Promise.all([
+            loadTontineService(),
+            loadContributionService(),
+          ]);
           const [nextTontines, nextUpcoming] = await Promise.all([
             tontineService.getTontines(),
             contributionService.getUpcoming(),
@@ -279,9 +300,11 @@ function AuthenticatedScreen(props: {
             setUpcoming(nextUpcoming);
           }
         } else if (activeTab === "tontines") {
+          const tontineService = await loadTontineService();
           const nextTontines = await tontineService.getTontines();
           if (!cancelled) setTontines(nextTontines);
         } else if (activeTab === "contributions") {
+          const contributionService = await loadContributionService();
           const [nextUpcoming, nextHistory] = await Promise.all([
             contributionService.getUpcoming(),
             contributionService.getHistory(),
@@ -291,6 +314,7 @@ function AuthenticatedScreen(props: {
             setHistory(nextHistory);
           }
         } else if (activeTab === "notifications") {
+          const notificationService = await loadNotificationService();
           const [nextNotifications, unread] = await Promise.all([
             notificationService.getNotifications(),
             notificationService.getUnreadCount(),
@@ -320,6 +344,7 @@ function AuthenticatedScreen(props: {
 
   async function markNotificationAsRead(notificationId: string) {
     try {
+      const notificationService = await loadNotificationService();
       await notificationService.markAsRead(notificationId);
       setNotifications((current) =>
         current.map((notification) =>
@@ -336,6 +361,7 @@ function AuthenticatedScreen(props: {
 
   async function markAllNotificationsAsRead() {
     try {
+      const notificationService = await loadNotificationService();
       await notificationService.markAllAsRead();
       setNotifications((current) =>
         current.map((notification) => ({ ...notification, read: true }))

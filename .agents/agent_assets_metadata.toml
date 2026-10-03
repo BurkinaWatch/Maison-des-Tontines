@@ -112,3 +112,31 @@ mtime_ms = 1787496801587
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/6b1b4eb8-16ed-493c-8a4c-9f11a9719916/054d676f-752b-4b1d-91c3-e4c539478aff"
 storage_version_token = "1787496823418344"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "aF8rOUUSBNJfDIFV9GuYT"
+uri = "file://artifacts/maison-des-tontines-presentation.pdf"
+type = "pdf"
+title = "Présentation promotionnelle — Maison des Tontines"
+description = "PDF A4 d’une page avec l’icône officielle, une description promotionnelle courte et longue, les fonctionnalités principales et un appel à l’action."
+logical_id = "096d3740-2e28-4cea-8821-e1e3cc5570f3"
+content_hash = "sha256:dfde099055a8c61c3f6cc7af196977bd3c28aacec9552ad760c024212dce40f7"
+size = 98462
+mtime_ms = 1791058784042
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/096d3740-2e28-4cea-8821-e1e3cc5570f3/42ba1176-93be-43dc-8d82-155a01378a06"
+storage_version_token = "1791058794656049"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "WQ0IbS4czulDdtfqcDKYI"
+uri = "file://apps/mobile/assets/icon.png"
+type = "image"
+title = "Logo officiel — Maison des Tontines"
+description = "Icône officielle 1024 × 1024 référencée comme icône de l’application dans sa configuration Expo."
+logical_id = "7ab22e32-6a0b-4abb-8677-6f7c6486abe7"
+content_hash = "sha256:6bf3e176dbf18658abf304c3328a625a69104a22c2be827e503207c5ff08ab65"
+size = 53980
+mtime_ms = 1789075749221
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/7ab22e32-6a0b-4abb-8677-6f7c6486abe7/ea2d7b39-40f1-4cc6-913f-9736a69a4354"
+storage_version_token = "1791058795238091"
+content_type = "image/png"

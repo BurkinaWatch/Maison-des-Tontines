@@ -1,7 +1,7 @@
 import React from "react";
 import { Image, type ImageStyle, type StyleProp } from "react-native";
 
-export type BrandLogoVariant = "mark" | "wordmark" | "lockup" | "tagline";
+export type BrandLogoVariant = "mark" | "wordmark" | "tagline";
 
 type BrandLogoProps = {
   variant: BrandLogoVariant;
@@ -14,14 +14,12 @@ type BrandLogoProps = {
 const sources = {
   mark: require("../../assets/brand-mark.png"),
   wordmark: require("../../assets/brand-wordmark.png"),
-  lockup: require("../../assets/brand-lockup.png"),
   tagline: require("../../assets/brand-tagline.png"),
 };
 
 const defaultLabels: Record<BrandLogoVariant, string> = {
   mark: "Emblème de la Maison des Tontines",
   wordmark: "La Maison des Tontines",
-  lockup: "La Maison des Tontines",
   tagline: "La Maison des Tontines — épargner ensemble, s’entraider, grandir ensemble",
 };
 

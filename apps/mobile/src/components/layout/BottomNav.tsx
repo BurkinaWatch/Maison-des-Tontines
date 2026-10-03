@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import { colors, spacing, typography } from "../../theme";
+import { BrandLogo } from "../BrandLogo";
 
 interface TabItem {
   name: string;
@@ -36,14 +37,13 @@ export const BottomNav: React.FC = () => {
             style={styles.tab}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text
-              style={[
-                styles.icon,
-                isActive && styles.activeIcon,
-              ]}
-            >
-              {tab.icon}
-            </Text>
+            {tab.name === "dashboard" ? (
+              <BrandLogo variant="mark" width={25} height={25} />
+            ) : (
+              <Text style={[styles.icon, isActive && styles.activeIcon]}>
+                {tab.icon}
+              </Text>
+            )}
             <Text
               style={[
                 styles.label,

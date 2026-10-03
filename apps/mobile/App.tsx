@@ -13,6 +13,8 @@ import {
   TextInput,
   View,
 } from "react-native";
+import Constants from "expo-constants";
+import { BrandLogo } from "./src/components/BrandLogo";
 import type { Notification } from "./src/services/notification.service";
 import type { Contribution } from "./src/types/contribution";
 import type { Tontine } from "./src/types/tontine";
@@ -24,7 +26,8 @@ type AuthenticatedTab =
   | "tontines"
   | "contributions"
   | "notifications"
-  | "profile";
+  | "profile"
+  | "about";
 
 const loadAuthService = () =>
   import("./src/services/auth.service").then(({ authService }) => authService);
@@ -243,10 +246,13 @@ function App() {
                 <Text style={styles.nativeBackButtonText}>← Retour à la connexion</Text>
               </Pressable>
             )}
-            <Text style={styles.logo}>🏠</Text>
-            <Text style={styles.title}>
-              {connectedName ? `Bienvenue, ${connectedName}` : "Maison des Tontines"}
-            </Text>
+            <BrandLogo
+              variant="wordmark"
+              width={260}
+              height={87}
+              accessibilityLabel="La Maison des Tontines — épargner ensemble, s’entraider, grandir ensemble"
+              style={styles.nativeAuthBrand}
+            />
             <Text style={styles.subtitle}>
               {connectedName
                 ? "Ton espace est prêt."
@@ -374,7 +380,7 @@ function AuthenticatedScreen(props: {
       }
     }
 
-    if (activeTab !== "profile") {
+    if (activeTab !== "profile" && activeTab !== "about") {
       void loadTabData();
     }
 
@@ -566,6 +572,14 @@ function AuthenticatedScreen(props: {
               </Pressable>
             )
           )}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setActiveTab("about")}
+            style={styles.nativeMenuItem}
+          >
+            <Text style={styles.nativeMenuLabel}>À propos de l’application</Text>
+            <Text style={styles.nativeMenuArrow}>›</Text>
+          </Pressable>
         </View>
         <Pressable
           onPress={props.onLogout}
@@ -582,6 +596,41 @@ function AuthenticatedScreen(props: {
     );
   }
 
+  function renderAbout() {
+    const appVersion = Constants.expoConfig?.version;
+
+    return (
+      <View style={styles.nativeAboutPage}>
+        <View style={styles.nativeAboutImageFrame}>
+          <BrandLogo
+            variant="tagline"
+            width={280}
+            height={187}
+            accessibilityLabel="La Maison des Tontines — épargner ensemble, s’entraider, grandir ensemble"
+          />
+        </View>
+        <Text style={styles.nativeAboutTitle}>À propos de la Maison des Tontines</Text>
+        <Text style={styles.nativeAboutText}>
+          Maison des Tontines aide les groupes à organiser leurs tontines, à suivre
+          les cotisations et à rester en contact.
+        </Text>
+        <Text style={styles.nativeAboutTagline}>
+          Épargner ensemble, s’entraider, grandir ensemble.
+        </Text>
+        {appVersion ? (
+          <Text style={styles.nativeAboutVersion}>Version {appVersion}</Text>
+        ) : null}
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setActiveTab("profile")}
+          style={styles.nativeAboutBack}
+        >
+          <Text style={styles.nativeLink}>Retour au profil</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   const content =
     activeTab === "dashboard"
       ? renderDashboard()
@@ -591,18 +640,23 @@ function AuthenticatedScreen(props: {
           ? renderContributions()
           : activeTab === "notifications"
             ? renderNotifications()
-            : renderProfile();
+            : activeTab === "profile"
+              ? renderProfile()
+              : renderAbout();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
       <View style={styles.nativeApp}>
         <View style={styles.nativeHeader}>
-          <View>
-            <Text style={styles.nativeBrand}>Maison des Tontines</Text>
-            <Text style={styles.nativeHeaderSubtitle}>
-              {activeTab === "dashboard" ? "Tableau de bord" : tabLabel(activeTab)}
-            </Text>
+          <View style={styles.nativeHeaderBrandBlock}>
+            <BrandLogo variant="mark" width={38} height={38} />
+            <View style={styles.nativeHeaderTitleGroup}>
+              <Text numberOfLines={1} style={styles.nativeBrand}>Maison des Tontines</Text>
+              <Text style={styles.nativeHeaderSubtitle}>
+                {activeTab === "dashboard" ? "Tableau de bord" : tabLabel(activeTab)}
+              </Text>
+            </View>
           </View>
           <Pressable onPress={() => setActiveTab("profile")} style={styles.nativeHeaderAvatar}>
             <Text style={styles.nativeHeaderAvatarText}>{initials}</Text>
@@ -634,7 +688,7 @@ function AuthenticatedScreen(props: {
         </ScrollView>
         <View style={styles.nativeTabBar}>
           {([
-            ["dashboard", "⌂", "Accueil"],
+            ["dashboard", "", "Accueil"],
             ["tontines", "🤝", "Tontines"],
             ["contributions", "€", "Paiements"],
             ["notifications", "🔔", "Alertes"],
@@ -645,9 +699,13 @@ function AuthenticatedScreen(props: {
               onPress={() => setActiveTab(tab)}
               style={styles.nativeTab}
             >
-              <Text style={[styles.nativeTabIcon, activeTab === tab && styles.nativeTabActive]}>
-                {icon}
-              </Text>
+              {tab === "dashboard" ? (
+                <BrandLogo variant="mark" width={23} height={23} />
+              ) : (
+                <Text style={[styles.nativeTabIcon, activeTab === tab && styles.nativeTabActive]}>
+                  {icon}
+                </Text>
+              )}
               <Text style={[styles.nativeTabLabel, activeTab === tab && styles.nativeTabActive]}>
                 {label}
               </Text>
@@ -777,6 +835,7 @@ function tabLabel(tab: AuthenticatedTab) {
     contributions: "Contributions",
     notifications: "Notifications",
     profile: "Profil",
+    about: "À propos",
   }[tab];
 }
 
@@ -806,6 +865,7 @@ const styles = StyleSheet.create({
   container: { alignItems: "center", flexGrow: 1, justifyContent: "center", padding: 24 },
   card: { backgroundColor: colors.card, borderColor: "rgba(255,255,255,0.14)", borderRadius: 20, borderWidth: 1, maxWidth: 440, padding: 24, width: "100%" },
   logo: { fontSize: 42, marginBottom: 14, textAlign: "center" },
+  nativeAuthBrand: { alignSelf: "center", marginBottom: 14 },
   title: { color: colors.white, fontSize: 24, fontWeight: "700", textAlign: "center" },
   subtitle: { color: colors.muted, fontSize: 15, lineHeight: 22, marginBottom: 18, marginTop: 8, textAlign: "center" },
   label: { color: "rgba(255,255,255,0.9)", fontSize: 14, fontWeight: "600", marginBottom: 8, marginTop: 12 },
@@ -847,6 +907,8 @@ const styles = StyleSheet.create({
   authenticatedPanelText: { borderTopColor: "rgba(255,255,255,0.12)", borderTopWidth: 1, color: colors.muted, fontSize: 16, paddingVertical: 14 },
   nativeApp: { backgroundColor: colors.background, flex: 1 },
   nativeHeader: { alignItems: "center", borderBottomColor: "rgba(255,255,255,0.08)", borderBottomWidth: 1, flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 16 },
+  nativeHeaderBrandBlock: { alignItems: "center", flex: 1, flexDirection: "row", gap: 10, marginRight: 12 },
+  nativeHeaderTitleGroup: { flex: 1 },
   nativeBrand: { color: colors.accent, fontSize: 18, fontWeight: "700" },
   nativeHeaderSubtitle: { color: colors.muted, fontSize: 12, marginTop: 3 },
   nativeHeaderAvatar: { alignItems: "center", backgroundColor: colors.card, borderColor: colors.accent, borderRadius: 20, borderWidth: 1, height: 40, justifyContent: "center", width: 40 },
@@ -890,6 +952,13 @@ const styles = StyleSheet.create({
   nativeMenuItem: { alignItems: "center", borderBottomColor: "rgba(255,255,255,0.1)", borderBottomWidth: 1, flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 16 },
   nativeMenuLabel: { color: colors.white, fontSize: 14 },
   nativeMenuArrow: { color: colors.muted, fontSize: 25, fontWeight: "300" },
+  nativeAboutPage: { alignItems: "center", paddingTop: 12 },
+  nativeAboutImageFrame: { alignItems: "center", backgroundColor: "#f7f1e3", borderRadius: 18, marginBottom: 22, overflow: "hidden", padding: 8 },
+  nativeAboutTitle: { color: colors.white, fontSize: 20, fontWeight: "700", textAlign: "center" },
+  nativeAboutText: { color: colors.muted, fontSize: 14, lineHeight: 22, marginTop: 12, textAlign: "center" },
+  nativeAboutTagline: { color: colors.accent, fontSize: 14, fontWeight: "700", lineHeight: 21, marginTop: 18, textAlign: "center" },
+  nativeAboutVersion: { color: "rgba(255,255,255,0.48)", fontSize: 11, marginTop: 20 },
+  nativeAboutBack: { marginTop: 24, padding: 10 },
   nativeLogoutButton: { alignItems: "center", borderColor: "rgba(212,165,116,0.7)", borderRadius: 12, borderWidth: 1, justifyContent: "center", minHeight: 50 },
   nativeLogoutText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
   nativeTabBar: { backgroundColor: colors.card, borderTopColor: "rgba(255,255,255,0.12)", borderTopWidth: 1, flexDirection: "row", justifyContent: "space-around", paddingBottom: 8, paddingTop: 10 },

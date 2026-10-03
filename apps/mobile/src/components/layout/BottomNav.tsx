@@ -12,7 +12,7 @@ interface TabItem {
 }
 
 const tabs: TabItem[] = [
-  { name: "dashboard", label: "Home", icon: "🏠", path: "/(tabs)/" },
+  { name: "dashboard", label: "Home", icon: "", path: "/(tabs)/" },
   { name: "tontines", label: "Tontines", icon: "🤝", path: "/(tabs)/tontines" },
   { name: "contributions", label: "Pay", icon: "💰", path: "/(tabs)/contributions" },
   { name: "notifications", label: "Alerts", icon: "🔔", path: "/(tabs)/notifications" },

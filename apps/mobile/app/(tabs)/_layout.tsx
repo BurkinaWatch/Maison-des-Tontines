@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import { Text } from "react-native";
 import { colors } from "../../src/theme";
 import { useI18n } from "../../src/i18n";
+import { BrandLogo } from "../../src/components/BrandLogo";
 
 export default function TabsLayout() {
   const { t } = useI18n();
@@ -22,7 +23,7 @@ export default function TabsLayout() {
         name="index"
         options={{
            title: t("Home"),
-          tabBarIcon: () => <Text style={{ fontSize: 22 }}>🏠</Text>,
+          tabBarIcon: () => <BrandLogo variant="mark" width={24} height={24} />,
         }}
       />
       <Tabs.Screen

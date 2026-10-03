@@ -14,6 +14,7 @@ import { GlassCard, GlassButton, StatusBadge } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useAuthStore } from "../../src/store/authStore";
 import { useI18n } from "../../src/i18n";
+import Constants from "expo-constants";
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
@@ -43,6 +44,11 @@ export default function ProfileScreen() {
       icon: "❓",
        label: t("Help & Support"),
       action: () => goTo("/profile/help"),
+    },
+    {
+      icon: "ℹ️",
+      label: t("About the app"),
+      action: () => goTo("/profile/about"),
     },
     {
       icon: "📄",
@@ -106,7 +112,7 @@ export default function ProfileScreen() {
           />
 
           <Text style={styles.version}>
-            Maison des Tontines v1.0.0
+            Maison des Tontines{Constants.expoConfig?.version ? ` v${Constants.expoConfig.version}` : ""}
           </Text>
         </View>
       </ScrollView>

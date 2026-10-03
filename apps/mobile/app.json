@@ -5,7 +5,8 @@
     "version": "1.0.4",
     "orientation": "portrait",
     "web": {
-      "output": "server"
+      "output": "server",
+      "favicon": "./assets/favicon.png"
     },
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -24,7 +25,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1a1a2e"
+        "backgroundColor": "#f7f1e3"
       },
       "package": "com.maisondestontines.app",
       "permissions": [

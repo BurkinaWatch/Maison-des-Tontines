@@ -14,6 +14,7 @@ import { colors, spacing, typography } from "../../src/theme";
 import { authService } from "../../src/services/auth.service";
 import { useAuthStore } from "../../src/store/authStore";
 import { useI18n } from "../../src/i18n";
+import { BrandLogo } from "../../src/components/BrandLogo";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -49,8 +50,13 @@ export default function LoginScreen() {
     >
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.logo}>🏠</Text>
-          <Text style={styles.title}>Maison des Tontines</Text>
+          <BrandLogo
+            variant="wordmark"
+            width={260}
+            height={87}
+            accessibilityLabel="La Maison des Tontines — épargner ensemble, s’entraider, grandir ensemble"
+            style={styles.brandLogo}
+          />
           <Text style={styles.subtitle}>{t("Welcome back")}</Text>
         </View>
 
@@ -116,14 +122,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: spacing.xl,
   },
-  logo: {
-    fontSize: 64,
+  brandLogo: {
     marginBottom: spacing.md,
-  },
-  title: {
-    ...typography.display,
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.body,

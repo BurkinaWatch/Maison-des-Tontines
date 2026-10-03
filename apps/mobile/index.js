@@ -1,6 +1,6 @@
 import { registerRootComponent } from "expo";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Platform, SafeAreaView, Text, View } from "react-native";
+import { ActivityIndicator, Image, Platform, SafeAreaView, Text, View } from "react-native";
 
 function NativeBootstrap() {
   const [NativeApp, setNativeApp] = useState(null);
@@ -39,6 +39,12 @@ function NativeBootstrap() {
           padding: 24,
         }}
       >
+        <Image
+          accessibilityLabel="Emblème de la Maison des Tontines"
+          resizeMode="contain"
+          source={require("./assets/brand-mark.png")}
+          style={{ height: 76, marginBottom: 18, width: 102 }}
+        />
         {loadError ? (
           <>
             <Text style={{ color: "#d4a574", fontSize: 36, marginBottom: 16 }}>⚠️</Text>

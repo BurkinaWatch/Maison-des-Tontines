@@ -13,6 +13,7 @@ import { GlassCard, GlassInput, GlassButton } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useAuthStore } from "../../src/store/authStore";
 import { useI18n } from "../../src/i18n";
+import { BrandLogo } from "../../src/components/BrandLogo";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -76,7 +77,13 @@ export default function RegisterScreen() {
           <Text style={styles.backButtonText}>← Back to sign in</Text>
         </Pressable>
         <View style={styles.header}>
-          <Text style={styles.logo}>🏠</Text>
+          <BrandLogo
+            variant="wordmark"
+            width={240}
+            height={80}
+            accessibilityLabel="La Maison des Tontines — épargner ensemble, s’entraider, grandir ensemble"
+            style={styles.brandLogo}
+          />
           <Text style={styles.title}>{t("Create Account")}</Text>
           <Text style={styles.subtitle}>
             Join Maison des Tontines
@@ -191,8 +198,7 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontWeight: "600",
   },
-  logo: {
-    fontSize: 64,
+  brandLogo: {
     marginBottom: spacing.md,
   },
   title: {

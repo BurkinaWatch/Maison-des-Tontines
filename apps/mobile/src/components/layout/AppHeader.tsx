@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import { colors, spacing, typography } from "../../theme";
 import { useI18n } from "../../i18n";
+import { BrandLogo } from "../BrandLogo";
 
 interface HeaderProps {
   title?: string;
@@ -40,8 +41,11 @@ export const AppHeader: React.FC<HeaderProps> = ({
           </Pressable>
         )}
         <View style={styles.titleContainer}>
-           {title && <Text style={styles.title}>{t(title)}</Text>}
-           {subtitle && <Text style={styles.subtitle}>{t(subtitle)}</Text>}
+          <BrandLogo variant="mark" width={30} height={30} />
+          <View style={styles.titleTextContainer}>
+            {title && <Text style={styles.title}>{t(title)}</Text>}
+            {subtitle && <Text style={styles.subtitle}>{t(subtitle)}</Text>}
+          </View>
         </View>
         <View style={styles.rightContainer}>
           {rightAction}
@@ -96,7 +100,13 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
     marginHorizontal: spacing.sm,
+  },
+  titleTextContainer: {
+    flex: 1,
   },
   title: {
     ...typography.heading2,

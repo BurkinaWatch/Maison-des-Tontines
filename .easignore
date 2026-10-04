@@ -14,6 +14,7 @@ apps/api/prisma/postgresql/schema.prisma
 /.local/
 /.upm/
 /attached_assets/
+/artifacts/
 /screenshots/
 
 # Services and packages not required to build the Android application

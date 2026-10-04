@@ -140,3 +140,17 @@ mtime_ms = 1789075749221
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/7ab22e32-6a0b-4abb-8677-6f7c6486abe7/ea2d7b39-40f1-4cc6-913f-9736a69a4354"
 storage_version_token = "1791058795238091"
 content_type = "image/png"
+
+[[outputs]]
+id = "znmhfnV81wIJmzsisy-Ne"
+uri = "file://artifacts/maison-des-tontines-android-1.0.4-build-6.apk"
+type = "unspecified"
+title = "APK Android — Maison des Tontines"
+description = "Build interne EAS preview, version 1.0.4 (versionCode 6), configuré pour l’API Railway de production. Prêt à installer pour tester la connexion Android."
+logical_id = "fe8a7ca0-97f8-4998-a1bc-a11e021110d5"
+content_hash = "sha256:5d6b1f96efa2d178e05c646723c84ff8c53b569a8f789a42a19faf37cd582794"
+size = 94896928
+mtime_ms = 1791144220202
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:5b15f39c-712c-4dec-8f86-0a9cd6a442fd/fe8a7ca0-97f8-4998-a1bc-a11e021110d5/776a58dc-3857-4e29-946b-8f5e62f46821"
+storage_version_token = "1791144412499905"
+content_type = "application/octet-stream"

@@ -14,3 +14,9 @@ The EAS archive can include root-level generated APKs under `artifacts/`; explic
 **Why:** Root APKs unnecessarily inflated the EAS upload, and a Replit-created empty-message commit caused EAS to reject `gitCommitMessage`.
 
 **How to apply:** Run `eas build:inspect --platform android --stage archive --profile preview` and verify the archive contains the mobile app but no prior APKs. Use `EAS_NO_VCS=1` only when the Git message is empty; it skips Git metadata while still building the local source archive.
+
+The workspace `unzip` utility can report invalid extra-field warnings on valid EAS APKs; verify their ZIP entries with Python's standard-library `zipfile` before treating those warnings as a corrupt build.
+
+**Why:** The Android APK passed Python ZIP integrity checks and was recognized as an Android package despite the local `unzip` warnings.
+
+**How to apply:** Use `ZipFile(path).testzip()` as the integrity check for downloaded APKs in this environment.

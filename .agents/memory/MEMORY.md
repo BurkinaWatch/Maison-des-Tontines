@@ -3,6 +3,7 @@
 - [Expo web auth storage](expo-web-auth-storage.md) — Use localStorage for Expo web sessions and SecureStore only on native platforms.
 - [Refresh-token uniqueness](refresh-token-uniqueness.md) — Give every JWT refresh token unique session entropy, even when sessions start in the same second.
 - [Railway migration environment](railway-migration-environment.md) — Gate PostgreSQL migrations to production so local tools never target the Railway URL.
+- [Railway Railpack builds](railway-railpack-builds.md) — Match the root Node engine and package-manager metadata to the build/start scripts Railway runs.
 - [EAS monorepo APK builds](eas-monorepo-build.md) — Upload an isolated mobile archive when root npm locks contain Replit-only registry URLs.
 - [Expo Router Android startup isolation](expo-router-api-routes-android.md) — Keep a direct native entry screen ready when router registration fails before rendering.
 - [EAS OTA compatibility](eas-ota-runtime.md) — Verify runtime eligibility and that the OTA source includes the intended fix.

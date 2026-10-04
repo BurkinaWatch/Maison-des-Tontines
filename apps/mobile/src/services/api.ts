@@ -12,7 +12,7 @@ function getDefaultApiUrl(): string {
     return window.location.origin;
   }
 
-  return "https://api.maisondestontines.com";
+  return "https://maison-des-tontines-production.up.railway.app";
 }
 
 function buildApiUrl(baseUrl: string, endpoint: string): string {

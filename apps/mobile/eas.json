@@ -8,12 +8,20 @@
       "channel": "preview",
       "distribution": "internal",
       "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://maison-des-tontines-production.up.railway.app",
+        "EXPO_PUBLIC_API_VERSION": "v1"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
       "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://maison-des-tontines-production.up.railway.app",
+        "EXPO_PUBLIC_API_VERSION": "v1"
+      },
       "android": {
         "buildType": "app-bundle"
       }

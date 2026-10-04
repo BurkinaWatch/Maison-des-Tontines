@@ -53,6 +53,7 @@
       "typedRoutes": true
     },
     "extra": {
+      "apiUrl": "https://maison-des-tontines-production.up.railway.app",
       "router": {},
       "eas": {
         "projectId": "9dbeffb3-4c3a-464d-b61a-92ade2d31d55"

@@ -57,3 +57,8 @@ waitForPort = 4000
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[userenv]
+
+[userenv.shared]
+RESEND_FROM_EMAIL = "noreply@burkinawatch.com"

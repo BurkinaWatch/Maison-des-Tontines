@@ -78,9 +78,9 @@ export default function RegisterScreen() {
         </Pressable>
         <View style={styles.header}>
           <BrandLogo
-            variant="wordmark"
-            width={240}
-            height={80}
+            variant="lockup"
+            width={204}
+            height={136}
             accessibilityLabel="La Maison des Tontines — épargner ensemble, s’entraider, grandir ensemble"
             style={styles.brandLogo}
           />
@@ -200,6 +200,7 @@ const styles = StyleSheet.create({
   },
   brandLogo: {
     marginBottom: spacing.md,
+    borderRadius: 14,
   },
   title: {
     ...typography.display,

@@ -51,9 +51,9 @@ export default function LoginScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <BrandLogo
-            variant="wordmark"
-            width={260}
-            height={87}
+            variant="lockup"
+            width={240}
+            height={160}
             accessibilityLabel="La Maison des Tontines — épargner ensemble, s’entraider, grandir ensemble"
             style={styles.brandLogo}
           />
@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
   },
   brandLogo: {
     marginBottom: spacing.md,
+    borderRadius: 14,
   },
   subtitle: {
     ...typography.body,

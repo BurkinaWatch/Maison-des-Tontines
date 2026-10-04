@@ -22,12 +22,14 @@ export class TontinesService {
         ...data,
         createdById: userId,
         rules: data.rules
-          ? Object.entries(data.rules).map(([key, value]) => ({
-              key,
-              value: String(value),
-              type: typeof value === "number" ? "NUMBER" : "STRING",
-            }))
-          : [],
+          ? {
+              create: Object.entries(data.rules).map(([key, value]) => ({
+                key,
+                value: String(value),
+                type: typeof value === "number" ? "NUMBER" : "STRING",
+              })),
+            }
+          : undefined,
       },
       include: { rules: true },
     });

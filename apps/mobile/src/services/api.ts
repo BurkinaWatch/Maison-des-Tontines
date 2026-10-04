@@ -8,15 +8,8 @@ let nativeAccessToken: string | null = null;
 let nativeRefreshToken: string | null = null;
 
 function getDefaultApiUrl(): string {
-  if (typeof window !== "undefined" && window.location.hostname) {
-    const hostname = window.location.hostname;
-    const isLocalPreview = hostname === "localhost" || hostname === "127.0.0.1";
-
-    // The API development server defaults to port 4000. Replit's preview
-    // only runs Expo, so non-local browser sessions must use the public API.
-    if (isLocalPreview) {
-      return `${window.location.protocol}//${hostname}:4000`;
-    }
+  if (Platform.OS === "web" && typeof window !== "undefined" && window.location.origin) {
+    return window.location.origin;
   }
 
   return "https://api.maisondestontines.com";
@@ -101,9 +94,11 @@ function getErrorMessage(body: unknown, status: number, statusText: string): str
 
 export const api = {
   baseUrl:
-    process.env.EXPO_PUBLIC_API_URL ||
-    Constants.expoConfig?.extra?.apiUrl ||
-    getDefaultApiUrl(),
+    Platform.OS === "web" && typeof window !== "undefined"
+      ? window.location.origin
+      : process.env.EXPO_PUBLIC_API_URL ||
+        Constants.expoConfig?.extra?.apiUrl ||
+        getDefaultApiUrl(),
 
   async getToken(): Promise<string | null> {
     try {

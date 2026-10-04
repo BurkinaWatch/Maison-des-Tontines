@@ -13,3 +13,4 @@
 - [Vitest Node runtime](vitest-node-runtime.md) — Keep the project runtime on Node 20+ because current Vitest releases require newer Node built-ins.
 - [Opaque brand-image backgrounds](opaque-brand-image-backgrounds.md) — Verify transparency channels; checkerboard previews can be baked into pixels and need a contrast-tested mask.
 - [Protected Replit config edits](protected-replit-config-edits.md) — Stage and validate `.replit` changes with Replit’s replacement helper, then verify the saved mapping and public route.
+- [Railway API startup prerequisites](railway-api-startup.md) — Align the API port with its Railway domain and enable BullMQ only when private Redis references resolve.

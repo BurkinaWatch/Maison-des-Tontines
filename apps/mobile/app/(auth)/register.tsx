@@ -6,6 +6,7 @@ import {
   TextInput,
   Pressable,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -68,7 +69,12 @@ export default function RegisterScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <Pressable
           accessibilityRole="button"
           onPress={() => router.replace("/(auth)/login")}
@@ -168,7 +174,7 @@ export default function RegisterScreen() {
             </Pressable>
           </Text>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -178,8 +184,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  content: {
+  scrollView: {
     flex: 1,
+  },
+  content: {
+    flexGrow: 1,
     justifyContent: "flex-start",
     padding: spacing.xl,
     paddingTop: spacing.lg,

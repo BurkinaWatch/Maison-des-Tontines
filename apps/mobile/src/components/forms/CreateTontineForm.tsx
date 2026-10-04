@@ -63,6 +63,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
     },
   });
   const [formError, setFormError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const tontineTypes: { value: TontineType; label: string; emoji: string }[] = [
     { value: "rotating", label: t("Rotating"), emoji: "🔄" },
@@ -78,6 +79,10 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting || isLoading) {
+      return;
+    }
+
     const parsed = createTontineSchema.safeParse({
       name: formData.name,
       description: formData.description,
@@ -96,6 +101,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
       return;
     }
     setFormError("");
+    setIsSubmitting(true);
     try {
       const typeMap: Record<TontineType, "ROTATIVE" | "SAVINGS" | "GOAL" | "HYBRID"> = {
         rotating: "ROTATIVE",
@@ -116,6 +122,13 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
       });
     } catch (error) {
       console.error("Submit error:", error);
+      const message =
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : t("Unable to create tontine. Please try again.");
+      setFormError(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -430,6 +443,11 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
         </View>
       )}
 
+      {formError ? (
+        <Text style={styles.formError} accessibilityRole="alert">
+          {formError}
+        </Text>
+      ) : null}
       <View style={styles.buttonRow}>
         {step > 1 && (
           <GlassButton
@@ -449,12 +467,11 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
           <GlassButton
             title={t("Create Tontine")}
             onPress={handleSubmit}
-            loading={isLoading}
+            loading={isLoading || isSubmitting}
             style={styles.button}
           />
         )}
       </View>
-      {formError ? <Text style={styles.formError}>{formError}</Text> : null}
     </ScrollView>
   );
 };

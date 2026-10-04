@@ -14,12 +14,8 @@ export default function CreateTontineScreen() {
   const { t } = useI18n();
 
   const handleSubmit = async (data: any) => {
-    try {
-      await createTontine(data);
-      router.replace("/(tabs)/tontines");
-    } catch (error) {
-      console.error("Failed to create tontine:", error);
-    }
+    await createTontine(data);
+    router.replace("/(tabs)/tontines");
   };
 
   return (

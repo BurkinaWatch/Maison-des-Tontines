@@ -8,10 +8,10 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "pnpm --filter @maison-des-tontines/api prisma:generate && pnpm --filter @maison-des-tontines/api prisma:generate:postgres && pnpm --filter @maison-des-tontines/api build",
+    "build": "npm run build:api",
     "build:api": "npm run --workspace=@maison-des-tontines/api prisma:generate && npm run --workspace=@maison-des-tontines/api prisma:generate:postgres && npm run --workspace=@maison-des-tontines/api build",
     "dev": "turbo run dev",
-    "start": "NODE_ENV=production pnpm --filter @maison-des-tontines/api prisma:migrate:production && NODE_ENV=production pnpm --filter @maison-des-tontines/api start",
+    "start": "NODE_ENV=production npm run prisma:migrate:production --workspace=@maison-des-tontines/api && NODE_ENV=production npm run start --workspace=@maison-des-tontines/api",
     "lint": "turbo run lint",
     "typecheck": "npm run typecheck --workspace=maison-des-tontines-mobile",
     "test": "turbo run test",
@@ -30,7 +30,7 @@
   },
   "packageManager": "npm@10.8.2",
   "engines": {
-    "node": ">=18.0.0",
+    "node": "^22.22.2",
     "npm": ">=10.0.0"
   },
   "overrides": {

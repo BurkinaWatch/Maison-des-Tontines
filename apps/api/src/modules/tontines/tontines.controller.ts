@@ -61,6 +61,7 @@ export class TontinesController {
         include: {
           members: { where: { userId, status: "ACTIVE" } },
           cycles: { orderBy: { sequence: "desc" }, take: 1 },
+          rules: true,
           _count: { select: { members: true } },
         },
         skip: (Number(page) - 1) * Number(limit),

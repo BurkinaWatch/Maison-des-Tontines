@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { tontineService } from "../services/tontine.service";
+import { useAuthStore } from "../store/authStore";
 import { useTontineStore } from "../store/tontineStore";
 
 export const useTontines = () => {
   const queryClient = useQueryClient();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuthStore();
   const {
     selectedTontine,
     isLoading: storeLoading,
@@ -15,9 +17,10 @@ export const useTontines = () => {
   } = useTontineStore();
 
   const { data = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["tontines"],
+    queryKey: ["tontines", user?.id],
     queryFn: () => tontineService.getTontines(),
     staleTime: 60 * 1000,
+    enabled: isAuthenticated,
   });
 
   const createMutation = useMutation({
@@ -45,7 +48,7 @@ export const useTontines = () => {
   return {
     tontines: data,
     selectedTontine,
-    isLoading: isLoading || storeLoading,
+    isLoading: isLoading || storeLoading || authLoading,
     error,
     refetch,
     fetchTontine,

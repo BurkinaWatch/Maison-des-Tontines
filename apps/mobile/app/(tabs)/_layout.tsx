@@ -1,13 +1,24 @@
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
+import { Platform, Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../src/theme";
 import { useI18n } from "../../src/i18n";
 import { BrandLogo } from "../../src/components/BrandLogo";
 
 export default function TabsLayout() {
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
+  const tabBarInsets = {
+    ...insets,
+    // Some Android edge-to-edge builds report a zero bottom inset even while
+    // the system navigation controls overlay the app content.
+    bottom:
+      Platform.OS === "android" ? Math.max(insets.bottom, 24) : insets.bottom,
+  };
+
   return (
     <Tabs
+      safeAreaInsets={tabBarInsets}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {

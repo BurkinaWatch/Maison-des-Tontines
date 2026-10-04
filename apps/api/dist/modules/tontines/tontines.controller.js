@@ -14,12 +14,14 @@ export class TontinesController {
                     endDate: data.endDate ? new Date(data.endDate) : null,
                     createdById: userId,
                     rules: data.rules
-                        ? Object.entries(data.rules).map(([key, value]) => ({
-                            key,
-                            value: String(value),
-                            type: typeof value === "number" ? "NUMBER" : typeof value === "boolean" ? "BOOLEAN" : "STRING",
-                        }))
-                        : [],
+                        ? {
+                            create: Object.entries(data.rules).map(([key, value]) => ({
+                                key,
+                                value: String(value),
+                                type: typeof value === "number" ? "NUMBER" : typeof value === "boolean" ? "BOOLEAN" : "STRING",
+                            })),
+                        }
+                        : undefined,
                 },
                 include: { rules: true, members: true },
             });

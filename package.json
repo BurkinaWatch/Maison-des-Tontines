@@ -11,7 +11,7 @@
     "build": "npm run build:api",
     "build:api": "npm run --workspace=@maison-des-tontines/api prisma:generate && npm run --workspace=@maison-des-tontines/api prisma:generate:postgres && npm run --workspace=@maison-des-tontines/api build",
     "dev": "turbo run dev",
-    "start": "NODE_ENV=production npm run prisma:migrate:production --workspace=@maison-des-tontines/api && NODE_ENV=production npm run start --workspace=@maison-des-tontines/api",
+    "start": "NODE_ENV=production npm run start --workspace=@maison-des-tontines/api",
     "lint": "turbo run lint",
     "typecheck": "npm run typecheck --workspace=maison-des-tontines-mobile",
     "test": "turbo run test",

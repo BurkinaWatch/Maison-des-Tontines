@@ -13,9 +13,16 @@ apps/api/prisma/postgresql/schema.prisma
 /.config/
 /.local/
 /.upm/
+/.git/
+/.turbo/
 /attached_assets/
 /artifacts/
 /screenshots/
+/e2e/
+/test-results/
+/playwright.config.ts
+/app.json
+**/.turbo/
 
 # Services and packages not required to build the Android application
 /apps/api/

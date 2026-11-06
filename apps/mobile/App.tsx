@@ -5,7 +5,6 @@ import {
   Platform,
   Pressable,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
 import { BrandLogo } from "./src/components/BrandLogo";
 import type { Notification } from "./src/services/notification.service";
@@ -324,6 +324,11 @@ function AuthenticatedScreen(props: {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [loadMessage, setLoadMessage] = useState("");
+  const [showCreateTontine, setShowCreateTontine] = useState(false);
+  const [newTontineName, setNewTontineName] = useState("");
+  const [newTontineAmount, setNewTontineAmount] = useState("");
+  const [newTontineMaxMembers, setNewTontineMaxMembers] = useState("5");
+  const [isCreatingTontine, setIsCreatingTontine] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -419,6 +424,51 @@ function AuthenticatedScreen(props: {
     }
   }
 
+  async function createTontine() {
+    const name = newTontineName.trim();
+    const amount = Number(newTontineAmount.replace(",", "."));
+    const maxMembers = Number(newTontineMaxMembers);
+    if (name.length < 2) {
+      setLoadMessage("Le nom doit contenir au moins 2 caractères.");
+      return;
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setLoadMessage("Saisis un montant de contribution valide.");
+      return;
+    }
+    if (!Number.isInteger(maxMembers) || maxMembers < 2) {
+      setLoadMessage("Le nombre de membres doit être au moins 2.");
+      return;
+    }
+
+    setIsCreatingTontine(true);
+    setLoadMessage("");
+    try {
+      const service = await loadTontineService();
+      await service.createTontine({
+        name,
+        description: "",
+        type: "ROTATIVE",
+        contributionAmount: amount,
+        currency: "XOF",
+        frequency: "monthly",
+        maxMembers,
+        startDate: new Date().toISOString(),
+        rules: { payoutOrder: "organizer-first", totalCycles: maxMembers },
+      });
+      setNewTontineName("");
+      setNewTontineAmount("");
+      setNewTontineMaxMembers("5");
+      setShowCreateTontine(false);
+      setActiveTab("tontines");
+      setRefreshKey((key) => key + 1);
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "La tontine n’a pas pu être créée."));
+    } finally {
+      setIsCreatingTontine(false);
+    }
+  }
+
   const firstName = typeof props.user.firstName === "string" ? props.user.firstName : "";
   const lastName = typeof props.user.lastName === "string" ? props.user.lastName : "";
   const initials = `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
@@ -441,6 +491,9 @@ function AuthenticatedScreen(props: {
           action="Voir tout"
           onPress={() => setActiveTab("tontines")}
         />
+        {activeTontines.length === 0 && (
+          <PrimaryAction label="Créer une tontine" onPress={() => { setLoadMessage(""); setShowCreateTontine(true); setActiveTab("tontines"); }} />
+        )}
         {activeTontines.length > 0 ? (
           activeTontines.slice(0, 3).map((tontine) => (
             <TontineCard key={tontine.id} tontine={tontine} />
@@ -473,8 +526,24 @@ function AuthenticatedScreen(props: {
             <Text style={styles.nativePageTitle}>Mes tontines</Text>
             <Text style={styles.nativeMutedText}>{tontines.length} au total</Text>
           </View>
+          <Pressable accessibilityRole="button" onPress={() => { setLoadMessage(""); setShowCreateTontine(true); }} style={styles.nativeCreateButton}>
+            <Text style={styles.nativeCreateButtonText}>+ Créer</Text>
+          </Pressable>
         </View>
-        {tontines.length > 0 ? (
+        {showCreateTontine ? (
+          <View style={styles.nativeCard}>
+            <Text style={styles.nativeCardTitle}>Nouvelle tontine rotative</Text>
+            <Field label="Nom" value={newTontineName} onChangeText={setNewTontineName} placeholder="Ex. Épargne familiale" />
+            <Field label="Contribution mensuelle (XOF)" value={newTontineAmount} onChangeText={setNewTontineAmount} placeholder="Ex. 10000" keyboardType="numeric" />
+            <Field label="Nombre de membres" value={newTontineMaxMembers} onChangeText={setNewTontineMaxMembers} placeholder="5" keyboardType="numeric" />
+            <Pressable accessibilityRole="button" disabled={isCreatingTontine} onPress={() => void createTontine()} style={[styles.nativeCreateButton, styles.nativeSubmitButton, isCreatingTontine && styles.disabled]}>
+              {isCreatingTontine ? <ActivityIndicator color={colors.background} /> : <Text style={styles.nativeCreateButtonText}>Créer la tontine</Text>}
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={() => setShowCreateTontine(false)} style={styles.nativeCancelButton}>
+              <Text style={styles.nativeLink}>Annuler</Text>
+            </Pressable>
+          </View>
+        ) : tontines.length > 0 ? (
           tontines.map((tontine) => <TontineCard key={tontine.id} tontine={tontine} />)
         ) : (
           <EmptyNativeCard text="Tu ne participes encore à aucune tontine." />
@@ -791,6 +860,14 @@ function EmptyNativeCard({ text, icon = "🤝" }: { text: string; icon?: string 
   );
 }
 
+function PrimaryAction({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={styles.nativePrimaryAction}>
+      <Text style={styles.nativePrimaryActionText}>{label}</Text>
+    </Pressable>
+  );
+}
+
 function formatMoney(amount: number, currency: string) {
   try {
     return new Intl.NumberFormat("fr-FR", {
@@ -839,7 +916,7 @@ function tabLabel(tab: AuthenticatedTab) {
   }[tab];
 }
 
-function Field(props: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; secureTextEntry?: boolean; keyboardType?: "default" | "email-address" | "phone-pad" }) {
+function Field(props: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; secureTextEntry?: boolean; keyboardType?: "default" | "email-address" | "phone-pad" | "numeric" }) {
   return (
     <>
       <Text style={styles.label}>{props.label}</Text>
@@ -936,6 +1013,12 @@ const styles = StyleSheet.create({
   nativeContributionAmount: { color: colors.accent, fontSize: 17, fontWeight: "700", marginTop: 4 },
   nativeEmptyCard: { alignItems: "center", backgroundColor: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.1)", borderRadius: 14, borderWidth: 1, marginBottom: 20, padding: 20 },
   nativeEmptyIcon: { fontSize: 28, marginBottom: 6 },
+  nativePrimaryAction: { alignItems: "center", backgroundColor: colors.accent, borderRadius: 12, justifyContent: "center", marginBottom: 18, minHeight: 48 },
+  nativePrimaryActionText: { color: colors.background, fontSize: 14, fontWeight: "700" },
+  nativeCreateButton: { alignItems: "center", backgroundColor: colors.accent, borderRadius: 10, justifyContent: "center", minHeight: 40, paddingHorizontal: 14 },
+  nativeCreateButtonText: { color: colors.background, fontSize: 13, fontWeight: "700" },
+  nativeSubmitButton: { marginTop: 18, minHeight: 48 },
+  nativeCancelButton: { alignItems: "center", marginTop: 12, padding: 8 },
   nativeLoading: { alignItems: "center", paddingVertical: 70 },
   nativeError: { backgroundColor: "rgba(255,120,110,0.12)", borderColor: "rgba(255,180,173,0.35)", borderRadius: 10, borderWidth: 1, color: "#ffb4ad", fontSize: 13, lineHeight: 19, marginBottom: 16, padding: 12 },
   nativeNotificationCard: { alignItems: "flex-start", backgroundColor: colors.card, borderColor: "rgba(255,255,255,0.12)", borderRadius: 14, borderWidth: 1, flexDirection: "row", marginBottom: 10, padding: 14 },

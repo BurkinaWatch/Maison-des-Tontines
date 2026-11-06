@@ -1,6 +1,7 @@
 import { registerRootComponent } from "expo";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, Platform, SafeAreaView, Text, View } from "react-native";
+import { ActivityIndicator, Image, Platform, Text, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 function NativeBootstrap() {
   const [NativeApp, setNativeApp] = useState(null);
@@ -91,7 +92,11 @@ function NativeBootstrap() {
 
 function App() {
   if (Platform.OS !== "web") {
-    return <NativeBootstrap />;
+    return (
+      <SafeAreaProvider>
+        <NativeBootstrap />
+      </SafeAreaProvider>
+    );
   }
 
   // Keep Expo Router out of the native startup path. A route module failure

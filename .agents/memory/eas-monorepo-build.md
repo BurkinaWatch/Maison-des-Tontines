@@ -20,3 +20,9 @@ The workspace `unzip` utility can report invalid extra-field warnings on valid E
 **Why:** The Android APK passed Python ZIP integrity checks and was recognized as an Android package despite the local `unzip` warnings.
 
 **How to apply:** Use `ZipFile(path).testzip()` as the integrity check for downloaded APKs in this environment.
+
+EAS archive inspection can retain `.git` history in Git mode even when `.easignore` tries to exclude it. Verify excluded workspace files by checking for files, not just empty directories, and inspect the actual archive before building.
+
+**Why:** The mobile archive correctly excluded backend files and root lockfiles, but retained Git metadata despite an ignore rule for `.git`.
+
+**How to apply:** Keep EAS builds scoped to the mobile app, exclude backend data, artifacts, caches, and workspace files, and inspect the archive contents. Do not switch off VCS metadata solely to shrink an archive unless the documented empty-commit case applies.

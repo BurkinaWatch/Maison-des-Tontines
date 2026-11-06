@@ -48,4 +48,67 @@ test("shows a login error and signs a development account into the tabs", async 
   await expect(page.getByText("Tontines", { exact: true })).toBeVisible();
   await expect(page.getByText("Me", { exact: true })).toBeVisible();
   await expect(page.getByText("Invalid email address or password")).not.toBeVisible();
+
+  let createdTontineId: string | undefined;
+  let accessToken: string | null = null;
+  const tontineName = `E2E tontine ${Date.now()}`;
+
+  try {
+    await page.getByText("Tontines", { exact: true }).click();
+    const emptyStateCreateButton = page.getByText("Create Tontine", { exact: true });
+    if (await emptyStateCreateButton.count()) {
+      await emptyStateCreateButton.last().click();
+    } else {
+      await page.getByText("+", { exact: true }).click();
+    }
+
+    await page.getByPlaceholder("Enter tontine name").fill(tontineName);
+    await page
+      .getByPlaceholder("Describe the purpose")
+      .fill("End-to-end test tontine for an authenticated account.");
+    await page.getByText("Next", { exact: true }).click();
+
+    await page.getByPlaceholder("0").fill("1000");
+    await page.getByText("Next", { exact: true }).click();
+
+    await page.getByPlaceholder("YYYY-MM-DD").fill("2027-01-01");
+    await page.getByText("Next", { exact: true }).click();
+    await page.getByText("Next", { exact: true }).click();
+
+    const creationResponsePromise = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        response.url().includes("/api/v1/tontines"),
+    );
+    await page.getByText("Create Tontine", { exact: true }).last().click();
+    const creationResponse = await creationResponsePromise;
+    expect(creationResponse.status()).toBe(201);
+    const creationBody = await creationResponse.json();
+    createdTontineId = creationBody.tontine.id;
+    expect(createdTontineId).toEqual(expect.any(String));
+    accessToken = await page.evaluate(() => localStorage.getItem("auth_token"));
+    expect(accessToken).toEqual(expect.any(String));
+    await expect(page.getByText(tontineName, { exact: true }).last()).toBeVisible();
+
+    const tontinesResponse = await request.get(
+      `${baseURL || "http://127.0.0.1:5000"}/api/v1/tontines`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    expect(tontinesResponse.status()).toBe(200);
+    const tontinesBody = await tontinesResponse.json();
+    const createdTontine = tontinesBody.tontines.find(
+      (tontine: { id: string }) => tontine.id === createdTontineId,
+    );
+    expect(createdTontine?.name).toBe(tontineName);
+    expect(createdTontine?.members).toHaveLength(1);
+    expect(createdTontine?.members[0].role).toBe("ORGANIZER");
+  } finally {
+    if (createdTontineId && accessToken) {
+      const cleanupResponse = await request.delete(
+        `${baseURL || "http://127.0.0.1:5000"}/api/v1/tontines/${createdTontineId}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } },
+      );
+      expect(cleanupResponse.status()).toBe(204);
+    }
+  }
 });

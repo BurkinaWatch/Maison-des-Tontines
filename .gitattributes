@@ -8,3 +8,4 @@ artifacts/maison-des-tontines-android-router-fix.apk filter=lfs diff=lfs merge=l
 artifacts/maison-des-tontines-android-stable-start.apk filter=lfs diff=lfs merge=lfs -text
 artifacts/maison-des-tontines-android-1.0.4-build-6.apk filter=lfs diff=lfs merge=lfs -text
 artifacts/maison-des-tontines-android-1.0.4-build-7.apk filter=lfs diff=lfs merge=lfs -text
+artifacts/maison-des-tontines-android-1.0.4-build-8.apk filter=lfs diff=lfs merge=lfs -text

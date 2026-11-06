@@ -39,9 +39,9 @@ export default function ChangePasswordScreen() {
         <AppHeader title="Change Password" showBack />
         <View style={styles.card}>
           <Text style={styles.help}>Use a unique password with at least 8 characters.</Text>
-          <GlassInput label="Current password" value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry autoCapitalize="none" />
-          <GlassInput label="New password" value={newPassword} onChangeText={setNewPassword} secureTextEntry autoCapitalize="none" />
-          <GlassInput label="Confirm new password" value={confirmation} onChangeText={setConfirmation} secureTextEntry autoCapitalize="none" />
+          <GlassInput label="Current password" value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry showPasswordToggle autoCapitalize="none" />
+          <GlassInput label="New password" value={newPassword} onChangeText={setNewPassword} secureTextEntry showPasswordToggle autoCapitalize="none" />
+          <GlassInput label="Confirm new password" value={confirmation} onChangeText={setConfirmation} secureTextEntry showPasswordToggle autoCapitalize="none" />
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <GlassButton title="Update password" onPress={save} loading={saving} />
         </View>

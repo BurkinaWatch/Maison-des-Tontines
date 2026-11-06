@@ -8,6 +8,7 @@ import {
   TextStyle,
 } from "react-native";
 import { colors, spacing, borderRadius, typography } from "../../theme";
+import { PasswordVisibilityToggle } from "./PasswordVisibilityToggle";
 
 interface GlassInputProps extends TextInputProps {
   label?: string;
@@ -15,6 +16,7 @@ interface GlassInputProps extends TextInputProps {
   icon?: React.ReactNode;
   containerStyle?: ViewStyle;
   inputStyle?: TextStyle;
+  showPasswordToggle?: boolean;
 }
 
 export const GlassInput: React.FC<GlassInputProps> = ({
@@ -23,9 +25,12 @@ export const GlassInput: React.FC<GlassInputProps> = ({
   icon,
   containerStyle,
   inputStyle,
+  showPasswordToggle = false,
+  secureTextEntry,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -43,8 +48,15 @@ export const GlassInput: React.FC<GlassInputProps> = ({
           placeholderTextColor={colors.textTertiary}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          secureTextEntry={secureTextEntry ? !isPasswordVisible : false}
           {...props}
         />
+        {showPasswordToggle && secureTextEntry && (
+          <PasswordVisibilityToggle
+            visible={isPasswordVisible}
+            onPress={() => setIsPasswordVisible((visible) => !visible)}
+          />
+        )}
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>

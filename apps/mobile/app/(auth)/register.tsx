@@ -10,7 +10,7 @@ import {
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { GlassCard, GlassInput, GlassButton } from "../../src/components/ui";
+import { GlassCard, GlassInput, GlassButton, PasswordVisibilityToggle } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useAuthStore } from "../../src/store/authStore";
 import { useI18n } from "../../src/i18n";
@@ -26,6 +26,8 @@ export default function RegisterScreen() {
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -134,28 +136,40 @@ export default function RegisterScreen() {
               autoComplete="email"
             />
             <Text style={styles.label}>{t("Password")}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder={t("At least 8 characters")}
-              placeholderTextColor={colors.textTertiary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="new-password"
-            />
+            <View style={[styles.input, styles.passwordInputContainer]}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder={t("At least 8 characters")}
+                placeholderTextColor={colors.textTertiary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!isPasswordVisible}
+                autoCapitalize="none"
+                autoComplete="new-password"
+              />
+              <PasswordVisibilityToggle
+                visible={isPasswordVisible}
+                onPress={() => setIsPasswordVisible((visible) => !visible)}
+              />
+            </View>
             <Text style={styles.label}>{t("Confirm password")}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder={t("Repeat your password")}
-              placeholderTextColor={colors.textTertiary}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="new-password"
-              onSubmitEditing={handleRegister}
-            />
+            <View style={[styles.input, styles.passwordInputContainer]}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder={t("Repeat your password")}
+                placeholderTextColor={colors.textTertiary}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!isConfirmationVisible}
+                autoCapitalize="none"
+                autoComplete="new-password"
+                onSubmitEditing={handleRegister}
+              />
+              <PasswordVisibilityToggle
+                visible={isConfirmationVisible}
+                onPress={() => setIsConfirmationVisible((visible) => !visible)}
+              />
+            </View>
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <GlassButton
               title={t("Create account")}
@@ -238,6 +252,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  passwordInputContainer: {
+    alignItems: "center",
+    flexDirection: "row",
+    padding: 0,
+    paddingLeft: spacing.md,
+    paddingRight: spacing.xs,
+  },
+  passwordInput: {
+    flex: 1,
+    minHeight: 50,
+    padding: 0,
+    color: colors.textPrimary,
+    fontSize: 16,
   },
   error: {
     ...typography.caption,

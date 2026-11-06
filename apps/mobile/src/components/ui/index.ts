@@ -1,6 +1,7 @@
 export { GlassCard } from "./GlassCard";
 export { GlassButton } from "./GlassButton";
 export { GlassInput } from "./GlassInput";
+export { PasswordVisibilityToggle } from "./PasswordVisibilityToggle";
 export { CycleVisualization } from "./CycleVisualization";
 export { PotDisplay } from "./PotDisplay";
 export { MemberAvatar } from "./MemberAvatar";

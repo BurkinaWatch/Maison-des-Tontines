@@ -9,7 +9,7 @@ import {
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { GlassCard, GlassButton } from "../../src/components/ui";
+import { GlassCard, GlassButton, PasswordVisibilityToggle } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useAuthStore } from "../../src/store/authStore";
 import { useI18n } from "../../src/i18n";
@@ -21,6 +21,7 @@ export default function LoginScreen() {
   const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -74,17 +75,23 @@ export default function LoginScreen() {
               autoComplete="email"
             />
             <Text style={styles.label}>{t("Password")}</Text>
-            <TextInput
-              style={styles.input}
-              placeholder={t("Your password")}
-              placeholderTextColor={colors.textTertiary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="current-password"
-              onSubmitEditing={handleLogin}
-            />
+            <View style={[styles.input, styles.passwordInputContainer]}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder={t("Your password")}
+                placeholderTextColor={colors.textTertiary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!isPasswordVisible}
+                autoCapitalize="none"
+                autoComplete="current-password"
+                onSubmitEditing={handleLogin}
+              />
+              <PasswordVisibilityToggle
+                visible={isPasswordVisible}
+                onPress={() => setIsPasswordVisible((visible) => !visible)}
+              />
+            </View>
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <GlassButton
               title={t("Sign in")}
@@ -148,6 +155,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  passwordInputContainer: {
+    alignItems: "center",
+    flexDirection: "row",
+    padding: 0,
+    paddingLeft: spacing.md,
+    paddingRight: spacing.xs,
+  },
+  passwordInput: {
+    flex: 1,
+    minHeight: 50,
+    padding: 0,
+    color: colors.textPrimary,
+    fontSize: 16,
   },
   error: {
     ...typography.caption,

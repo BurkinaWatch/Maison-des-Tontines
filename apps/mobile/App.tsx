@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { PasswordVisibilityToggle } from "./src/components/ui/PasswordVisibilityToggle";
 import Constants from "expo-constants";
 import { BrandLogo } from "./src/components/BrandLogo";
 import type { Notification } from "./src/services/notification.service";
@@ -1131,20 +1132,29 @@ function tabLabel(tab: AuthenticatedTab) {
 }
 
 function Field(props: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; secureTextEntry?: boolean; keyboardType?: "default" | "email-address" | "phone-pad" | "numeric" }) {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   return (
     <>
       <Text style={styles.label}>{props.label}</Text>
-      <TextInput
-        autoCapitalize={props.keyboardType === "email-address" ? "none" : "sentences"}
-        autoComplete={props.keyboardType === "phone-pad" ? "tel" : undefined}
-        keyboardType={props.keyboardType}
-        onChangeText={props.onChangeText}
-        placeholder={props.placeholder}
-        placeholderTextColor="#8f8f9d"
-        secureTextEntry={props.secureTextEntry}
-        style={styles.input}
-        value={props.value}
-      />
+      <View style={props.secureTextEntry ? styles.passwordField : undefined}>
+        <TextInput
+          autoCapitalize={props.keyboardType === "email-address" ? "none" : "sentences"}
+          autoComplete={props.keyboardType === "phone-pad" ? "tel" : undefined}
+          keyboardType={props.keyboardType}
+          onChangeText={props.onChangeText}
+          placeholder={props.placeholder}
+          placeholderTextColor="#8f8f9d"
+          secureTextEntry={props.secureTextEntry && !isPasswordVisible}
+          style={props.secureTextEntry ? styles.passwordFieldInput : styles.input}
+          value={props.value}
+        />
+        {props.secureTextEntry && (
+          <PasswordVisibilityToggle
+            visible={isPasswordVisible}
+            onPress={() => setIsPasswordVisible((visible) => !visible)}
+          />
+        )}
+      </View>
     </>
   );
 }
@@ -1161,6 +1171,8 @@ const styles = StyleSheet.create({
   subtitle: { color: colors.muted, fontSize: 15, lineHeight: 22, marginBottom: 18, marginTop: 8, textAlign: "center" },
   label: { color: "rgba(255,255,255,0.9)", fontSize: 14, fontWeight: "600", marginBottom: 8, marginTop: 12 },
   input: { backgroundColor: colors.input, borderColor: "rgba(255,255,255,0.15)", borderRadius: 12, borderWidth: 1, color: colors.white, fontSize: 16, minHeight: 52, paddingHorizontal: 16 },
+  passwordField: { alignItems: "center", backgroundColor: colors.input, borderColor: "rgba(255,255,255,0.15)", borderRadius: 12, borderWidth: 1, flexDirection: "row", minHeight: 52, paddingLeft: 16, paddingRight: 6 },
+  passwordFieldInput: { color: colors.white, flex: 1, fontSize: 16, minHeight: 50, paddingVertical: 8 },
   message: { fontSize: 14, lineHeight: 20, marginTop: 16, textAlign: "center" },
   info: { color: "#dfe8ff" },
   error: { color: "#ffb4ad", fontSize: 14, lineHeight: 20, marginTop: 16, textAlign: "center" },

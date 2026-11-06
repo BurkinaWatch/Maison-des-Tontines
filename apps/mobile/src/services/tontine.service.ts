@@ -13,6 +13,10 @@ import { Currency } from "../types/contribution";
 
 type ApiTontine = Record<string, any>;
 
+export type TontineUpdateRequest = Partial<Pick<Tontine, "name" | "description">> & {
+  maxMembers?: number | null;
+};
+
 function numberValue(value: unknown, fallback = 0): number {
   const parsed = typeof value === "number" ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -163,7 +167,7 @@ export const tontineService = {
     return toMobileTontine(response.tontine);
   },
 
-  async updateTontine(id: string, data: Partial<Tontine>): Promise<Tontine> {
+  async updateTontine(id: string, data: TontineUpdateRequest): Promise<Tontine> {
     const response = await api.request<{ tontine: Tontine }>(`/tontines/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
@@ -207,7 +211,7 @@ export const tontineService = {
   },
 
   async removeMember(tontineId: string, memberId: string): Promise<void> {
-    await api.delete(`/tontines/${tontineId}/members/${memberId}`);
+    await api.delete(`/memberships/${tontineId}/members/${memberId}`);
   },
 
   async inviteMember(tontineId: string, target: { phone?: string; email?: string }): Promise<TontineMember> {

@@ -17,8 +17,10 @@ import Constants from "expo-constants";
 import { BrandLogo } from "./src/components/BrandLogo";
 import type { Notification } from "./src/services/notification.service";
 import type { Contribution } from "./src/types/contribution";
-import type { Tontine } from "./src/types/tontine";
+import type { Cycle, Tontine } from "./src/types/tontine";
 import type { User } from "./src/types/user";
+import { NativeTontineDetail } from "./src/components/native/NativeTontineDetail";
+import type { TontineUpdateRequest } from "./src/services/tontine.service";
 
 type Screen = "login" | "register";
 type AuthenticatedTab =
@@ -329,6 +331,13 @@ function AuthenticatedScreen(props: {
   const [newTontineAmount, setNewTontineAmount] = useState("");
   const [newTontineMaxMembers, setNewTontineMaxMembers] = useState("5");
   const [isCreatingTontine, setIsCreatingTontine] = useState(false);
+  const [selectedTontine, setSelectedTontine] = useState<Tontine | null>(null);
+  const [tontineCycles, setTontineCycles] = useState<Cycle[]>([]);
+  const [isLoadingTontine, setIsLoadingTontine] = useState(false);
+  const [isSavingTontine, setIsSavingTontine] = useState(false);
+  const [isDeletingTontine, setIsDeletingTontine] = useState(false);
+  const [isInvitingTontineMember, setIsInvitingTontineMember] = useState(false);
+  const [isManagingTontineMember, setIsManagingTontineMember] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -469,6 +478,114 @@ function AuthenticatedScreen(props: {
     }
   }
 
+  async function loadTontineDetails(tontineId: string) {
+    setIsLoadingTontine(true);
+    setLoadMessage("");
+    try {
+      const service = await loadTontineService();
+      const details = await service.getTontine(tontineId);
+      setSelectedTontine(details);
+      const cycles = await service.getCycles(tontineId).catch(() => []);
+      setTontineCycles(cycles);
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "La tontine n’a pas pu être chargée."));
+    } finally {
+      setIsLoadingTontine(false);
+    }
+  }
+
+  async function openTontine(tontine: Tontine) {
+    setActiveTab("tontines");
+    setSelectedTontine(tontine);
+    setTontineCycles([]);
+    await loadTontineDetails(tontine.id);
+  }
+
+  async function saveTontine(data: TontineUpdateRequest) {
+    if (!selectedTontine) return;
+    setIsSavingTontine(true);
+    setLoadMessage("");
+    try {
+      const service = await loadTontineService();
+      const updated = await service.updateTontine(selectedTontine.id, data);
+      const merged = { ...selectedTontine, ...updated, members: selectedTontine.members };
+      setSelectedTontine(merged);
+      setTontines((current) => current.map((item) => item.id === merged.id ? merged : item));
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "La tontine n’a pas pu être mise à jour."));
+      throw error;
+    } finally {
+      setIsSavingTontine(false);
+    }
+  }
+
+  async function deleteSelectedTontine() {
+    if (!selectedTontine) return;
+    setIsDeletingTontine(true);
+    setLoadMessage("");
+    try {
+      const service = await loadTontineService();
+      await service.deleteTontine(selectedTontine.id);
+      setTontines((current) => current.filter((item) => item.id !== selectedTontine.id));
+      setSelectedTontine(null);
+      setTontineCycles([]);
+      setRefreshKey((key) => key + 1);
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "La tontine n’a pas pu être supprimée."));
+    } finally {
+      setIsDeletingTontine(false);
+    }
+  }
+
+  async function inviteTontineMember(target: string) {
+    if (!selectedTontine) return;
+    setIsInvitingTontineMember(true);
+    setLoadMessage("");
+    try {
+      const service = await loadTontineService();
+      const invitationTarget = target.includes("@") ? { email: target } : { phone: target };
+      await service.inviteMember(selectedTontine.id, invitationTarget);
+      await loadTontineDetails(selectedTontine.id);
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "L’invitation n’a pas pu être envoyée."));
+      throw error;
+    } finally {
+      setIsInvitingTontineMember(false);
+    }
+  }
+
+  async function updateTontineMemberRole(memberId: string, role: "MEMBER" | "TREASURER") {
+    if (!selectedTontine) return;
+    setIsManagingTontineMember(true);
+    setLoadMessage("");
+    try {
+      const service = await loadTontineService();
+      await service.updateMemberRole(selectedTontine.id, memberId, role);
+      await loadTontineDetails(selectedTontine.id);
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "Le rôle du membre n’a pas pu être mis à jour."));
+      throw error;
+    } finally {
+      setIsManagingTontineMember(false);
+    }
+  }
+
+  async function removeTontineMember(memberId: string) {
+    if (!selectedTontine) return;
+    setIsManagingTontineMember(true);
+    setLoadMessage("");
+    try {
+      const service = await loadTontineService();
+      await service.removeMember(selectedTontine.id, memberId);
+      await loadTontineDetails(selectedTontine.id);
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "Le membre n’a pas pu être retiré."));
+      throw error;
+    } finally {
+      setIsManagingTontineMember(false);
+    }
+  }
+
   const firstName = typeof props.user.firstName === "string" ? props.user.firstName : "";
   const lastName = typeof props.user.lastName === "string" ? props.user.lastName : "";
   const initials = `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
@@ -496,7 +613,7 @@ function AuthenticatedScreen(props: {
         )}
         {activeTontines.length > 0 ? (
           activeTontines.slice(0, 3).map((tontine) => (
-            <TontineCard key={tontine.id} tontine={tontine} />
+            <TontineCard key={tontine.id} tontine={tontine} onPress={() => void openTontine(tontine)} />
           ))
         ) : (
           <EmptyNativeCard text="Aucune tontine active pour le moment." />
@@ -519,6 +636,35 @@ function AuthenticatedScreen(props: {
   }
 
   function renderTontines() {
+    if (selectedTontine) {
+      const currentMember = selectedTontine.members.find((member) => member.userId === props.user.id);
+      const canManage = currentMember?.role === "ORGANIZER" || currentMember?.role === "ADMIN";
+      return (
+        <NativeTontineDetail
+          tontine={selectedTontine}
+          cycles={tontineCycles}
+          loading={isLoadingTontine}
+          saving={isSavingTontine}
+          deleting={isDeletingTontine}
+          inviting={isInvitingTontineMember}
+          managingMember={isManagingTontineMember}
+          canManage={canManage}
+          canDelete={currentMember?.role === "ORGANIZER"}
+          error={loadMessage}
+          onBack={() => {
+            setSelectedTontine(null);
+            setTontineCycles([]);
+            setLoadMessage("");
+          }}
+          onRefresh={() => void loadTontineDetails(selectedTontine.id)}
+          onSave={saveTontine}
+          onDelete={() => void deleteSelectedTontine()}
+          onInvite={inviteTontineMember}
+          onUpdateMemberRole={updateTontineMemberRole}
+          onRemoveMember={removeTontineMember}
+        />
+      );
+    }
     return (
       <>
         <View style={styles.nativePageHeading}>
@@ -544,7 +690,13 @@ function AuthenticatedScreen(props: {
             </Pressable>
           </View>
         ) : tontines.length > 0 ? (
-          tontines.map((tontine) => <TontineCard key={tontine.id} tontine={tontine} />)
+          tontines.map((tontine) => (
+            <TontineCard
+              key={tontine.id}
+              tontine={tontine}
+              onPress={() => void openTontine(tontine)}
+            />
+          ))
         ) : (
           <EmptyNativeCard text="Tu ne participes encore à aucune tontine." />
         )}
@@ -765,7 +917,10 @@ function AuthenticatedScreen(props: {
           ] as const).map(([tab, icon, label]) => (
             <Pressable
               key={tab}
-              onPress={() => setActiveTab(tab)}
+              onPress={() => {
+                setActiveTab(tab);
+                if (tab !== "tontines") setSelectedTontine(null);
+              }}
               style={styles.nativeTab}
             >
               {tab === "dashboard" ? (
@@ -797,9 +952,14 @@ function SectionTitle(props: { title: string; action: string; onPress: () => voi
   );
 }
 
-function TontineCard({ tontine }: { tontine: Tontine }) {
+function TontineCard({ tontine, onPress }: { tontine: Tontine; onPress?: () => void }) {
   return (
-    <View style={styles.nativeCard}>
+    <Pressable
+      accessibilityRole={onPress ? "button" : undefined}
+      disabled={!onPress}
+      onPress={onPress}
+      style={styles.nativeCard}
+    >
       <View style={styles.nativeCardHeader}>
         <View style={styles.nativeCardHeading}>
           <Text style={styles.nativeCardTitle}>{tontine.name}</Text>
@@ -828,7 +988,7 @@ function TontineCard({ tontine }: { tontine: Tontine }) {
           </Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

@@ -9,6 +9,7 @@
 - [Expo Router Android startup isolation](expo-router-api-routes-android.md) — Keep a direct native entry screen ready when router registration fails before rendering.
 - [EAS OTA compatibility](eas-ota-runtime.md) — Verify runtime eligibility and that the OTA source includes the intended fix.
 - [Android release gate](android-release-gate.md) — Do not build another APK until the real production login flow is verified.
+- [Android APK retention](android-apk-retention.md) — Keep every generated APK version; do not replace earlier builds.
 - [API test server startup](api-test-server-startup.md) — Avoid starting the HTTP listener when importing the Express app in test environments.
 - [Playwright preview runtime](playwright-preview-runtime.md) — Use Nix Chromium from PATH for preview browser smoke tests.
 - [Root validation command](npm-workspace-validation.md) — Delegate focused root checks through npm workspace scripts when pnpm bootstrapping is unavailable.

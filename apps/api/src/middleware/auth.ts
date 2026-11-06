@@ -171,6 +171,7 @@ export function requireCycleMembership(cycleParam = "cycleId") {
       if (!membership) {
         return res.status(403).json({ error: "Forbidden", message: "Not a member of this tontine" });
       }
+      req.params = { ...req.params, membershipId: membership.id };
       next();
     } catch (error) {
       logger.error("Cycle membership check failed", { error: (error as Error).message });

@@ -338,6 +338,7 @@ function AuthenticatedScreen(props: {
   const [isDeletingTontine, setIsDeletingTontine] = useState(false);
   const [isInvitingTontineMember, setIsInvitingTontineMember] = useState(false);
   const [isManagingTontineMember, setIsManagingTontineMember] = useState(false);
+  const [cycleActionId, setCycleActionId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -586,6 +587,54 @@ function AuthenticatedScreen(props: {
     }
   }
 
+  async function recordTontineContribution(cycleId: string, amount: number) {
+    if (!selectedTontine) return;
+    setCycleActionId(cycleId);
+    setLoadMessage("");
+    try {
+      const service = await loadContributionService();
+      await service.recordManualContribution(cycleId, amount);
+      await loadTontineDetails(selectedTontine.id);
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "La cotisation n’a pas pu être enregistrée."));
+      throw error;
+    } finally {
+      setCycleActionId(null);
+    }
+  }
+
+  async function advanceTontineCycle(cycleId: string) {
+    if (!selectedTontine) return;
+    setCycleActionId(cycleId);
+    setLoadMessage("");
+    try {
+      const service = await loadTontineService();
+      await service.advanceCycle(selectedTontine.id, cycleId);
+      await loadTontineDetails(selectedTontine.id);
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "Le cycle n’a pas pu être avancé."));
+      throw error;
+    } finally {
+      setCycleActionId(null);
+    }
+  }
+
+  async function completeTontineCycle(cycleId: string) {
+    if (!selectedTontine) return;
+    setCycleActionId(cycleId);
+    setLoadMessage("");
+    try {
+      const service = await loadTontineService();
+      await service.completeCycle(selectedTontine.id, cycleId);
+      await loadTontineDetails(selectedTontine.id);
+    } catch (error) {
+      setLoadMessage(errorMessage(error, "Le cycle n’a pas pu être clôturé."));
+      throw error;
+    } finally {
+      setCycleActionId(null);
+    }
+  }
+
   const firstName = typeof props.user.firstName === "string" ? props.user.firstName : "";
   const lastName = typeof props.user.lastName === "string" ? props.user.lastName : "";
   const initials = `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
@@ -643,6 +692,8 @@ function AuthenticatedScreen(props: {
         <NativeTontineDetail
           tontine={selectedTontine}
           cycles={tontineCycles}
+          userId={props.user.id}
+          cycleActionId={cycleActionId}
           loading={isLoadingTontine}
           saving={isSavingTontine}
           deleting={isDeletingTontine}
@@ -662,6 +713,9 @@ function AuthenticatedScreen(props: {
           onInvite={inviteTontineMember}
           onUpdateMemberRole={updateTontineMemberRole}
           onRemoveMember={removeTontineMember}
+          onRecordContribution={recordTontineContribution}
+          onAdvanceCycle={advanceTontineCycle}
+          onCompleteCycle={completeTontineCycle}
         />
       );
     }

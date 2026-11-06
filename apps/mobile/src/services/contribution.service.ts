@@ -2,6 +2,14 @@ import { api } from "./api";
 import { Contribution, Payout, ContributionStatus, Currency, PaymentMethod } from "../types/contribution";
 
 export const contributionService = {
+  async recordManualContribution(cycleId: string, amount: number) {
+    return api.post(`/contributions/cycles/${encodeURIComponent(cycleId)}/contributions`, {
+      cycleId,
+      amount,
+      method: "MANUAL",
+    });
+  },
+
   async getContributions(tontineId?: string): Promise<Contribution[]> {
     const response = await api.get<{ contributions: Array<{
       id: string; cycleId: string; memberId: string; amount: number; status: string;

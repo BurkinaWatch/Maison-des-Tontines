@@ -195,6 +195,22 @@ export const tontineService = {
     }));
   },
 
+  async advanceCycle(tontineId: string, cycleId: string): Promise<Cycle> {
+    const response = await api.post<{ cycle: Cycle }>(
+      `/cycles/${encodeURIComponent(tontineId)}/cycles/${encodeURIComponent(cycleId)}/advance`,
+      {},
+    );
+    return response.cycle;
+  },
+
+  async completeCycle(tontineId: string, cycleId: string): Promise<Cycle> {
+    const response = await api.post<{ cycle: Cycle }>(
+      `/cycles/${encodeURIComponent(tontineId)}/cycles/${encodeURIComponent(cycleId)}/complete`,
+      {},
+    );
+    return response.cycle;
+  },
+
   async getMembers(tontineId: string): Promise<TontineMember[]> {
     const response = await api.get<{ members: TontineMember[] }>(
       `/tontines/${tontineId}/members`

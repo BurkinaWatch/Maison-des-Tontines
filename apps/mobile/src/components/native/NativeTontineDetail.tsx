@@ -6,6 +6,8 @@ import type { TontineUpdateRequest } from "../../services/tontine.service";
 type Props = {
   tontine: Tontine;
   cycles: Cycle[];
+  userId: string;
+  cycleActionId: string | null;
   loading: boolean;
   saving: boolean;
   deleting: boolean;
@@ -21,6 +23,9 @@ type Props = {
   onInvite: (target: string) => Promise<void>;
   onUpdateMemberRole: (memberId: string, role: "MEMBER" | "TREASURER") => Promise<void>;
   onRemoveMember: (memberId: string) => Promise<void>;
+  onRecordContribution: (cycleId: string, amount: number) => Promise<void>;
+  onAdvanceCycle: (cycleId: string) => Promise<void>;
+  onCompleteCycle: (cycleId: string) => Promise<void>;
 };
 
 const palette = {
@@ -36,6 +41,8 @@ const palette = {
 export function NativeTontineDetail({
   tontine,
   cycles,
+  userId,
+  cycleActionId,
   loading,
   saving,
   deleting,
@@ -51,6 +58,9 @@ export function NativeTontineDetail({
   onInvite,
   onUpdateMemberRole,
   onRemoveMember,
+  onRecordContribution,
+  onAdvanceCycle,
+  onCompleteCycle,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(tontine.name);
@@ -233,18 +243,71 @@ export function NativeTontineDetail({
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Cycles ({cycles.length})</Text>
         {cycles.length ? cycles.map((cycle) => (
-          <View key={cycle.id} style={styles.cycleRow}>
-            <View style={styles.memberText}>
-              <Text style={styles.memberName}>Cycle {cycle.cycleNumber}</Text>
-              <Text style={styles.muted}>{formatDate(cycle.startDate)} · {cycle.status}</Text>
+          <View key={cycle.id} style={styles.cycleCard}>
+            <View style={styles.cycleRow}>
+              <View style={styles.memberText}>
+                <Text style={styles.memberName}>Cycle {cycle.cycleNumber}</Text>
+                <Text style={styles.muted}>{formatDate(cycle.startDate)} · {cycle.status}</Text>
+              </View>
+              <Text style={styles.memberRole}>{formatMoney(cycle.potAmount, tontine.currency)}</Text>
             </View>
-            <Text style={styles.memberRole}>{formatMoney(cycle.potAmount, tontine.currency)}</Text>
+            {((cycle as CycleWithContributionDetails).contributions ?? []).map((contribution) => (
+              <View key={contribution.id} style={styles.contributionRow}>
+                <Text style={styles.muted}>
+                  {contribution.member?.user?.name ?? "Membre"} · {contribution.status}
+                </Text>
+                <Text style={styles.contributionAmount}>{formatMoney(contribution.amount, tontine.currency)}</Text>
+              </View>
+            ))}
+            {String(cycle.status).toLowerCase() === "current" &&
+            !((cycle as CycleWithContributionDetails).contributions ?? []).some(
+              (contribution) => contribution.member?.userId === userId && ["PAID", "LATE"].includes(contribution.status.toUpperCase()),
+            ) ? (
+              <ActionButton
+                title={cycleActionId === cycle.id ? "Enregistrement…" : "Enregistrer ma cotisation réglée"}
+                disabled={cycleActionId === cycle.id}
+                onPress={() => Alert.alert(
+                  "Confirmer le règlement",
+                  `Enregistrer ${formatMoney(tontine.amount, tontine.currency)} comme cotisation payée ?`,
+                  [
+                    { text: "Annuler", style: "cancel" },
+                    { text: "Confirmer", onPress: () => void onRecordContribution(cycle.id, tontine.amount).catch(() => undefined) },
+                  ],
+                )}
+              />
+            ) : null}
+            {canManage && ["current", "partially_funded"].includes(String(cycle.status).toLowerCase()) ? (
+              <ActionButton
+                title={cycleActionId === cycle.id ? "Calcul en cours…" : "Calculer le pot du cycle"}
+                disabled={cycleActionId === cycle.id}
+                onPress={() => void onAdvanceCycle(cycle.id).catch(() => undefined)}
+              />
+            ) : null}
+            {canManage && ["funded", "payout_pending"].includes(String(cycle.status).toLowerCase()) ? (
+              <ActionButton title={cycleActionId === cycle.id ? "Clôture…" : "Clôturer le cycle"} disabled={cycleActionId === cycle.id} variant="secondary" onPress={() => Alert.alert(
+                "Clôturer le cycle",
+                "Confirmer la clôture de ce cycle ?",
+                [
+                  { text: "Annuler", style: "cancel" },
+                  { text: "Clôturer", onPress: () => void onCompleteCycle(cycle.id).catch(() => undefined) },
+                ],
+              )} />
+            ) : null}
           </View>
         )) : <Text style={styles.muted}>Aucun cycle disponible pour le moment.</Text>}
       </View>
     </View>
   );
 }
+
+type CycleWithContributionDetails = Omit<Cycle, "contributions"> & {
+  contributions?: Array<{
+    id: string;
+    amount: number;
+    status: string;
+    member?: { userId: string; user?: { id: string; name?: string } };
+  }>;
+};
 
 function NativeField({
   label,
@@ -352,6 +415,9 @@ const styles = {
   deleteText: { color: palette.error, fontSize: 13, fontWeight: "700" as const },
   memberRow: { alignItems: "center" as const, borderTopColor: "rgba(255,255,255,0.08)", borderTopWidth: 1, flexDirection: "row" as const, justifyContent: "space-between" as const, paddingVertical: 10 },
   cycleRow: { alignItems: "center" as const, borderTopColor: "rgba(255,255,255,0.08)", borderTopWidth: 1, flexDirection: "row" as const, justifyContent: "space-between" as const, paddingVertical: 10 },
+  cycleCard: { borderTopColor: "rgba(255,255,255,0.08)", borderTopWidth: 1, paddingVertical: 8 },
+  contributionRow: { alignItems: "center" as const, flexDirection: "row" as const, justifyContent: "space-between" as const, paddingVertical: 5 },
+  contributionAmount: { color: palette.white, fontSize: 12, fontWeight: "600" as const },
   memberText: { flex: 1, marginRight: 8 },
   memberName: { color: palette.white, fontSize: 14, fontWeight: "600" as const },
   memberRole: { color: palette.accent, fontSize: 11, fontWeight: "700" as const },

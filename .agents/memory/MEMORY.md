@@ -4,6 +4,7 @@
 - [Refresh-token uniqueness](refresh-token-uniqueness.md) — Give every JWT refresh token unique session entropy, even when sessions start in the same second.
 - [Railway migration environment](railway-migration-environment.md) — Gate PostgreSQL migrations to production so local tools never target the Railway URL.
 - [Railway Railpack builds](railway-railpack-builds.md) — Match the root Node engine and package-manager metadata to the build/start scripts Railway runs.
+- [Railway deployment branch isolation](railway-deployment-branch-isolation.md) — Deploy only intended changes when production's GitHub branch lags behind the Replit workspace.
 - [EAS monorepo APK builds](eas-monorepo-build.md) — Upload an isolated mobile archive when root npm locks contain Replit-only registry URLs.
 - [EAS build queue delays](eas-build-queue.md) — A queued Android build can wait over 20 minutes; inspect its existing ID instead of submitting a duplicate.
 - [Expo Router Android startup isolation](expo-router-api-routes-android.md) — Keep a direct native entry screen ready when router registration fails before rendering.

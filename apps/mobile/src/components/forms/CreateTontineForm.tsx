@@ -11,7 +11,11 @@ import { useRouter } from "expo-router";
 import { GlassCard, GlassInput, GlassButton } from "../ui";
 import { colors, spacing, typography, borderRadius } from "../../theme";
 import { TontineType, TontineRules } from "../../types/tontine";
-import { createTontineSchema, parseTontineAmount } from "../../utils/validation";
+import {
+  createTontineSchema,
+  getTontineCategoryError,
+  parseTontineAmount,
+} from "../../utils/validation";
 import { CURRENCIES as CURRENCY_OPTIONS } from "../../utils/profileOptions";
 import { useI18n } from "../../i18n";
 
@@ -93,6 +97,15 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
       return;
     }
 
+    const categoryError = getTontineCategoryError(
+      formData.type,
+      formData.categoryDetails
+    );
+    if (categoryError) {
+      setFormError(t(categoryError));
+      return;
+    }
+
     const amount = parseTontineAmount(formData.amount);
     const parsed = createTontineSchema.safeParse({
       name: formData.name,
@@ -129,7 +142,17 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
         frequency: formData.frequency,
         maxMembers: parseInt(formData.totalMembers, 10),
         startDate: new Date(`${formData.startDate}T00:00:00.000Z`).toISOString(),
-        rules: { ...formData.rules, ...formData.categoryDetails, totalCycles: parseInt(formData.totalCycles, 10) },
+        rules: {
+          ...formData.rules,
+          ...formData.categoryDetails,
+          ...(formData.type === "savings"
+            ? { savingsTarget: parseTontineAmount(formData.categoryDetails.savingsTarget) }
+            : {}),
+          ...(formData.type === "investment"
+            ? { investmentTarget: parseTontineAmount(formData.categoryDetails.investmentTarget) }
+            : {}),
+          totalCycles: parseInt(formData.totalCycles, 10),
+        },
       });
     } catch (error) {
       console.error("Submit error:", error);

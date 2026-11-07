@@ -41,6 +41,52 @@ export const parseTontineAmount = (value: string): number => {
   return normalized ? Number(normalized) : Number.NaN;
 };
 
+export const getTontineCategoryError = (
+  type: "rotating" | "savings" | "investment" | "social",
+  details: Record<string, unknown>
+): string | null => {
+  if (type === "savings") {
+    if (!Number.isFinite(parseTontineAmount(String(details.savingsTarget ?? ""))) ||
+      parseTontineAmount(String(details.savingsTarget ?? "")) <= 0) {
+      return "Enter a positive savings target.";
+    }
+    const targetDate = String(details.savingsTargetDate ?? "");
+    const parsedDate = new Date(`${targetDate}T00:00:00.000Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate) ||
+      Number.isNaN(parsedDate.getTime()) ||
+      parsedDate.toISOString().slice(0, 10) !== targetDate) {
+      return "Enter the target date in YYYY-MM-DD format.";
+    }
+  }
+
+  if (type === "investment") {
+    if (!String(details.investmentProject ?? "").trim()) {
+      return "Enter the investment project.";
+    }
+    if (!Number.isFinite(parseTontineAmount(String(details.investmentTarget ?? ""))) ||
+      parseTontineAmount(String(details.investmentTarget ?? "")) <= 0) {
+      return "Enter a positive investment target.";
+    }
+    if (!["low", "medium", "high"].includes(String(details.investmentRisk))) {
+      return "Choose an investment risk level.";
+    }
+  }
+
+  if (type === "social") {
+    if (!String(details.socialAidType ?? "").trim()) {
+      return "Enter the type of aid.";
+    }
+    if (!String(details.socialBeneficiary ?? "").trim()) {
+      return "Enter the beneficiary.";
+    }
+    if (!["low", "normal", "urgent"].includes(String(details.socialUrgency))) {
+      return "Choose an urgency level.";
+    }
+  }
+
+  return null;
+};
+
 export const tontineNameSchema = z
   .string()
   .min(3, "Name must be at least 3 characters")

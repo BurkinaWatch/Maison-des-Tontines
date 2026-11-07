@@ -1,10 +1,19 @@
 import { z } from "zod";
 
+const normalizeCurrencyCode = (value: unknown) => {
+  if (typeof value !== "string") return value;
+  const currency = value.trim().toUpperCase().replace(/\s+/g, " ");
+  return ["FCFA", "F CFA", "CFA"].includes(currency) ? "XOF" : currency;
+};
+
 export const CreateTontineDto = z.object({
   name: z.string().min(2).max(255),
   description: z.string().optional().nullable(),
   type: z.enum(["ROTATIVE", "SAVINGS", "GOAL", "HYBRID", "CUSTOM"]),
-  currency: z.string().length(3).default("XOF"),
+  currency: z.preprocess(
+    normalizeCurrencyCode,
+    z.string().regex(/^[A-Z]{3}$/, "Choose a valid currency code.").default("XOF")
+  ),
   contributionAmount: z.number().positive(),
   frequency: z.enum(["daily", "weekly", "biweekly", "monthly", "bimonthly", "quarterly", "semesterly", "yearly"]),
   startDate: z.string().datetime().or(z.coerce.date()),

@@ -22,6 +22,25 @@ export const amountSchema = z
   .positive("Amount must be greater than 0")
   .max(100000000, "Amount is too large");
 
+const normalizeCurrencyCode = (value: unknown) => {
+  if (typeof value !== "string") return value;
+  const currency = value.trim().toUpperCase().replace(/\s+/g, " ");
+  return ["FCFA", "F CFA", "CFA"].includes(currency) ? "XOF" : currency;
+};
+
+export const currencyCodeSchema = z.preprocess(
+  normalizeCurrencyCode,
+  z.string().regex(/^[A-Z]{3}$/, "Choose a currency from the list.")
+);
+
+export const parseTontineAmount = (value: string): number => {
+  const normalized = value
+    .trim()
+    .replace(/[\s\u00a0\u202f]/g, "")
+    .replace(",", ".");
+  return normalized ? Number(normalized) : Number.NaN;
+};
+
 export const tontineNameSchema = z
   .string()
   .min(3, "Name must be at least 3 characters")
@@ -29,7 +48,6 @@ export const tontineNameSchema = z
 
 export const descriptionSchema = z
   .string()
-  .min(10, "Description must be at least 10 characters")
   .max(500, "Description must be less than 500 characters");
 
 export const loginSchema = z.object({
@@ -50,7 +68,7 @@ export const createTontineSchema = z.object({
   description: descriptionSchema,
   type: z.enum(["rotating", "savings", "investment", "social"]),
   amount: amountSchema,
-  currency: z.string().length(3),
+  currency: currencyCodeSchema,
   frequency: z.enum(["weekly", "biweekly", "monthly", "quarterly"]),
   totalMembers: z.number().int().min(2).max(50),
   totalCycles: z.number().int().min(1).max(100),

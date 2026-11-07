@@ -11,8 +11,17 @@ import { useRouter } from "expo-router";
 import { GlassCard, GlassInput, GlassButton } from "../ui";
 import { colors, spacing, typography, borderRadius } from "../../theme";
 import { TontineType, TontineRules } from "../../types/tontine";
-import { createTontineSchema } from "../../utils/validation";
+import { createTontineSchema, parseTontineAmount } from "../../utils/validation";
+import { CURRENCIES as CURRENCY_OPTIONS } from "../../utils/profileOptions";
 import { useI18n } from "../../i18n";
+
+const TONTINE_CURRENCY_CODES = new Set([
+  "XOF", "XAF", "GNF", "NGN", "GHS", "KES", "UGX", "TZS", "RWF", "BIF",
+  "MRU", "USD", "EUR", "GBP",
+]);
+const TONTINE_CURRENCIES = CURRENCY_OPTIONS.filter(({ code }) =>
+  TONTINE_CURRENCY_CODES.has(code)
+);
 
 interface CreateTontineFormProps {
   onSubmit: (data: any) => Promise<void>;
@@ -26,6 +35,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
   const router = useRouter();
   const { t } = useI18n();
   const [step, setStep] = useState(1);
+  const [isCurrencyPickerOpen, setIsCurrencyPickerOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -83,11 +93,12 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
       return;
     }
 
+    const amount = parseTontineAmount(formData.amount);
     const parsed = createTontineSchema.safeParse({
       name: formData.name,
       description: formData.description,
       type: formData.type,
-      amount: parseFloat(formData.amount),
+      amount,
       currency: formData.currency,
       frequency: formData.frequency,
       totalMembers: parseInt(formData.totalMembers, 10),
@@ -113,8 +124,8 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
         name: formData.name.trim(),
         description: formData.description.trim(),
         type: typeMap[formData.type],
-        contributionAmount: parseFloat(formData.amount),
-        currency: formData.currency,
+        contributionAmount: amount,
+        currency: parsed.data.currency,
         frequency: formData.frequency,
         maxMembers: parseInt(formData.totalMembers, 10),
         startDate: new Date(`${formData.startDate}T00:00:00.000Z`).toISOString(),
@@ -278,12 +289,50 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
             placeholder="0"
             keyboardType="numeric"
           />
-          <GlassInput
-            label={t("Currency")}
-            value={formData.currency}
-            onChangeText={(text) => updateField("currency", text)}
-            placeholder="XOF"
-          />
+          <Text style={styles.label}>{t("Currency")}</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${t("Currency")}: ${formData.currency}`}
+            onPress={() => setIsCurrencyPickerOpen((open) => !open)}
+            style={styles.currencySelector}
+          >
+            <Text style={styles.currencySelectorText}>
+              {TONTINE_CURRENCIES.find(({ code }) => code === formData.currency)?.code ?? formData.currency}
+              {" — "}
+              {TONTINE_CURRENCIES.find(({ code }) => code === formData.currency)?.name ?? ""}
+            </Text>
+            <Text style={styles.currencySelectorArrow}>
+              {isCurrencyPickerOpen ? "▲" : "▼"}
+            </Text>
+          </Pressable>
+          {isCurrencyPickerOpen && (
+            <ScrollView
+              nestedScrollEnabled
+              style={styles.currencyOptions}
+              keyboardShouldPersistTaps="handled"
+            >
+              {TONTINE_CURRENCIES.map((currency) => (
+                <Pressable
+                  key={currency.code}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: formData.currency === currency.code }}
+                  onPress={() => {
+                    updateField("currency", currency.code);
+                    setIsCurrencyPickerOpen(false);
+                    setFormError("");
+                  }}
+                  style={[
+                    styles.currencyOption,
+                    formData.currency === currency.code && styles.currencyOptionSelected,
+                  ]}
+                >
+                  <Text style={styles.currencyOptionText}>
+                    {currency.code} — {currency.name} ({currency.symbol})
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          )}
           <Text style={styles.label}>{t("Frequency")}</Text>
           <View style={styles.frequencyContainer}>
             {frequencies.map((freq) => (
@@ -424,7 +473,9 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
             <View style={styles.reviewRow}>
               <Text style={styles.reviewLabel}>{t("Amount")}</Text>
               <Text style={styles.reviewValue}>
-                {formData.amount ? `${parseFloat(formData.amount).toLocaleString()} ${formData.currency}` : "—"}
+                {Number.isFinite(parseTontineAmount(formData.amount))
+                  ? `${parseTontineAmount(formData.amount).toLocaleString()} ${formData.currency}`
+                  : "—"}
               </Text>
             </View>
             <View style={styles.reviewRow}>
@@ -564,6 +615,51 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: spacing.sm,
     fontWeight: "500",
+  },
+  currencySelector: {
+    minHeight: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  currencySelectorText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  currencySelectorArrow: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginLeft: spacing.sm,
+  },
+  currencyOptions: {
+    maxHeight: 200,
+    marginTop: -spacing.sm,
+    marginBottom: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  currencyOption: {
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  currencyOptionSelected: {
+    backgroundColor: `${colors.accent}20`,
+  },
+  currencyOptionText: {
+    ...typography.bodySmall,
+    color: colors.textPrimary,
   },
   typeGrid: {
     flexDirection: "row",

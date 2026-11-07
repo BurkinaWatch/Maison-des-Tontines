@@ -3,7 +3,15 @@ import { z } from 'zod';
 export const emailSchema = z.string().email('Email invalide');
 export const phoneSchema = z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Numéro de téléphone invalide');
 export const amountSchema = z.number().positive('Le montant doit être positif');
-export const currencySchema = z.string().length(3, 'Devise invalide (3 caractères requis)');
+const normalizeCurrencyCode = (value: unknown) => {
+  if (typeof value !== 'string') return value;
+  const currency = value.trim().toUpperCase().replace(/\s+/g, ' ');
+  return ['FCFA', 'F CFA', 'CFA'].includes(currency) ? 'XOF' : currency;
+};
+export const currencySchema = z.preprocess(
+  normalizeCurrencyCode,
+  z.string().regex(/^[A-Z]{3}$/, 'Choisissez une devise dans la liste.')
+);
 export const dateSchema = z.coerce.date();
 
 export const createUserSchema = z.object({

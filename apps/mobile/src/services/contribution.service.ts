@@ -66,6 +66,7 @@ export const contributionService = {
       status: string;
       amount: number;
       currency: string;
+      checkoutUrl?: string;
     };
   }> {
     return api.post("/payments/contributions", input);

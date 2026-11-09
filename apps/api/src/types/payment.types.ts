@@ -10,6 +10,8 @@ export interface PaymentInitiationRequest {
   currency: string;
   phoneNumber: string;
   reference: string;
+  customerEmail?: string;
+  customerName?: string;
   metadata?: Record<string, any>;
 }
 
@@ -17,12 +19,14 @@ export interface PaymentInitiationResponse {
   success: boolean;
   providerRef: string;
   status: string;
+  checkoutUrl?: string;
   message?: string;
 }
 
 export interface PaymentStatusResponse {
   status: string;
   amount: number;
+  currency?: string;
   transactionId: string;
   paidAt?: Date;
 }

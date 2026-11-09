@@ -4,6 +4,7 @@ import { logger } from "../../config/logger.js";
 import { MockProvider } from "./providers/mock.provider.js";
 import { WaveProvider } from "./providers/wave.provider.js";
 import { LiquidCashProvider } from "./providers/liquidcash.provider.js";
+import { SasPayProvider } from "./providers/saspay.provider.js";
 import { getEnv } from "../../config/env.js";
 import { randomBytes } from "crypto";
 import { notifyUser } from "../notifications/notification.service.js";
@@ -13,6 +14,7 @@ export class PaymentsController {
     ["MOCK", new MockProvider()],
     ["WAVE", new WaveProvider()],
     ["LIQUIDCASH", new LiquidCashProvider()],
+    ["SASPAY", new SasPayProvider()],
   ]);
 
   async getProviders(req: any, res: Response, next: NextFunction) {
@@ -67,6 +69,8 @@ export class PaymentsController {
         ? "LIQUIDCASH"
         : configuredProvider === "WAVE"
           ? "WAVE"
+          : configuredProvider === "SASPAY"
+            ? "SASPAY"
           : "MOCK";
       const provider = this.providers.get(providerType);
 
@@ -85,6 +89,12 @@ export class PaymentsController {
           orderBy: { createdAt: "desc" },
         });
         if (previous) {
+          let previousMetadata: Record<string, unknown> = {};
+          try {
+            previousMetadata = JSON.parse(previous.metadata || "{}");
+          } catch {
+            previousMetadata = {};
+          }
           return res.json({
             payment: {
               providerRef: previous.providerRef,
@@ -93,12 +103,24 @@ export class PaymentsController {
               status: previous.status,
               amount: previous.amount,
               currency: previous.currency,
+              checkoutUrl: typeof previousMetadata.checkoutUrl === "string"
+                ? previousMetadata.checkoutUrl
+                : undefined,
             },
           });
         }
       }
 
       const reference = `MDT-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${randomBytes(5).toString("hex").toUpperCase()}`;
+      const payer = providerType === "SASPAY"
+        ? await getPrisma().user.findUnique({
+            where: { id: userId },
+            select: { name: true, email: true },
+          })
+        : null;
+      if (providerType === "SASPAY" && (!payer?.name || !payer.email)) {
+        return res.status(400).json({ error: "A name and email are required for SasPay checkout" });
+      }
       const contribution = existing ?? await getPrisma().contribution.create({
         data: {
           cycleId,
@@ -113,8 +135,14 @@ export class PaymentsController {
         currency: cycle.tontine.currency,
         phoneNumber,
         reference,
+        customerName: payer?.name,
+        customerEmail: payer?.email ?? undefined,
         metadata: { userId, tontineId, cycleId, contributionId: contribution.id },
       });
+
+      if (!result.success) {
+        return res.status(502).json({ error: result.message || "Payment provider could not start checkout" });
+      }
 
       if (result.success) {
         await getPrisma().contribution.update({
@@ -134,7 +162,11 @@ export class PaymentsController {
             currency: cycle.tontine.currency,
             status: "PROCESSING",
             direction: "IN",
-            metadata: JSON.stringify({ phoneNumber, method: method ?? "MOBILE_MONEY" }),
+            metadata: JSON.stringify({
+              phoneNumber,
+              method: method ?? "MOBILE_MONEY",
+              checkoutUrl: result.checkoutUrl,
+            }),
           },
         });
       }
@@ -243,6 +275,13 @@ export class PaymentsController {
       const terminalFailure = ["FAILED", "CANCELLED", "EXPIRED"].includes(normalizedStatus);
       if ((success || terminalFailure) && Number(status.amount) !== Number(transaction.amount)) {
         return res.status(409).json({ error: "Payment amount mismatch" });
+      }
+      if (
+        (success || terminalFailure) &&
+        status.currency &&
+        status.currency.toUpperCase() !== transaction.currency.toUpperCase()
+      ) {
+        return res.status(409).json({ error: "Payment currency mismatch" });
       }
       if (success || terminalFailure) {
         await getPrisma().$transaction(async (tx) => {

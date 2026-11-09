@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   Alert,
+  Linking,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaWrapper } from "../../src/components/layout";
@@ -24,6 +25,30 @@ export default function PayContributionScreen() {
   const [cycle, setCycle] = useState<{ id: string; name: string; amount: number; currency: string } | null>(null);
   const [paymentState, setPaymentState] = useState<"ready" | "pending" | "checking" | "success" | "failed">("ready");
   const [reference, setReference] = useState("");
+
+  const checkPaymentStatus = async (paymentReference: string) => {
+    const status = await contributionService.getPaymentStatus(paymentReference);
+    if (["SUCCESS", "PAID", "COMPLETED"].includes(status.status.toUpperCase())) {
+      setPaymentState("success");
+      return true;
+    }
+    if (["FAILED", "CANCELLED", "EXPIRED"].includes(status.status.toUpperCase())) {
+      setPaymentState("failed");
+      return true;
+    }
+    return false;
+  };
+
+  const handleCheckPaymentStatus = async () => {
+    if (!reference) return;
+    setPaymentState("checking");
+    try {
+      const finished = await checkPaymentStatus(reference);
+      if (!finished) setPaymentState("pending");
+    } catch {
+      setPaymentState("pending");
+    }
+  };
 
   useEffect(() => {
     if (!params.tontineId) return;
@@ -65,18 +90,13 @@ export default function PayContributionScreen() {
         amount: cycle.amount,
       });
       setReference(result.payment.internalReference);
+      if (result.payment.checkoutUrl) {
+        await Linking.openURL(result.payment.checkoutUrl);
+      }
       setPaymentState("checking");
       for (let attempt = 0; attempt < 6; attempt += 1) {
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        const status = await contributionService.getPaymentStatus(result.payment.internalReference);
-        if (["SUCCESS", "PAID", "COMPLETED"].includes(status.status.toUpperCase())) {
-          setPaymentState("success");
-          return;
-        }
-        if (["FAILED", "CANCELLED", "EXPIRED"].includes(status.status.toUpperCase())) {
-          setPaymentState("failed");
-          return;
-        }
+        if (await checkPaymentStatus(result.payment.internalReference)) return;
       }
       setPaymentState("pending");
     } catch (error) {
@@ -101,7 +121,13 @@ export default function PayContributionScreen() {
         ) : paymentState === "pending" || paymentState === "checking" ? (
           <View style={styles.stateCard}>
             <Text style={styles.stateTitle}>{paymentState === "checking" ? t("Verifying payment…") : t("Payment pending…")}</Text>
-            <Text style={styles.stateText}>{t("Do not close the app. The contribution will only be marked paid after server confirmation.")}</Text>
+            <Text style={styles.stateText}>{t("Complete the payment, return here, then check its status. It is marked paid only after server confirmation.")}</Text>
+            {paymentState === "pending" && (
+              <GlassButton
+                title={t("Check payment status")}
+                onPress={() => void handleCheckPaymentStatus()}
+              />
+            )}
           </View>
         ) : cycle ? (
           <PaymentForm

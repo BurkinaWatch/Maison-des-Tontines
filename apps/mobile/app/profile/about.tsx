@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaWrapper } from "../../src/components/layout";
 import { AppHeader } from "../../src/components/layout/AppHeader";
 import { BrandLogo } from "../../src/components/BrandLogo";
+import { SotyssiBranding } from "../../src/components/SotyssiBranding";
 import { useI18n } from "../../src/i18n";
 import { colors, spacing, typography } from "../../src/theme";
 
@@ -43,6 +44,8 @@ export default function AboutScreen() {
             <Text style={styles.version}>{t("Version")} {version}</Text>
           ) : null}
         </View>
+
+        <SotyssiBranding variant="compact" />
       </ScrollView>
     </SafeAreaWrapper>
   );

@@ -17,6 +17,7 @@ import {
   ContributionRow,
   EmptyState,
 } from "../../src/components/ui";
+import { SotyssiBranding } from "../../src/components/SotyssiBranding";
 import { colors, spacing, typography } from "../../src/theme";
 import { useTontines } from "../../src/hooks/useTontines";
 import { useContributions } from "../../src/hooks/useContributions";
@@ -152,6 +153,8 @@ export default function DashboardScreen() {
               </Pressable>
             </View>
           </View>
+
+          <SotyssiBranding variant="footer" />
         </View>
       </ScrollView>
     </SafeAreaWrapper>

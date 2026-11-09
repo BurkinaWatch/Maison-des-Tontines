@@ -152,6 +152,16 @@ describe("Tontines Routes", () => {
     expect(creation.status).toBe(201);
     const tontineId = creation.body.tontine.id;
     expect(tontineId).toEqual(expect.any(String));
+    expect(creation.body.tontine.members).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          userId: registration.body.user.id,
+          role: "ORGANIZER",
+          status: "ACTIVE",
+          payoutOrder: 0,
+        }),
+      ]),
+    );
 
     const read = await request(app)
       .get(`/api/v1/tontines/${tontineId}`)
@@ -159,6 +169,16 @@ describe("Tontines Routes", () => {
 
     expect(read.status).toBe(200);
     expect(read.body.tontine.type).toBe(type);
+    expect(read.body.tontine.members).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          userId: registration.body.user.id,
+          role: "ORGANIZER",
+          status: "ACTIVE",
+          payoutOrder: 0,
+        }),
+      ]),
+    );
     expect(read.body.tontine.rules).toEqual(
       expect.arrayContaining(
         Object.entries(rules).map(([key, value]) =>

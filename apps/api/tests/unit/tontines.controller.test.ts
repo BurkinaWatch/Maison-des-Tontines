@@ -4,7 +4,6 @@ import type { Response } from "express";
 const prismaMocks = vi.hoisted(() => ({
   tontineCreate: vi.fn(),
   tontineFindFirst: vi.fn(),
-  memberCreate: vi.fn(),
 }));
 
 vi.mock("../../src/config/database.js", () => ({
@@ -13,7 +12,6 @@ vi.mock("../../src/config/database.js", () => ({
       create: prismaMocks.tontineCreate,
       findFirst: prismaMocks.tontineFindFirst,
     },
-    tontineMember: { create: prismaMocks.memberCreate },
   }),
 }));
 
@@ -66,7 +64,6 @@ function makeResponse() {
 describe("TontinesController rule persistence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    prismaMocks.memberCreate.mockResolvedValue({});
   });
 
   it.each(rulesByType)("persists and returns every $type rule", async ({ type, rules }) => {
@@ -114,7 +111,14 @@ describe("TontinesController rule persistence", () => {
         type: typeof value === "number" ? "NUMBER" : typeof value === "boolean" ? "BOOLEAN" : "STRING",
       })),
     );
+    expect(createArgs.data.members.create).toEqual({
+      userId: "user-1",
+      role: "ORGANIZER",
+      status: "ACTIVE",
+      payoutOrder: 0,
+    });
     expect(createArgs.include.rules).toBe(true);
+    expect(createArgs.include.members).toBe(true);
     expect(createResponse.status).toHaveBeenCalledWith(201);
     expect(createResponse.json).toHaveBeenCalledWith({ tontine });
 
@@ -132,5 +136,33 @@ describe("TontinesController rule persistence", () => {
       }),
     );
     expect(readResponse.json).toHaveBeenCalledWith({ tontine });
+  });
+
+  it("does not report success when the atomic create operation fails", async () => {
+    const error = new Error("Nested membership could not be created");
+    prismaMocks.tontineCreate.mockRejectedValueOnce(error);
+    const response = makeResponse();
+    const next = vi.fn();
+
+    await new TontinesController().createTontine(
+      {
+        userId: "user-1",
+        body: {
+          name: "Team tontine",
+          type: "ROTATIVE",
+          contributionAmount: 35000,
+          currency: "XOF",
+          frequency: "monthly",
+          startDate: "2026-12-01T00:00:00.000Z",
+          rules: { payoutOrder: "organizer-first" },
+        },
+      },
+      response,
+      next,
+    );
+
+    expect(next).toHaveBeenCalledWith(error);
+    expect(response.status).not.toHaveBeenCalled();
+    expect(response.json).not.toHaveBeenCalled();
   });
 });

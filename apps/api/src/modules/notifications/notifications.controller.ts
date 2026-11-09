@@ -29,6 +29,10 @@ export class NotificationsController {
     try {
       const userId = req.userId!;
       const { status, channel, limit = 50 } = req.query;
+      const parsedLimit = Number(limit);
+      if (!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
+        return res.status(400).json({ error: "Limit must be an integer between 1 and 100" });
+      }
 
       const where: any = { userId };
       if (status) where.status = status;
@@ -37,7 +41,7 @@ export class NotificationsController {
       const notifications = await getPrisma().notification.findMany({
         where,
         orderBy: { createdAt: "desc" },
-        take: Number(limit),
+        take: parsedLimit,
       });
 
       res.json({ notifications });
@@ -65,6 +69,24 @@ export class NotificationsController {
       });
 
       res.json({ notification: updated });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteNotification(req: any, res: Response, next: NextFunction) {
+    try {
+      const userId = req.userId!;
+      const { id } = req.params;
+      const result = await getPrisma().notification.deleteMany({
+        where: { id, userId },
+      });
+
+      if (result.count === 0) {
+        return res.status(404).json({ error: "Notification not found" });
+      }
+
+      return res.status(204).send();
     } catch (error) {
       next(error);
     }

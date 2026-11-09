@@ -11,5 +11,6 @@ router.get("/unread-count", controller.getUnreadCount);
 router.post("/device-token", validate(z.object({ token: z.string().min(10), platform: z.enum(["ios", "android", "web"]) })), controller.registerDeviceToken);
 router.post("/:id/read", controller.markAsRead);
 router.post("/read-all", controller.markAllAsRead);
+router.delete("/:id", controller.deleteNotification);
 export default router;
 //# sourceMappingURL=notifications.router.js.map

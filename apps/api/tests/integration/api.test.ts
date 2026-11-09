@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import request from "supertest";
+import jwt from "jsonwebtoken";
 import app from "../../src/index.js";
 import { getPrisma } from "../../src/config/database.js";
+import { getEnv } from "../../src/config/env.js";
 
 describe("Health Check", () => {
   it("should return health status", async () => {
@@ -254,4 +256,87 @@ describe("Tontines Routes", () => {
       }
     },
   );
+});
+
+describe("Notifications Routes", () => {
+  it("lists, counts, reads, and deletes only the signed-in user's notifications", async () => {
+    const suffix = Date.now().toString();
+    const createUser = (label: string, lastDigit: string) =>
+      getPrisma().user.create({
+        data: {
+          phone: `+22177${suffix.slice(-6)}${lastDigit}`,
+          email: `notifications-${label}-${suffix}@example.com`,
+          name: `Notifications ${label}`,
+          passwordHash: "unused-test-password-hash",
+        },
+      });
+    const owner = await createUser("owner", "1");
+    const other = await createUser("other", "2");
+    const ownerToken = jwt.sign(
+      { sub: owner.id, role: owner.role },
+      getEnv().JWT_ACCESS_SECRET,
+      { expiresIn: "5m" },
+    );
+
+    const ownerNotification = await getPrisma().notification.create({
+      data: {
+        userId: owner.id,
+        type: "INVITATION",
+        channel: "PUSH",
+        title: "Tontine invitation",
+        body: "You have been invited.",
+        data: "{}",
+        status: "SENT",
+      },
+    });
+    const otherNotification = await getPrisma().notification.create({
+      data: {
+        userId: other.id,
+        type: "VOTE",
+        channel: "PUSH",
+        title: "New vote",
+        body: "A vote is open.",
+        data: "{}",
+        status: "SENT",
+      },
+    });
+    const list = await request(app)
+      .get("/api/v1/notifications")
+      .set("Authorization", `Bearer ${ownerToken}`);
+    expect(list.status).toBe(200);
+    expect(list.body.notifications.map((item: { id: string }) => item.id)).toEqual([
+      ownerNotification.id,
+    ]);
+
+    const invalidLimit = await request(app)
+      .get("/api/v1/notifications?limit=101")
+      .set("Authorization", `Bearer ${ownerToken}`);
+    expect(invalidLimit.status).toBe(400);
+
+    const unread = await request(app)
+      .get("/api/v1/notifications/unread-count")
+      .set("Authorization", `Bearer ${ownerToken}`);
+    expect(unread.body.count).toBe(1);
+
+    const markRead = await request(app)
+      .post("/api/v1/notifications/read-all")
+      .set("Authorization", `Bearer ${ownerToken}`);
+    expect(markRead.status).toBe(200);
+    const unreadAfterRead = await request(app)
+      .get("/api/v1/notifications/unread-count")
+      .set("Authorization", `Bearer ${ownerToken}`);
+    expect(unreadAfterRead.body.count).toBe(0);
+
+    const forbiddenDelete = await request(app)
+      .delete(`/api/v1/notifications/${otherNotification.id}`)
+      .set("Authorization", `Bearer ${ownerToken}`);
+    expect(forbiddenDelete.status).toBe(404);
+    expect(await getPrisma().notification.findUnique({ where: { id: otherNotification.id } }))
+      .not.toBeNull();
+
+    const deletion = await request(app)
+      .delete(`/api/v1/notifications/${ownerNotification.id}`)
+      .set("Authorization", `Bearer ${ownerToken}`);
+    expect(deletion.status).toBe(204);
+  });
 });

@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
   View,
   Text,
   StyleSheet,
@@ -7,16 +8,60 @@ import {
   RefreshControl,
   Pressable,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { SafeAreaWrapper } from "../../src/components/layout";
 import { AppHeader } from "../../src/components/layout/AppHeader";
-import { GlassCard, StatusBadge } from "../../src/components/ui";
+import { GlassCard } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { useNotifications } from "../../src/hooks/useNotifications";
 import { formatRelativeDate } from "../../src/utils/formatters";
 
 export default function NotificationsScreen() {
-  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, refetch } =
-    useNotifications();
+  const router = useRouter();
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    isRefetching,
+    isError,
+    error,
+    isMarkingAllAsRead,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    refetch,
+  } = useNotifications();
+  const [actionError, setActionError] = useState("");
+
+  const runAction = async (action: () => Promise<unknown>) => {
+    setActionError("");
+    try {
+      await action();
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : "Action failed. Please try again.");
+    }
+  };
+
+  const openNotification = async (notification: (typeof notifications)[number]) => {
+    await runAction(async () => {
+      if (!notification.read) await markAsRead(notification.id);
+
+      const data = notification.data ?? {};
+      const id = (key: string) =>
+        typeof data[key] === "string" ? (data[key] as string) : undefined;
+      const category = id("category")?.toLowerCase();
+
+      if (id("disputeId")) router.push(`/dispute/${id("disputeId")}`);
+      else if (id("voteId")) router.push(`/vote/${id("voteId")}`);
+      else if (id("payoutId")) router.push(`/payout/${id("payoutId")}`);
+      else if (category === "invitations" || id("membershipId")) {
+        router.push("/memberships/invitations");
+      } else if (id("tontineId")) router.push(`/tontine/${id("tontineId")}`);
+      else if (category === "payments" || id("transactionId")) {
+        router.push("/contribution/history");
+      }
+    });
+  };
 
   const getTypeEmoji = (type: string) => {
     switch (type) {
@@ -28,6 +73,10 @@ export default function NotificationsScreen() {
         return "⚠️";
       case "vote":
         return "🗳️";
+      case "invitation":
+        return "✉️";
+      case "payment":
+        return "💳";
       default:
         return "📢";
     }
@@ -39,7 +88,7 @@ export default function NotificationsScreen() {
         style={styles.container}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refetch} />
+          <RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />
         }
       >
         <AppHeader
@@ -48,46 +97,88 @@ export default function NotificationsScreen() {
           showProfile
           rightAction={
             unreadCount > 0 ? (
-              <Pressable onPress={markAllAsRead}>
-                <Text style={styles.markAll}>Mark all read</Text>
+              <Pressable
+                accessibilityRole="button"
+                disabled={isMarkingAllAsRead}
+                onPress={() => void runAction(markAllAsRead)}
+              >
+                <Text style={styles.markAll}>
+                  {isMarkingAllAsRead ? "Updating…" : "Mark all read"}
+                </Text>
               </Pressable>
             ) : undefined
           }
         />
 
         <View style={styles.content}>
-          {notifications.length > 0 ? (
-            notifications.map((notification) => (
-              <Pressable
-                key={notification.id}
-                onPress={() => markAsRead(notification.id)}
-              >
-                <GlassCard
-                  style={[
-                    styles.notificationCard,
-                    !notification.read && styles.unreadCard,
-                  ]}
-                >
-                  <View style={styles.iconContainer}>
-                    <Text style={styles.icon}>
-                      {getTypeEmoji(notification.type)}
-                    </Text>
-                  </View>
-                  <View style={styles.notificationContent}>
-                    <Text style={styles.title}>{notification.title}</Text>
-                    <Text style={styles.message} numberOfLines={2}>
-                      {notification.message}
-                    </Text>
-                    <Text style={styles.time}>
-                      {formatRelativeDate(notification.createdAt)}
-                    </Text>
-                  </View>
-                  {!notification.read && (
-                    <View style={styles.unreadDot} />
-                  )}
-                </GlassCard>
+          {actionError ? (
+            <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text>
+          ) : null}
+          {isError && notifications.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.error}>
+                {error instanceof Error ? error.message : "Could not load notifications."}
+              </Text>
+              <Pressable accessibilityRole="button" onPress={() => void refetch()}>
+                <Text style={styles.markAll}>Try again</Text>
               </Pressable>
-            ))
+            </View>
+          ) : isLoading ? (
+            <View style={styles.emptyContainer}>
+              <ActivityIndicator color={colors.accent} />
+              <Text style={styles.message}>Loading notifications…</Text>
+            </View>
+          ) : notifications.length > 0 ? (
+            <>
+              {isError && (
+                <Text style={styles.error}>
+                  {error instanceof Error ? error.message : "Could not refresh notifications."}
+                </Text>
+              )}
+              {notifications.map((notification) => (
+              <View key={notification.id}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${notification.title}. ${notification.read ? "Read" : "Unread"}`}
+                  onPress={() => void openNotification(notification)}
+                >
+                  <GlassCard
+                    style={[
+                      styles.notificationCard,
+                      !notification.read && styles.unreadCard,
+                    ]}
+                  >
+                    <View style={styles.iconContainer}>
+                      <Text style={styles.icon}>
+                        {getTypeEmoji(notification.type.toLowerCase())}
+                      </Text>
+                    </View>
+                    <View style={styles.notificationContent}>
+                      <Text style={styles.title}>{notification.title}</Text>
+                      <Text style={styles.message} numberOfLines={2}>
+                        {notification.message}
+                      </Text>
+                      <Text style={styles.time}>
+                        {formatRelativeDate(notification.createdAt)}
+                      </Text>
+                    </View>
+                    {!notification.read && (
+                      <View style={styles.unreadDot} />
+                    )}
+                  </GlassCard>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Delete notification"
+                  hitSlop={8}
+                  style={styles.deleteButton}
+                  onPress={() => void runAction(() => deleteNotification(notification.id))}
+                >
+                  <Text style={styles.deleteText}>×</Text>
+                </Pressable>
+              </View>
+              ))}
+            </>
           ) : (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyIcon}>🔔</Text>
@@ -117,11 +208,30 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontWeight: "600",
   },
+  error: {
+    ...typography.caption,
+    color: colors.error,
+    textAlign: "center",
+    marginBottom: spacing.md,
+  },
+  deleteButton: {
+    position: "absolute",
+    right: spacing.sm,
+    top: spacing.xs,
+    paddingHorizontal: spacing.xs,
+    zIndex: 1,
+  },
+  deleteText: {
+    color: colors.textTertiary,
+    fontSize: 22,
+    lineHeight: 24,
+  },
   notificationCard: {
     flexDirection: "row",
     alignItems: "flex-start",
     marginBottom: spacing.sm,
     gap: spacing.md,
+    paddingRight: spacing.xl,
   },
   unreadCard: {
     backgroundColor: colors.surfaceLight,

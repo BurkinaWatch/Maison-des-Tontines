@@ -4,9 +4,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../../src/theme";
 import { useI18n } from "../../src/i18n";
 import { BrandLogo } from "../../src/components/BrandLogo";
+import { useNotifications } from "../../src/hooks/useNotifications";
 
 export default function TabsLayout() {
   const { t } = useI18n();
+  const { unreadCount } = useNotifications();
   const insets = useSafeAreaInsets();
   const tabBarInsets = {
     ...insets,
@@ -56,7 +58,7 @@ export default function TabsLayout() {
         options={{
            title: t("Alerts"),
           tabBarIcon: () => <Text style={{ fontSize: 22 }}>🔔</Text>,
-          tabBarBadge: "3",
+          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
         }}
       />
       <Tabs.Screen

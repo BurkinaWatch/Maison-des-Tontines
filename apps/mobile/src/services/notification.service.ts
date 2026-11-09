@@ -5,7 +5,7 @@ import Constants from "expo-constants";
 
 export interface Notification {
   id: string;
-  type: "contribution" | "payout" | "dispute" | "vote" | "system";
+  type: string;
   title: string;
   message: string;
   data?: Record<string, unknown>;
@@ -44,7 +44,7 @@ export const notificationService = {
     const notifications = Array.isArray(response.notifications) ? response.notifications : [];
     return notifications.map((item) => ({
       id: item.id,
-      type: item.type,
+      type: item.type.toLowerCase(),
       title: item.title,
       message: item.body,
       data: parseNotificationData(item.data),

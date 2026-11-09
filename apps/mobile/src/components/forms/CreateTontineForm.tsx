@@ -103,6 +103,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
     );
     if (categoryError) {
       setFormError(t(categoryError));
+      setStep(2);
       return;
     }
 
@@ -121,7 +122,13 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
       members: [{ phoneNumber: "+00000000000", name: "Organizer", position: 1 }, { phoneNumber: "+00000000001", name: "Member", position: 2 }],
     });
     if (!parsed.success) {
-      setFormError(parsed.error.issues[0]?.message ?? t("Please complete all required fields."));
+      const issue = parsed.error.issues[0];
+      const field = String(issue?.path[0] ?? "");
+      if (["name", "description", "type"].includes(field)) setStep(1);
+      else if (["amount", "currency", "frequency"].includes(field)) setStep(2);
+      else if (["totalMembers", "totalCycles", "startDate"].includes(field)) setStep(3);
+      else setStep(4);
+      setFormError(issue?.message ?? t("Please complete all required fields."));
       return;
     }
     setFormError("");

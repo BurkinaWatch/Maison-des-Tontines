@@ -26,18 +26,16 @@ export class TontinesController {
                 })),
               }
             : undefined,
+          members: {
+            create: {
+              userId,
+              role: "ORGANIZER",
+              status: "ACTIVE",
+              payoutOrder: 0,
+            },
+          },
         },
         include: { rules: true, members: true },
-      });
-
-      await getPrisma().tontineMember.create({
-        data: {
-          tontineId: tontine.id,
-          userId,
-          role: "ORGANIZER",
-          status: "ACTIVE",
-          payoutOrder: 0,
-        },
       });
 
       logger.info("Tontine created", { tontineId: tontine.id, userId });

@@ -2,6 +2,9 @@ import { api } from "./api";
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
+import * as SecureStore from "expo-secure-store";
+
+const DEVICE_TOKEN_KEY = "expo_push_device_token";
 
 export interface Notification {
   id: string;
@@ -24,14 +27,29 @@ function parseNotificationData(value: string | null | undefined): Record<string,
 }
 
 export const notificationService = {
-  async registerDeviceToken(): Promise<void> {
-    if (Platform.OS === "web") return;
+  async registerDeviceToken(): Promise<boolean> {
+    if (Platform.OS === "web") return false;
     const permissions = await Notifications.getPermissionsAsync();
     const granted = permissions.granted || (await Notifications.requestPermissionsAsync()).granted;
-    if (!granted) return;
+    if (!granted) return false;
     const projectId = Constants.expoConfig?.extra?.eas?.projectId;
     const token = (await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined)).data;
     await api.post("/notifications/device-token", { token, platform: Platform.OS });
+    await SecureStore.setItemAsync(DEVICE_TOKEN_KEY, token);
+    return true;
+  },
+
+  async setPushEnabled(enabled: boolean): Promise<boolean> {
+    if (enabled) return this.registerDeviceToken();
+    if (Platform.OS === "web") return true;
+
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    const token =
+      (await SecureStore.getItemAsync(DEVICE_TOKEN_KEY)) ??
+      (await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined)).data;
+    await api.post("/notifications/device-token/disable", { token });
+    await SecureStore.setItemAsync(DEVICE_TOKEN_KEY, token);
+    return true;
   },
 
   async getNotifications(): Promise<Notification[]> {

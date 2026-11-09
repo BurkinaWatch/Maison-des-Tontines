@@ -277,6 +277,36 @@ describe("Notifications Routes", () => {
       getEnv().JWT_ACCESS_SECRET,
       { expiresIn: "5m" },
     );
+    const otherToken = jwt.sign(
+      { sub: other.id, role: other.role },
+      getEnv().JWT_ACCESS_SECRET,
+      { expiresIn: "5m" },
+    );
+    const devicePushToken = `ExponentPushToken[test-device-${suffix}]`;
+    const registeredDevice = await request(app)
+      .post("/api/v1/notifications/device-token")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ token: devicePushToken, platform: "android" });
+    expect(registeredDevice.status).toBe(200);
+
+    const otherUserDisable = await request(app)
+      .post("/api/v1/notifications/device-token/disable")
+      .set("Authorization", `Bearer ${otherToken}`)
+      .send({ token: devicePushToken });
+    expect(otherUserDisable.body.disabled).toBe(false);
+    expect((await getPrisma().deviceToken.findUnique({ where: { token: devicePushToken } }))?.enabled)
+      .toBe(true);
+
+    const ownerDisable = await request(app)
+      .post("/api/v1/notifications/device-token/disable")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ token: devicePushToken });
+    expect(ownerDisable.body.disabled).toBe(true);
+    const reenabledDevice = await request(app)
+      .post("/api/v1/notifications/device-token")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ token: devicePushToken, platform: "android" });
+    expect(reenabledDevice.body.deviceToken.enabled).toBe(true);
 
     const ownerNotification = await getPrisma().notification.create({
       data: {

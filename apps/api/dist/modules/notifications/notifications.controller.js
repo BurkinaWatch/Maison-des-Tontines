@@ -26,6 +26,19 @@ export class NotificationsController {
             next(error);
         }
     }
+    async disableDeviceToken(req, res, next) {
+        try {
+            const { token } = req.body;
+            const result = await getPrisma().deviceToken.updateMany({
+                where: { token, userId: req.userId, enabled: true },
+                data: { enabled: false },
+            });
+            return res.json({ disabled: result.count > 0 });
+        }
+        catch (error) {
+            next(error);
+        }
+    }
     async getNotifications(req, res, next) {
         try {
             const userId = req.userId;

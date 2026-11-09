@@ -32,6 +32,7 @@ function AuthBootstrap() {
           if (preferences.pushNotifications) {
             return notificationService.registerDeviceToken();
           }
+          return notificationService.setPushEnabled(false);
         })
         .catch(() => undefined);
     }

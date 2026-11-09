@@ -6,14 +6,19 @@ import { AppHeader } from "../../src/components/layout/AppHeader";
 import { GlassButton } from "../../src/components/ui";
 import { colors, spacing, typography } from "../../src/theme";
 import { defaultProfilePreferences, loadProfilePreferences, ProfilePreferences, saveProfilePreferences } from "../../src/utils/localPreferences";
+import { notificationService } from "../../src/services/notification.service";
 
 export default function NotificationSettingsScreen() {
   const router = useRouter();
   const [preferences, setPreferences] = useState<ProfilePreferences>(defaultProfilePreferences);
+  const [savedPreferences, setSavedPreferences] = useState<ProfilePreferences>(defaultProfilePreferences);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    loadProfilePreferences().then(setPreferences);
+    loadProfilePreferences().then((loaded) => {
+      setPreferences(loaded);
+      setSavedPreferences(loaded);
+    });
   }, []);
 
   const update = (key: keyof ProfilePreferences, value: boolean) =>
@@ -22,12 +27,26 @@ export default function NotificationSettingsScreen() {
   const save = async () => {
     setSaving(true);
     try {
+      let permissionGranted = true;
+      if (preferences.pushNotifications !== savedPreferences.pushNotifications) {
+        permissionGranted = await notificationService.setPushEnabled(preferences.pushNotifications);
+      }
       await saveProfilePreferences(preferences);
-      Alert.alert("Settings saved", "Your notification preferences were updated.", [
+      setSavedPreferences(preferences);
+      Alert.alert(
+        "Settings saved",
+        permissionGranted
+          ? "Your notification preferences were updated."
+          : "Preferences saved. Allow notifications in your device settings to receive push alerts.",
+        [
         { text: "OK", onPress: () => router.back() },
-      ]);
-    } catch {
-      Alert.alert("Unable to save", "Please try again.");
+        ],
+      );
+    } catch (error) {
+      Alert.alert(
+        "Unable to save",
+        error instanceof Error ? error.message : "Please try again.",
+      );
     } finally {
       setSaving(false);
     }

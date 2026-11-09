@@ -9,6 +9,7 @@ router.use(authMiddleware);
 router.get("/", controller.getNotifications);
 router.get("/unread-count", controller.getUnreadCount);
 router.post("/device-token", validate(z.object({ token: z.string().min(10), platform: z.enum(["ios", "android", "web"]) })), controller.registerDeviceToken);
+router.post("/device-token/disable", validate(z.object({ token: z.string().min(10) })), controller.disableDeviceToken);
 router.post("/:id/read", controller.markAsRead);
 router.post("/read-all", controller.markAllAsRead);
 router.delete("/:id", controller.deleteNotification);

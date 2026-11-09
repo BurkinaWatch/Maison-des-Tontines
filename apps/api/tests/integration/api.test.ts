@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import request from "supertest";
 import app from "../../src/index.js";
+import { getPrisma } from "../../src/config/database.js";
 
 describe("Health Check", () => {
   it("should return health status", async () => {
@@ -196,4 +197,61 @@ describe("Tontines Routes", () => {
       ),
     );
   });
+
+  it.skipIf(!process.env.DATABASE_URL?.startsWith("file:"))(
+    "rolls back the tontine and rules when organizer membership insertion fails",
+    async () => {
+      const suffix = Date.now().toString();
+      const tontineName = `Rollback tontine ${suffix}`;
+      const registration = await request(app)
+        .post("/api/v1/auth/register")
+        .send({
+          phone: `+22177${suffix.slice(-7).padStart(7, "0")}`,
+          email: `tontine-rollback-${suffix}@example.com`,
+          name: "Rollback Test User",
+          password: "password123",
+        });
+      expect(registration.status).toBe(201);
+
+      const triggerName = `fail_tontine_member_${suffix}`;
+      let triggerCreated = false;
+      try {
+        await getPrisma().$executeRawUnsafe(
+          `CREATE TRIGGER "${triggerName}" BEFORE INSERT ON "TontineMember" BEGIN SELECT RAISE(ABORT, 'forced organizer insert failure'); END;`,
+        );
+        triggerCreated = true;
+
+        const creation = await request(app)
+          .post("/api/v1/tontines")
+          .set("Authorization", `Bearer ${registration.body.accessToken}`)
+          .send({
+            name: tontineName,
+            description: "",
+            type: "ROTATIVE",
+            contributionAmount: 35000,
+            currency: "XOF",
+            frequency: "monthly",
+            maxMembers: 5,
+            startDate: "2026-12-01T00:00:00.000Z",
+            rules: { payoutOrder: "organizer-first", totalCycles: 5 },
+          });
+
+        expect(creation.status).toBe(500);
+        expect(creation.body.message).toBe("Internal server error");
+
+        const tontines = await getPrisma().tontine.findMany({
+          where: { name: tontineName },
+          include: { rules: true },
+        });
+        expect(tontines).toHaveLength(0);
+        expect(await getPrisma().tontineMember.count({
+          where: { userId: registration.body.user.id },
+        })).toBe(0);
+      } finally {
+        if (triggerCreated) {
+          await getPrisma().$executeRawUnsafe(`DROP TRIGGER IF EXISTS "${triggerName}"`);
+        }
+      }
+    },
+  );
 });

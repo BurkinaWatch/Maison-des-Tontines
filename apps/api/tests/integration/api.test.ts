@@ -85,4 +85,95 @@ describe("Tontines Routes", () => {
     const response = await request(app).get("/api/v1/tontines");
     expect(response.status).toBe(401);
   });
+
+  it.each([
+    {
+      type: "ROTATIVE",
+      rules: { payoutOrder: "organizer-first", totalCycles: 5, allowLatePayment: true },
+    },
+    {
+      type: "SAVINGS",
+      rules: {
+        savingsTarget: 500000,
+        savingsTargetDate: "2027-06-30",
+        allowEarlyWithdrawal: false,
+        totalCycles: 5,
+      },
+    },
+    {
+      type: "GOAL",
+      rules: {
+        investmentProject: "Community shop",
+        investmentTarget: 2000000,
+        investmentRisk: "medium",
+        investmentDuration: "12",
+        profitSharing: "Pro-rata to contributions",
+        totalCycles: 5,
+      },
+    },
+    {
+      type: "HYBRID",
+      rules: {
+        socialAidType: "emergency",
+        socialBeneficiary: "Awa",
+        socialUrgency: "normal",
+        socialTarget: 300000,
+        totalCycles: 5,
+      },
+    },
+  ])("persists and returns $type rules after reading the tontine", async ({ type, rules }) => {
+    const suffix = `${Date.now()}-${type.toLowerCase()}`;
+    const registration = await request(app)
+      .post("/api/v1/auth/register")
+      .send({
+        phone: `+22177${suffix.replace(/\D/g, "").slice(-7).padStart(7, "0")}`,
+        email: `tontine-rules-${suffix}@example.com`,
+        name: "Rules Test User",
+        password: "password123",
+      });
+    expect(registration.status).toBe(201);
+    const accessToken = registration.body.accessToken;
+
+    const creation = await request(app)
+      .post("/api/v1/tontines")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        name: `Rules ${type} ${suffix}`,
+        description: "",
+        type,
+        contributionAmount: 35000,
+        currency: "XOF",
+        frequency: "monthly",
+        maxMembers: 5,
+        startDate: "2026-12-01T00:00:00.000Z",
+        rules,
+      });
+
+    expect(creation.status).toBe(201);
+    const tontineId = creation.body.tontine.id;
+    expect(tontineId).toEqual(expect.any(String));
+
+    const read = await request(app)
+      .get(`/api/v1/tontines/${tontineId}`)
+      .set("Authorization", `Bearer ${accessToken}`);
+
+    expect(read.status).toBe(200);
+    expect(read.body.tontine.type).toBe(type);
+    expect(read.body.tontine.rules).toEqual(
+      expect.arrayContaining(
+        Object.entries(rules).map(([key, value]) =>
+          expect.objectContaining({
+            key,
+            value: String(value),
+            type:
+              typeof value === "number"
+                ? "NUMBER"
+                : typeof value === "boolean"
+                  ? "BOOLEAN"
+                  : "STRING",
+          }),
+        ),
+      ),
+    );
+  });
 });

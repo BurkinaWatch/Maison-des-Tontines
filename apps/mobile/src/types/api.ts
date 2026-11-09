@@ -35,6 +35,7 @@ export interface CreateTontineRequest {
   frequency: string;
   maxMembers: number;
   startDate: string;
+  endDate?: string;
   rules: Record<string, string | number | boolean>;
 }
 

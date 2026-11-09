@@ -5,15 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Platform,
 } from "react-native";
-import { useRouter } from "expo-router";
 import { GlassCard, GlassInput, GlassButton } from "../ui";
 import { colors, spacing, typography, borderRadius } from "../../theme";
 import { TontineType, TontineRules } from "../../types/tontine";
 import {
   createTontineSchema,
   getTontineCategoryError,
+  isValidDateOnly,
   parseTontineAmount,
 } from "../../utils/validation";
 import { CURRENCIES as CURRENCY_OPTIONS } from "../../utils/profileOptions";
@@ -36,7 +35,6 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
   onSubmit,
   isLoading = false,
 }) => {
-  const router = useRouter();
   const { t } = useI18n();
   const [step, setStep] = useState(1);
   const [isCurrencyPickerOpen, setIsCurrencyPickerOpen] = useState(false);
@@ -48,7 +46,6 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
     currency: "XOF",
     frequency: "monthly",
     totalMembers: "5",
-    totalCycles: "5",
     startDate: "",
     rules: {
       allowLatePayment: true,
@@ -79,14 +76,61 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const tontineTypes: { value: TontineType; label: string; emoji: string }[] = [
-    { value: "rotating", label: t("Rotating"), emoji: "🔄" },
-    { value: "savings", label: t("Savings"), emoji: "🏦" },
-    { value: "investment", label: t("Investment"), emoji: "📈" },
-    { value: "social", label: t("Social"), emoji: "🤝" },
+  const tontineTypes: { value: TontineType; label: string; emoji: string; description: string }[] = [
+    { value: "rotating", label: t("Rotating"), emoji: "🔄", description: t("Members contribute regularly and receive the pot in turn.") },
+    { value: "savings", label: t("Savings"), emoji: "🏦", description: t("Build a shared savings target by a chosen date.") },
+    { value: "investment", label: t("Investment"), emoji: "📈", description: t("Fund a project with a defined risk and profit-sharing plan.") },
+    { value: "social", label: t("Social"), emoji: "🤝", description: t("Collect support for a named beneficiary and specific need.") },
   ];
 
   const frequencies = ["weekly", "biweekly", "monthly", "quarterly"];
+
+  const goToNextStep = () => {
+    if (step === 1) {
+      if (formData.name.trim().length < 3 || formData.name.trim().length > 100) {
+        setFormError(t("Enter a tontine name between 3 and 100 characters."));
+        return;
+      }
+      if (formData.description.length > 500) {
+        setFormError(t("Description must be less than 500 characters."));
+        return;
+      }
+    }
+    if (step === 2) {
+      const amount = parseTontineAmount(formData.amount);
+      if (!Number.isFinite(amount) || amount <= 0 || amount > 100000000) {
+        setFormError(t("Enter a positive contribution amount below 100,000,000."));
+        return;
+      }
+      const categoryError = getTontineCategoryError(formData.type, formData.categoryDetails);
+      if (categoryError) {
+        setFormError(t(categoryError));
+        return;
+      }
+    }
+    if (step === 3) {
+      const members = Number(formData.totalMembers);
+      if (!Number.isInteger(members) || members < 2 || members > 50) {
+        setFormError(t("Choose between 2 and 50 members."));
+        return;
+      }
+      if (!isValidDateOnly(formData.startDate)) {
+        setFormError(t("Enter the start date in YYYY-MM-DD format."));
+        return;
+      }
+      const categoryError = getTontineCategoryError(
+        formData.type,
+        formData.categoryDetails,
+        formData.startDate,
+      );
+      if (categoryError) {
+        setFormError(t(categoryError));
+        return;
+      }
+    }
+    setFormError("");
+    setStep((current) => current + 1);
+  };
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -99,7 +143,8 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
 
     const categoryError = getTontineCategoryError(
       formData.type,
-      formData.categoryDetails
+      formData.categoryDetails,
+      formData.startDate,
     );
     if (categoryError) {
       setFormError(t(categoryError));
@@ -116,7 +161,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
       currency: formData.currency,
       frequency: formData.frequency,
       totalMembers: parseInt(formData.totalMembers, 10),
-      totalCycles: parseInt(formData.totalCycles, 10),
+      totalCycles: parseInt(formData.totalMembers, 10),
       startDate: formData.startDate,
       rules: formData.rules,
       members: [{ phoneNumber: "+00000000000", name: "Organizer", position: 1 }, { phoneNumber: "+00000000001", name: "Member", position: 2 }],
@@ -140,6 +185,41 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
         investment: "GOAL",
         social: "HYBRID",
       };
+      const memberCount = parseInt(formData.totalMembers, 10);
+      const startDate = new Date(`${formData.startDate}T00:00:00.000Z`);
+      const endDate =
+        formData.type === "savings"
+          ? new Date(`${formData.categoryDetails.savingsTargetDate}T00:00:00.000Z`)
+          : formData.type === "investment"
+            ? addUtcMonths(startDate, parseInt(formData.categoryDetails.investmentDuration, 10))
+            : undefined;
+      const categoryRules: Record<TontineType, Record<string, string | number | boolean>> = {
+        rotating: {
+          payoutOrder: formData.categoryDetails.payoutOrder,
+          requireVoteForAbsent: formData.rules.requireVoteForAbsent,
+          allowEarlyPayout: formData.rules.allowEarlyPayout,
+          payoutDelayDays: formData.rules.payoutDelayDays,
+          earlyPayoutPenalty: formData.rules.earlyPayoutPenalty,
+        },
+        savings: {
+          savingsTarget: parseTontineAmount(formData.categoryDetails.savingsTarget),
+          savingsTargetDate: formData.categoryDetails.savingsTargetDate,
+          allowEarlyWithdrawal: Boolean(formData.categoryDetails.allowEarlyWithdrawal),
+        },
+        investment: {
+          investmentProject: formData.categoryDetails.investmentProject.trim(),
+          investmentTarget: parseTontineAmount(formData.categoryDetails.investmentTarget),
+          investmentRisk: formData.categoryDetails.investmentRisk,
+          investmentDuration: parseInt(formData.categoryDetails.investmentDuration, 10),
+          profitSharing: formData.categoryDetails.profitSharing.trim(),
+        },
+        social: {
+          socialAidType: formData.categoryDetails.socialAidType.trim(),
+          socialBeneficiary: formData.categoryDetails.socialBeneficiary.trim(),
+          socialUrgency: formData.categoryDetails.socialUrgency,
+          socialTarget: parseTontineAmount(formData.categoryDetails.socialTarget),
+        },
+      };
       await onSubmit({
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -148,17 +228,14 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
         currency: parsed.data.currency,
         frequency: formData.frequency,
         maxMembers: parseInt(formData.totalMembers, 10),
-        startDate: new Date(`${formData.startDate}T00:00:00.000Z`).toISOString(),
+        startDate: startDate.toISOString(),
+        ...(endDate ? { endDate: endDate.toISOString() } : {}),
         rules: {
-          ...formData.rules,
-          ...formData.categoryDetails,
-          ...(formData.type === "savings"
-            ? { savingsTarget: parseTontineAmount(formData.categoryDetails.savingsTarget) }
-            : {}),
-          ...(formData.type === "investment"
-            ? { investmentTarget: parseTontineAmount(formData.categoryDetails.investmentTarget) }
-            : {}),
-          totalCycles: parseInt(formData.totalCycles, 10),
+          allowLatePayment: formData.rules.allowLatePayment,
+          latePenaltyPercent: formData.rules.latePenaltyPercent,
+          maxMissedContributions: formData.rules.maxMissedContributions,
+          ...categoryRules[formData.type],
+          totalCycles: memberCount,
         },
       });
     } catch (error) {
@@ -242,7 +319,7 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
 
   const renderStepIndicator = () => (
     <View style={styles.stepIndicator}>
-      {[1, 2, 3, 4, 5].map((s) => (
+      {[1, 2, 3, 4].map((s) => (
         <View
           key={s}
           style={[
@@ -286,7 +363,10 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
             {tontineTypes.map((type) => (
               <Pressable
                 key={type.value}
-                onPress={() => updateField("type", type.value)}
+                onPress={() => {
+                  updateField("type", type.value);
+                  setFormError("");
+                }}
                 style={[
                   styles.typeCard,
                   formData.type === type.value && styles.typeCardActive,
@@ -304,12 +384,15 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
               </Pressable>
             ))}
           </View>
+          <Text style={styles.categoryHint}>
+            {tontineTypes.find((type) => type.value === formData.type)?.description}
+          </Text>
         </View>
       )}
 
       {step === 2 && (
         <View style={styles.stepContent}>
-          <Text style={styles.stepTitle}>{formData.type.charAt(0).toUpperCase() + formData.type.slice(1)} Configuration</Text>
+          <Text style={styles.stepTitle}>{t("Configure")} {t(formData.type === "rotating" ? "Rotating" : formData.type === "savings" ? "Savings" : formData.type === "investment" ? "Investment" : "Social")}</Text>
           {renderCategoryFields()}
           <Text style={styles.sectionTitle}>{t("Contribution settings")}</Text>
           <GlassInput
@@ -385,22 +468,41 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
               </Pressable>
             ))}
           </View>
+          <Text style={styles.sectionTitle}>{t("Rules for this plan")}</Text>
+          <View style={styles.rulesContainer}>
+            <Toggle
+              label={t("Allow Late Payment")}
+              value={formData.rules.allowLatePayment}
+              onChange={(value) => updateField("rules", { ...formData.rules, allowLatePayment: value })}
+            />
+            {formData.type === "rotating" && (
+              <>
+                <Toggle
+                  label={t("Require Vote for Absent")}
+                  value={formData.rules.requireVoteForAbsent}
+                  onChange={(value) => updateField("rules", { ...formData.rules, requireVoteForAbsent: value })}
+                />
+                <Toggle
+                  label={t("Allow Early Payout")}
+                  value={formData.rules.allowEarlyPayout}
+                  onChange={(value) => updateField("rules", { ...formData.rules, allowEarlyPayout: value })}
+                />
+              </>
+            )}
+          </View>
         </View>
       )}
 
       {step === 3 && (
         <View style={styles.stepContent}>
-          <Text style={styles.stepTitle}>{t("Members & Cycles")}</Text>
+          <Text style={styles.stepTitle}>{t("Participants & Schedule")}</Text>
+          <Text style={styles.categoryHint}>
+            {t(formData.type === "rotating" ? "A rotation includes one payout cycle per member." : formData.type === "savings" ? "Set when contributions begin; the target date is set in the savings plan." : formData.type === "investment" ? "Set when the project contributions begin; duration is defined in the project plan." : "Set when the community collection begins.")}
+          </Text>
           <GlassInput
             label={t("Total Members")}
             value={formData.totalMembers}
             onChangeText={(text) => updateField("totalMembers", text)}
-            keyboardType="numeric"
-          />
-          <GlassInput
-            label={t("Total Cycles")}
-            value={formData.totalCycles}
-            onChangeText={(text) => updateField("totalCycles", text)}
             keyboardType="numeric"
           />
           <GlassInput
@@ -414,80 +516,6 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
 
       {step === 4 && (
         <View style={styles.stepContent}>
-          <Text style={styles.stepTitle}>{t("Rules Configuration")}</Text>
-          <View style={styles.rulesContainer}>
-            <View style={styles.ruleItem}>
-              <Text style={styles.ruleLabel}>{t("Allow Late Payment")}</Text>
-              <Pressable
-                onPress={() =>
-                  updateField("rules", {
-                    ...formData.rules,
-                    allowLatePayment: !formData.rules.allowLatePayment,
-                  })
-                }
-                style={[
-                  styles.toggle,
-                  formData.rules.allowLatePayment && styles.toggleActive,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.toggleKnob,
-                    formData.rules.allowLatePayment && styles.toggleKnobActive,
-                  ]}
-                />
-              </Pressable>
-            </View>
-            <View style={styles.ruleItem}>
-              <Text style={styles.ruleLabel}>{t("Require Vote for Absent")}</Text>
-              <Pressable
-                onPress={() =>
-                  updateField("rules", {
-                    ...formData.rules,
-                    requireVoteForAbsent: !formData.rules.requireVoteForAbsent,
-                  })
-                }
-                style={[
-                  styles.toggle,
-                  formData.rules.requireVoteForAbsent && styles.toggleActive,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.toggleKnob,
-                    formData.rules.requireVoteForAbsent && styles.toggleKnobActive,
-                  ]}
-                />
-              </Pressable>
-            </View>
-            <View style={styles.ruleItem}>
-              <Text style={styles.ruleLabel}>{t("Allow Early Payout")}</Text>
-              <Pressable
-                onPress={() =>
-                  updateField("rules", {
-                    ...formData.rules,
-                    allowEarlyPayout: !formData.rules.allowEarlyPayout,
-                  })
-                }
-                style={[
-                  styles.toggle,
-                  formData.rules.allowEarlyPayout && styles.toggleActive,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.toggleKnob,
-                    formData.rules.allowEarlyPayout && styles.toggleKnobActive,
-                  ]}
-                />
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {step === 5 && (
-        <View style={styles.stepContent}>
           <Text style={styles.stepTitle}>{t("Review & Confirm")}</Text>
           <GlassCard>
             <View style={styles.reviewRow}>
@@ -497,11 +525,11 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
             <View style={styles.reviewRow}>
               <Text style={styles.reviewLabel}>{t("Type")}</Text>
               <Text style={styles.reviewValue}>
-                {formData.type.charAt(0).toUpperCase() + formData.type.slice(1)}
+                {tontineTypes.find((type) => type.value === formData.type)?.label}
               </Text>
             </View>
             <View style={styles.reviewRow}>
-              <Text style={styles.reviewLabel}>{t("Amount")}</Text>
+              <Text style={styles.reviewLabel}>{t("Contribution per period")}</Text>
               <Text style={styles.reviewValue}>
                 {Number.isFinite(parseTontineAmount(formData.amount))
                   ? `${parseTontineAmount(formData.amount).toLocaleString()} ${formData.currency}`
@@ -517,8 +545,20 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
             <View style={styles.reviewRow}>
               <Text style={styles.reviewLabel}>{t("Members")}</Text>
               <Text style={styles.reviewValue}>
-                {formData.totalMembers} ({formData.totalCycles} {t("cycles")})
+                {formData.totalMembers}
               </Text>
+            </View>
+            {getCategoryReview(formData.type, formData.categoryDetails, formData.currency, t).map(
+              ({ label, value }) => (
+                <View key={label} style={styles.reviewRow}>
+                  <Text style={styles.reviewLabel}>{label}</Text>
+                  <Text style={styles.reviewValue}>{value}</Text>
+                </View>
+              ),
+            )}
+            <View style={styles.reviewRow}>
+              <Text style={styles.reviewLabel}>{t("Start Date")}</Text>
+              <Text style={styles.reviewValue}>{formData.startDate || "—"}</Text>
             </View>
           </GlassCard>
         </View>
@@ -533,15 +573,18 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
         {step > 1 && (
           <GlassButton
             title={t("Back")}
-            onPress={() => setStep(step - 1)}
+            onPress={() => {
+              setFormError("");
+              setStep(step - 1);
+            }}
             variant="secondary"
             style={styles.button}
           />
         )}
-        {step < 5 ? (
+        {step < 4 ? (
           <GlassButton
             title={t("Next")}
-            onPress={() => setStep(step + 1)}
+            onPress={goToNextStep}
             style={styles.button}
           />
         ) : (
@@ -556,6 +599,83 @@ export const CreateTontineForm: React.FC<CreateTontineFormProps> = ({
     </ScrollView>
   );
 };
+
+type CategoryDetails = {
+  payoutOrder: string;
+  savingsTarget: string;
+  savingsTargetDate: string;
+  allowEarlyWithdrawal: boolean;
+  investmentProject: string;
+  investmentTarget: string;
+  investmentRisk: string;
+  investmentDuration: string;
+  profitSharing: string;
+  socialAidType: string;
+  socialBeneficiary: string;
+  socialUrgency: string;
+  socialTarget: string;
+};
+
+function addUtcMonths(date: Date, months: number): Date {
+  const result = new Date(date);
+  const dayOfMonth = result.getUTCDate();
+  result.setUTCDate(1);
+  result.setUTCMonth(result.getUTCMonth() + months);
+  const lastDayOfMonth = new Date(
+    Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  result.setUTCDate(Math.min(dayOfMonth, lastDayOfMonth));
+  return result;
+}
+
+function getCategoryReview(
+  type: TontineType,
+  details: CategoryDetails,
+  currency: string,
+  t: (key: string) => string,
+): { label: string; value: string }[] {
+  const formatAmount = (amount: string) => {
+    const parsed = parseTontineAmount(amount);
+    return Number.isFinite(parsed) ? `${parsed.toLocaleString()} ${currency}` : "—";
+  };
+
+  if (type === "rotating") {
+    const orderLabels: Record<string, string> = {
+      "organizer-first": t("Organizer"),
+      draw: t("Random draw"),
+      vote: t("Member vote"),
+    };
+    return [{ label: t("First beneficiary"), value: orderLabels[details.payoutOrder] }];
+  }
+
+  if (type === "savings") {
+    return [
+      { label: t("Savings target"), value: formatAmount(details.savingsTarget) },
+      { label: t("Target date"), value: details.savingsTargetDate || "—" },
+      {
+        label: t("Allow early withdrawal"),
+        value: details.allowEarlyWithdrawal ? t("Yes") : t("No"),
+      },
+    ];
+  }
+
+  if (type === "investment") {
+    return [
+      { label: t("Investment project"), value: details.investmentProject || "—" },
+      { label: t("Funding target"), value: formatAmount(details.investmentTarget) },
+      { label: t("Risk level"), value: t(details.investmentRisk) },
+      { label: t("Duration (months)"), value: details.investmentDuration || "—" },
+      { label: t("Profit sharing rule"), value: details.profitSharing || "—" },
+    ];
+  }
+
+  return [
+    { label: t("Type of aid"), value: details.socialAidType || "—" },
+    { label: t("Beneficiary"), value: details.socialBeneficiary || "—" },
+    { label: t("Urgency"), value: t(details.socialUrgency) },
+    { label: t("Aid target"), value: formatAmount(details.socialTarget) },
+  ];
+}
 
 const styles = StyleSheet.create({
   container: {

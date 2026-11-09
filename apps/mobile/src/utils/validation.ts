@@ -41,9 +41,16 @@ export const parseTontineAmount = (value: string): number => {
   return normalized ? Number(normalized) : Number.NaN;
 };
 
+export const isValidDateOnly = (value: string): boolean => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+};
+
 export const getTontineCategoryError = (
   type: "rotating" | "savings" | "investment" | "social",
-  details: Record<string, unknown>
+  details: Record<string, unknown>,
+  startDate?: string,
 ): string | null => {
   if (type === "savings") {
     if (!Number.isFinite(parseTontineAmount(String(details.savingsTarget ?? ""))) ||
@@ -51,11 +58,11 @@ export const getTontineCategoryError = (
       return "Enter a positive savings target.";
     }
     const targetDate = String(details.savingsTargetDate ?? "");
-    const parsedDate = new Date(`${targetDate}T00:00:00.000Z`);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(targetDate) ||
-      Number.isNaN(parsedDate.getTime()) ||
-      parsedDate.toISOString().slice(0, 10) !== targetDate) {
+    if (!isValidDateOnly(targetDate)) {
       return "Enter the target date in YYYY-MM-DD format.";
+    }
+    if (startDate && isValidDateOnly(startDate) && targetDate <= startDate) {
+      return "The savings target date must be after the start date.";
     }
   }
 
@@ -70,6 +77,13 @@ export const getTontineCategoryError = (
     if (!["low", "medium", "high"].includes(String(details.investmentRisk))) {
       return "Choose an investment risk level.";
     }
+    const duration = Number(details.investmentDuration);
+    if (!Number.isInteger(duration) || duration < 1 || duration > 600) {
+      return "Enter an investment duration between 1 and 600 months.";
+    }
+    if (!String(details.profitSharing ?? "").trim()) {
+      return "Describe how profits will be shared.";
+    }
   }
 
   if (type === "social") {
@@ -81,6 +95,10 @@ export const getTontineCategoryError = (
     }
     if (!["low", "normal", "urgent"].includes(String(details.socialUrgency))) {
       return "Choose an urgency level.";
+    }
+    if (!Number.isFinite(parseTontineAmount(String(details.socialTarget ?? ""))) ||
+      parseTontineAmount(String(details.socialTarget ?? "")) <= 0) {
+      return "Enter a positive aid target.";
     }
   }
 
@@ -118,7 +136,7 @@ export const createTontineSchema = z.object({
   frequency: z.enum(["weekly", "biweekly", "monthly", "quarterly"]),
   totalMembers: z.number().int().min(2).max(50),
   totalCycles: z.number().int().min(1).max(100),
-  startDate: z.string().min(1, "Start date is required"),
+  startDate: z.string().refine(isValidDateOnly, "Enter the start date in YYYY-MM-DD format."),
   rules: z.object({
     allowLatePayment: z.boolean(),
     latePenaltyPercent: z.number().min(0).max(100),

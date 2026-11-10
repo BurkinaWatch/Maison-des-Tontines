@@ -433,7 +433,7 @@ model DeviceToken {
 model RefreshToken {
   id        String   @id @default(cuid())
   userId    String
-  token     String   @unique 
+  tokenHash String   @unique @map("token")
   expiresAt DateTime 
   revokedAt DateTime? 
 

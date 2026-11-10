@@ -12,11 +12,15 @@ export function ensureDevelopmentDatabase({
   databaseUrl = process.env.DATABASE_URL,
   databasePath = resolve(apiRoot, "prisma/dev.db"),
   exists = existsSync,
-  initializeSchema = () => {
+  initializeSchema = (url = databaseUrl) => {
     execFileSync(
-      process.execPath,
-      [resolve(apiRoot, "node_modules/prisma/build/index.js"), "db", "push", "--skip-generate"],
-      { cwd: apiRoot, stdio: "inherit" },
+      "prisma",
+      ["db", "push", "--skip-generate"],
+      {
+        cwd: apiRoot,
+        stdio: "inherit",
+        env: { ...process.env, DATABASE_URL: url },
+      },
     );
   },
 } = {}) {
@@ -35,7 +39,7 @@ export function ensureDevelopmentDatabase({
   }
 
   mkdirSync(dirname(databasePath), { recursive: true });
-  initializeSchema();
+  initializeSchema(databaseUrl);
 
   if (!exists(databasePath)) {
     throw new Error("Prisma did not create the expected local SQLite database.");

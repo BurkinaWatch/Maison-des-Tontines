@@ -5,6 +5,7 @@ import { getPrisma } from "../../config/database.js";
 import { getEnv } from "../../config/env.js";
 import { logger } from "../../config/logger.js";
 import { validatePhone, normalizePhone } from "../../utils/phone.js";
+import { hashRefreshToken } from "./refresh-token.js";
 export class AuthService {
     prisma = getPrisma();
     env = getEnv();
@@ -83,16 +84,39 @@ export class AuthService {
         const env = this.env;
         try {
             const payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET);
-            const storedToken = await this.prisma.refreshToken.findFirst({
+            let storedToken = await this.prisma.refreshToken.findFirst({
                 where: {
-                    token: refreshToken,
+                    tokenHash: hashRefreshToken(refreshToken),
                     userId: payload.sub,
                     revokedAt: null,
                     expiresAt: { gt: new Date() },
                 },
             });
             if (!storedToken) {
-                throw new Error("Invalid refresh token");
+                const legacyToken = await this.prisma.refreshToken.findFirst({
+                    where: {
+                        tokenHash: refreshToken,
+                        userId: payload.sub,
+                        revokedAt: null,
+                        expiresAt: { gt: new Date() },
+                    },
+                });
+                if (!legacyToken) {
+                    throw new Error("Invalid refresh token");
+                }
+                const migrated = await this.prisma.refreshToken.updateMany({
+                    where: {
+                        id: legacyToken.id,
+                        tokenHash: refreshToken,
+                        revokedAt: null,
+                        expiresAt: { gt: new Date() },
+                    },
+                    data: { tokenHash: hashRefreshToken(refreshToken) },
+                });
+                if (migrated.count !== 1) {
+                    throw new Error("Refresh token was already migrated or revoked");
+                }
+                storedToken = legacyToken;
             }
             const user = await this.prisma.user.findUnique({
                 where: { id: payload.sub },
@@ -115,7 +139,7 @@ export class AuthService {
         await this.prisma.refreshToken.updateMany({
             where: {
                 userId,
-                token: refreshToken,
+                tokenHash: { in: [hashRefreshToken(refreshToken), refreshToken] },
                 revokedAt: null,
             },
             data: { revokedAt: new Date() },
@@ -165,7 +189,7 @@ export class AuthService {
         await this.prisma.refreshToken.create({
             data: {
                 userId,
-                token: refreshToken,
+                tokenHash: hashRefreshToken(refreshToken),
                 expiresAt,
             },
         });

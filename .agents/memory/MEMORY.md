@@ -2,6 +2,7 @@
 - [Expo preview API routing](expo-preview-api-routing.md) — Proxy preview API calls through an Expo same-origin server route, not Metro middleware or a second browser port.
 - [Expo web auth storage](expo-web-auth-storage.md) — Use localStorage for Expo web sessions and SecureStore only on native platforms.
 - [Refresh-token uniqueness](refresh-token-uniqueness.md) — Give every JWT refresh token unique session entropy, even when sessions start in the same second.
+- [Refresh-token digest rollout](refresh-token-digest-rollout.md) — Hash refresh tokens at rest while preserving SQLite/PostgreSQL compatibility and existing sessions during rollout.
 - [Railway migration environment](railway-migration-environment.md) — Gate PostgreSQL migrations to production so local tools never target the Railway URL.
 - [Railway Railpack builds](railway-railpack-builds.md) — Match the root Node engine and package-manager metadata to the build/start scripts Railway runs.
 - [Railway deployment branch isolation](railway-deployment-branch-isolation.md) — Deploy only intended changes when production's GitHub branch lags behind the Replit workspace.
